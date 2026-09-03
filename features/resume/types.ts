@@ -47,6 +47,7 @@ export interface EducationEntry {
   location: string
   startDate: DateObject
   endDate: DateObject
+  description: string
 }
 
 export interface SkillEntry {
@@ -80,6 +81,8 @@ export interface ProjectEntry {
   projectTitle: string
   projectTitleLink: string
   subTitle: string
+  startDate: DateObject
+  endDate: DateObject
   description: string
 }
 

@@ -84,7 +84,7 @@ export function defaultEntryData(sectionType: SectionType): EntryData {
     case 'work':
       return { type: 'work', jobTitle: '', employer: '', employerLink: '', location: '', city: '', country: '', startDate: emptyDate(), endDate: emptyDate(), description: '' }
     case 'education':
-      return { type: 'education', degree: '', school: '', schoolLink: '', location: '', startDate: emptyDate(), endDate: emptyDate() }
+      return { type: 'education', degree: '', school: '', schoolLink: '', location: '', startDate: emptyDate(), endDate: emptyDate(), description: '' }
     case 'skill':
       return { type: 'skill', skill: '', level: '', infoHtml: '' }
     case 'language':
@@ -94,7 +94,7 @@ export function defaultEntryData(sectionType: SectionType): EntryData {
     case 'profile':
       return { type: 'profile', text: '' }
     case 'project':
-      return { type: 'project', projectTitle: '', projectTitleLink: '', subTitle: '', description: '' }
+      return { type: 'project', projectTitle: '', projectTitleLink: '', subTitle: '', startDate: emptyDate(), endDate: emptyDate(), description: '' }
     case 'certificate':
       return { type: 'certificate', title: '', link: '', issuer: '', location: '', date: '' }
     case 'publication':
