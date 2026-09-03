@@ -90,6 +90,8 @@ async function main() {
       for (const e of s.entries ?? []) {
         if (!e || typeof e !== 'object') continue
         const { id: _id, isNewEntry: _new, isHidden, ...rest } = e
+        void _id
+        void _new
         await sql`
           INSERT INTO resume_entry (section_id, "order", hidden, data)
           VALUES (${sec.id}, ${j++}, ${!!isHidden}, ${JSON.stringify({ ...rest, type })})`

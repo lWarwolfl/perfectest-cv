@@ -7,30 +7,27 @@ import {
   useSaveResumePersonalDetails,
   useSaveResumeCustomization,
   useRenameResume,
-    useAddSection,
-    useDeleteSection,
-    useAddEntry,
-    useDeleteEntry,
-    useUpdateEntryData,
-    useSaveSectionMeta,
-    useApplyResumeTemplate,
-  } from '@/features/resume/hooks/resume.hooks'
+  useAddSection,
+  useDeleteSection,
+  useAddEntry,
+  useDeleteEntry,
+  useUpdateEntryData,
+  useSaveSectionMeta,
+} from '@/features/resume/hooks/resume.hooks'
+import { useListResumes } from '@/features/resume/hooks/resume.hooks'
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
-import { RESUME_TEMPLATES } from '@/features/resume/templates'
 import { SECTION_LABELS, EMPTY_PERSONAL_DETAILS, DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
 import type { TSection, TEntry, PersonalDetails, Customization, SectionType, EntryData } from '@/features/resume/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ChevronLeft, Plus, Trash2, Download } from 'lucide-react'
-
-const SECTION_TYPES: SectionType[] = ['profile', 'work', 'education', 'skill', 'language', 'interest', 'project', 'certificate', 'custom']
+import EditorHeader from '@/components/editor/editor-header'
+import AddSectionModal from '@/components/editor/add-section-modal'
 
 function EntryForm({ entry, sectionType, onChange, onDelete }: {
   entry: TEntry
@@ -38,7 +35,6 @@ function EntryForm({ entry, sectionType, onChange, onDelete }: {
   onChange: (updates: Partial<EntryData>) => void
   onDelete: () => void
 }) {
-  // the DB guarantees data.type === section.sectionType, so cast per branch
   const up = (patch: Partial<EntryData>) => onChange({ ...entry.data, ...patch } as EntryData)
   if (sectionType === 'work') {
     const e = entry.data as Extract<EntryData, { type: 'work' }>
@@ -166,6 +162,7 @@ export default function ResumeEditorPage() {
   const router = useRouter()
   const id = params.id as string
   const { data: doc, isLoading } = useResumeDocument(id)
+  const { data: allResumes = [] } = useListResumes()
   const savePersonal = useSaveResumePersonalDetails()
   const saveCustom = useSaveResumeCustomization()
   const rename = useRenameResume()
@@ -174,15 +171,13 @@ export default function ResumeEditorPage() {
   const addEntry = useAddEntry(id)
   const deleteEntry = useDeleteEntry(id)
   const updateData = useUpdateEntryData(id)
-    const saveSectionMeta = useSaveSectionMeta(id)
-  const applyTemplate = useApplyResumeTemplate(id)
+  const saveSectionMeta = useSaveSectionMeta(id)
 
   const [sections, setSections] = useState<TSection[]>([])
   const [personal, setPersonal] = useState<PersonalDetails>(EMPTY_PERSONAL_DETAILS)
   const [custom, setCustom] = useState<Customization>(DEFAULT_CUSTOMIZATION)
-  const [title, setTitle] = useState('')
   const [tab, setTab] = useState('content')
-  const [templateOpen, setTemplateOpen] = useState(false)
+  const [addSectionModalOpen, setAddSectionModalOpen] = useState(false)
   const dirty = useRef(false)
 
   useEffect(() => {
@@ -190,7 +185,6 @@ export default function ResumeEditorPage() {
       setSections(doc.sections || [])
       setPersonal({ ...EMPTY_PERSONAL_DETAILS, ...doc.resume.personalDetails })
       setCustom({ ...DEFAULT_CUSTOMIZATION, ...doc.resume.customization })
-      setTitle(doc.resume.title)
     }
   }, [doc])
 
@@ -246,167 +240,192 @@ export default function ResumeEditorPage() {
   if (!doc) return <p className="p-8 text-muted-foreground">Resume not found</p>
 
   return (
-    <div className="fixed inset-0 top-0 left-56 flex print:static print:inset-auto print:left-auto">
-      <div className="flex w-96 shrink-0 flex-col border-r bg-card print:hidden">
-        <div className="flex items-center gap-2 border-b p-3">
-          <Button variant="ghost" size="icon-sm" onClick={() => router.push('/app/resumes')}><ChevronLeft className="size-4" /></Button>
-          <Input value={title} onChange={(e) => { setTitle(e.target.value); rename.mutate({ id, title: e.target.value }) }} className="h-8 text-sm font-medium" />
-        </div>
-        <Tabs value={tab} onValueChange={setTab} className="flex-1">
-          <TabsList className="mx-3 mt-2 grid grid-cols-3">
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="style">Style</TabsTrigger>
-          </TabsList>
-          <TabsContent value="content" className="flex-1 overflow-auto p-3">
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              <Dialog open={templateOpen} onOpenChange={setTemplateOpen}>
-                <DialogTrigger render={<Button variant="outline" size="sm">Templates</Button>} />
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader><DialogTitle>Choose a template</DialogTitle></DialogHeader>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {RESUME_TEMPLATES.map((t) => (
-                      <Card key={t.id} className="cursor-pointer hover:border-primary" onClick={() => {
-                        applyTemplate.mutate(t.id)
-                        setTemplateOpen(false)
-                      }}>
-                        <CardHeader><CardTitle className="text-sm">{t.name}</CardTitle></CardHeader>
-                        <CardContent><p className="text-xs text-muted-foreground">{t.description}</p></CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
-              <Button variant="outline" size="sm" onClick={handlePrint}><Download className="mr-1 size-3" /> PDF</Button>
-            </div>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {SECTION_TYPES.filter((st) => !sections.find((s) => s.sectionType === st)).map((st) => (
-                <Button key={st} variant="outline" size="sm" onClick={() => handleAddSection(st)}>
-                  <Plus className="mr-1 size-3" />{SECTION_LABELS[st]}
-                </Button>
-              ))}
-            </div>
-            <ScrollArea className="h-[calc(100vh-240px)]">
-              {sections.map((section) => (
-                <div key={section.id} className="mb-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium">{section.displayName}</span>
-                    <div className="flex gap-1">
-                      <label className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                        <input type="checkbox" checked={!section.hidden} onChange={(e) => saveSectionMeta.mutate({ sectionId: section.id, hidden: !e.target.checked })} />
-                        show
-                      </label>
-                      <Button variant="ghost" size="icon-sm" onClick={() => handleDeleteSection(section.id)}><Trash2 className="size-3" /></Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {section.entries.map((entry) => (
-                      <EntryForm
-                        key={entry.id}
-                        entry={entry}
-                        sectionType={section.sectionType}
-                        onChange={(u) => mutateData(section.id, entry.id, u)}
-                        onDelete={() => deleteEntry.mutate(entry.id)}
-                      />
-                    ))}
-                    <Button variant="ghost" size="sm" onClick={() => handleAddEntry(section.id)}>
-                      <Plus className="mr-1 size-3" /> Add
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </ScrollArea>
-          </TabsContent>
-          <TabsContent value="details" className="flex-1 overflow-auto p-3 space-y-3">
-            {(['fullName', 'jobTitle', 'displayEmail', 'phone', 'address', 'website'] as (keyof PersonalDetails)[]).map((key) => (
-              <div key={key}>
-                <Label className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
-                <Input value={personal[key] as string || ''} onChange={(e) => { setPersonal((p) => ({ ...p, [key]: e.target.value })); markDirty() }} />
-              </div>
-            ))}
-            <div>
-              <Label className="text-xs">LinkedIn</Label>
-              <Input value={personal?.social?.linkedIn?.display || ''} onChange={(e) => { setPersonal((p) => ({ ...p, social: { ...p.social, linkedIn: { ...p.social?.linkedIn, display: e.target.value, link: e.target.value } } })); markDirty() }} />
-            </div>
-            <div>
-              <Label className="text-xs">GitHub</Label>
-              <Input value={personal?.social?.github?.display || ''} onChange={(e) => { setPersonal((p) => ({ ...p, social: { ...p.social, github: { ...p.social?.github, display: e.target.value, link: e.target.value } } })); markDirty() }} />
-            </div>
-          </TabsContent>
-          <TabsContent value="style" className="flex-1 overflow-auto p-3 space-y-3">
-            <div>
-              <Label className="text-xs">Font</Label>
-              <Select value={custom.font.selected || 'sans'} onValueChange={(v: string | null) => {
-                const map: Record<string, string> = { sans: 'Inter', serif: 'Source Sans Pro', mono: 'JetBrains Mono', modern: 'Nunito', elegant: 'Crimson Pro', display: 'Zilla Slab' }
-                const val = ((v || 'sans') as keyof typeof map)
-                setCustom((c) => ({ ...c, font: { selected: val, fontFamily: map[val] || 'Inter' } }))
-                markDirty()
-              }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sans">Sans (Inter)</SelectItem>
-                  <SelectItem value="serif">Serif (Source Sans Pro)</SelectItem>
-                  <SelectItem value="modern">Modern (Nunito)</SelectItem>
-                  <SelectItem value="elegant">Elegant (Crimson Pro)</SelectItem>
-                  <SelectItem value="display">Display (Zilla Slab)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Accent Color</Label>
-              <div className="flex gap-2 flex-wrap">
-                {['#044cb5', '#0891b2', '#ea580c', '#4a7c59', '#b91c1c', '#475569', '#1e293b', '#7c3aed'].map((c) => (
-                  <button key={c} className="size-7 rounded-full border-2" style={{ backgroundColor: c, borderColor: custom.colors.basic.single === c ? 'var(--primary)' : 'transparent' }} onClick={() => {
-                    setCustom((prev) => ({ ...prev, colors: { ...prev.colors, mode: 'basic', basic: { ...prev.colors.basic, single: c, selected: 'single' } } }))
-                    markDirty()
-                  }} />
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs">Layout</Label>
-              <Select value={custom.layout.selected || 'one'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, layout: { ...c.layout, selected: (v || 'one') as Customization['layout']['selected'] } })); markDirty() }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="one">Single Column</SelectItem>
-                  <SelectItem value="two">Two Column</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Heading Style</Label>
-              <Select value={custom.heading.style || 'line'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, heading: { ...c.heading, style: (v || 'line') as Customization['heading']['style'] } })); markDirty() }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="line">Line</SelectItem>
-                  <SelectItem value="box">Box</SelectItem>
-                  <SelectItem value="underline">Underline</SelectItem>
-                  <SelectItem value="thickShortUnderline">Thick Short</SelectItem>
-                  <SelectItem value="topBottomLine">Top & Bottom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Spacing</Label>
-              <Select value={custom.spacing.fontSize || '3'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, spacing: { ...c.spacing, fontSize: v || '3' } })); markDirty() }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                    <SelectItem key={n} value={String(n)}>{n === 3 ? 'Medium' : n < 3 ? 'Compact' : 'Large'}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-      <div className="flex-1 overflow-auto bg-muted/30 p-4 print:overflow-visible print:bg-white print:p-0" id="resume-preview">
-        <ResumeRenderer
-          personalDetails={personal}
-          sections={sections}
-          customization={custom}
+    <>
+      <div className="fixed inset-0 z-20">
+        <EditorHeader
+          activeTab={tab}
+          setActiveTab={setTab}
+          documents={allResumes.map(r => ({ id: r.id, title: r.title }))}
+          selectedDocument={id}
+          setSelectedDocument={(newId) => router.push(`/app/resumes/${newId}`)}
+          onDownload={handlePrint}
         />
       </div>
-    </div>
+      <div className="flex-1 overflow-hidden" style={{ marginTop: '4rem' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-4rem)] bg-muted/20">
+          {/* Left Column */}
+          <div className="lg:col-span-6 xl:col-span-5 p-6 overflow-y-auto max-w-2xl mx-auto w-full">
+            <div className="flex items-center gap-2 border-b p-3">
+              <Button variant="ghost" size="icon-sm" onClick={() => router.push('/app/resumes')}><ChevronLeft className="size-4" /></Button>
+              <Input value={doc.resume.title} onChange={(e) => { rename.mutate({ id, title: e.target.value }) }} className="h-8 text-sm font-medium" />
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <Tabs value={tab} onValueChange={setTab} className="mx-3 mt-2 grid grid-cols-3">
+                <TabsList>
+                  <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="style">Style</TabsTrigger>
+                </TabsList>
+                <TabsContent value="content" className="flex-1 overflow-auto p-3">
+                  <div className="mb-3 flex flex-wrap gap-1.5">
+                    <Button variant="outline" size="sm" onClick={handlePrint}>
+                      <Download className="mr-1 size-3" /> PDF
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {[...Object.keys(SECTION_LABELS)].filter((st) => !sections.find((s) => s.sectionType === st as SectionType)).map((st) => (
+                      <Button
+                        key={st}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddSection(st as SectionType)}
+                      >
+                        <Plus className="mr-1 size-3" />{SECTION_LABELS[st as keyof typeof SECTION_LABELS]}
+                      </Button>
+                    ))}
+                  </div>
+                  <ScrollArea className="h-[calc(100vh-240px)]">
+                    {sections.map((section) => (
+                      <div key={section.id} className="mb-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">{section.displayName}</span>
+                          <div className="flex gap-1">
+                            <label className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                              <input
+                                type="checkbox"
+                                checked={!section.hidden}
+                                onChange={(e) => saveSectionMeta.mutate({ sectionId: section.id, hidden: !e.target.checked })}
+                              />
+                              show
+                            </label>
+                            <Button variant="ghost" size="icon-sm" onClick={() => handleDeleteSection(section.id)}><Trash2 className="size-3" /></Button>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          {section.entries.map((entry) => (
+                            <EntryForm
+                              key={entry.id}
+                              entry={entry}
+                              sectionType={section.sectionType}
+                              onChange={(u) => mutateData(section.id, entry.id, u)}
+                              onDelete={() => deleteEntry.mutate(entry.id)}
+                            />
+                          ))}
+                          <Button variant="ghost" size="sm" onClick={() => handleAddEntry(section.id)}>
+                            <Plus className="mr-1 size-3" /> Add
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </ScrollArea>
+                </TabsContent>
+                <TabsContent value="details" className="flex-1 overflow-auto p-3 space-y-3">
+                  {(['fullName', 'jobTitle', 'displayEmail', 'phone', 'address', 'website'] as (keyof PersonalDetails)[]).map((key) => (
+                    <div key={key}>
+                      <Label className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
+                      <Input value={personal[key] as string || ''} onChange={(e) => { setPersonal((p) => ({ ...p, [key]: e.target.value })); markDirty() }} />
+                    </div>
+                  ))}
+                  <div>
+                    <Label className="text-xs">LinkedIn</Label>
+                    <Input value={personal?.social?.linkedIn?.display || ''} onChange={(e) => { setPersonal((p) => ({ ...p, social: { ...p.social, linkedIn: { ...p.social?.linkedIn, display: e.target.value, link: e.target.value } } })); markDirty() }} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">GitHub</Label>
+                    <Input value={personal?.social?.github?.display || ''} onChange={(e) => { setPersonal((p) => ({ ...p, social: { ...p.social, github: { ...p.social?.github, display: e.target.value, link: e.target.value } } })); markDirty() }} />
+                  </div>
+                </TabsContent>
+                <TabsContent value="style" className="flex-1 overflow-auto p-3 space-y-3">
+                  <div>
+                    <Label className="text-xs">Font</Label>
+                    <Select value={custom.font.selected || 'sans'} onValueChange={(v: string | null) => {
+                      const map: Record<string, string> = { sans: 'Inter', serif: 'Source Sans Pro', mono: 'JetBrains Mono', modern: 'Nunito', elegant: 'Crimson Pro', display: 'Zilla Slab' }
+                      const val = ((v || 'sans') as keyof typeof map)
+                      setCustom((c) => ({ ...c, font: { selected: val, fontFamily: map[val] || 'Inter' } }))
+                      markDirty()
+                    }}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sans">Sans (Inter)</SelectItem>
+                        <SelectItem value="serif">Serif (Source Sans Pro)</SelectItem>
+                        <SelectItem value="modern">Modern (Nunito)</SelectItem>
+                        <SelectItem value="elegant">Elegant (Crimson Pro)</SelectItem>
+                        <SelectItem value="display">Display (Zilla Slab)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Accent Color</Label>
+                    <div className="flex gap-2 flex-wrap">
+                      {['#044cb5', '#0891b2', '#ea580c', '#4a7c59', '#b91c1c', '#475569', '#1e293b', '#7c3aed'].map((c) => (
+                        <button key={c} className="size-7 rounded-full border-2" style={{ backgroundColor: c, borderColor: custom.colors.basic.single === c ? 'var(--primary)' : 'transparent' }} onClick={() => {
+                          setCustom((prev) => ({ ...prev, colors: { ...prev.colors, mode: 'basic', basic: { ...prev.colors.basic, single: c, selected: 'single' } } }))
+                          markDirty()
+                        }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Layout</Label>
+                    <Select value={custom.layout.selected || 'one'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, layout: { ...c.layout, selected: (v || 'one') as Customization['layout']['selected'] } })); markDirty() }}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="one">Single Column</SelectItem>
+                        <SelectItem value="two">Two Column</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Heading Style</Label>
+                    <Select value={custom.heading.style || 'line'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, heading: { ...c.heading, style: (v || 'line') as Customization['heading']['style'] } })); markDirty() }}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="line">Line</SelectItem>
+                        <SelectItem value="box">Box</SelectItem>
+                        <SelectItem value="underline">Underline</SelectItem>
+                        <SelectItem value="thickShortUnderline">Thick Short</SelectItem>
+                        <SelectItem value="topBottomLine">Top & Bottom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Spacing</Label>
+                    <Select value={custom.spacing.fontSize || '3'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, spacing: { ...c.spacing, fontSize: v || '3' } })); markDirty() }}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                          <SelectItem key={n} value={String(n)}>{n === 3 ? 'Medium' : n < 3 ? 'Compact' : 'Large'}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TabsContent>
+              </Tabs>
+              <div className="py-6 flex justify-center">
+                <Button
+                  className="w-full max-w-sm bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 hover:opacity-95 text-white font-bold h-12 rounded-2xl shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                  onClick={() => setAddSectionModalOpen(true)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Section
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="hidden lg:block lg:col-span-6 xl:col-span-7 bg-muted/40 border-l border-border p-8 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+            <ResumeRenderer
+              personalDetails={personal}
+              sections={sections}
+              customization={custom}
+            />
+          </div>
+        </div>
+      </div>
+      <AddSectionModal
+        open={addSectionModalOpen}
+        onOpenChange={setAddSectionModalOpen}
+        onAddSection={handleAddSection}
+      />
+    </>
   )
 }

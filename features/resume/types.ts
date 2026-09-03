@@ -344,4 +344,8 @@ export interface PersonalDetails {
   passport: string
   maritalStatus: string
   drivingLicense: string
+  // Additional fields from the form
+  dateOfBirth: string
+  passportId: string
+  availability: string
 }

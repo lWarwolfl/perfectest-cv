@@ -34,6 +34,9 @@ export const EMPTY_PERSONAL_DETAILS: PersonalDetails = {
   passport: '',
   maritalStatus: '',
   drivingLicense: '',
+  dateOfBirth: '',
+  passportId: '',
+  availability: '',
 }
 
 export const SECTION_LABELS: Record<SectionType, string> = {
