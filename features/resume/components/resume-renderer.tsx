@@ -1,23 +1,14 @@
 import type {
-  AnyEntry,
-  CertificateEntry,
-  Content,
-  CustomEntry,
   Customization,
   DateObject,
-  EducationEntry,
-  InterestEntry,
-  LanguageEntry,
   PersonalDetails,
-  ProfileEntry,
-  ProjectEntry,
-  Section,
-  SkillEntry,
-  WorkEntry,
+  TEntry,
+  TSection,
 } from '@/features/resume/types'
 import { SECTION_LABELS } from '@/features/resume/defaults'
 
 function dateStr(d: DateObject) {
+  if (!d) return ''
   if (d.hide) return ''
   if (d.onlyYear) return d.year || ''
   if (d.ongoing) return `${d.month && d.month !== '0' ? `${d.month}/` : ''}${d.year || ''} ${d.customOngoingWord || 'present'}`.trim()
@@ -43,73 +34,33 @@ function colorStyle(customization: Customization) {
   return { accent, text, bg }
 }
 
-function sectionEntries(content: Content, sectionOrder: string[]) {
-  const ids = sectionOrder.length ? sectionOrder : Object.keys(content)
-  return ids
-    .map((id) => content[id])
-    .filter((s): s is Section => !!s && !s.sectionType.startsWith('header'))
-}
-
-function isWorkEntry(e: AnyEntry): e is WorkEntry {
-  return 'jobTitle' in e
-}
-
-function isEducationEntry(e: AnyEntry): e is EducationEntry {
-  return 'degree' in e
-}
-
-function isSkillEntry(e: AnyEntry): e is SkillEntry {
-  return 'skill' in e
-}
-
-function isLanguageEntry(e: AnyEntry): e is LanguageEntry {
-  return 'language' in e
-}
-
-function isInterestEntry(e: AnyEntry): e is InterestEntry {
-  return 'interest' in e
-}
-
-function isProjectEntry(e: AnyEntry): e is ProjectEntry {
-  return 'projectTitle' in e
-}
-
-function isCertificateEntry(e: AnyEntry): e is CertificateEntry {
-  return 'issuer' in e && 'title' in e
-}
-
-function isProfileEntry(e: AnyEntry): e is ProfileEntry {
-  return 'text' in e
-}
-
-function isCustomEntry(e: AnyEntry): e is CustomEntry {
-  return 'subTitle' in e
-}
-
-function skillText(section: Section, customization: Customization, delimiter: string) {
+function skillText(section: TSection, delimiter: string) {
   return section.entries
-    .filter(isSkillEntry)
-    .map((e) => e.skill)
+    .filter((e) => e.data.type === 'skill')
+    .map((e) => (e.data as Extract<TEntry['data'], { type: 'skill' }>).skill)
     .filter(Boolean)
     .join(delimiter)
 }
 
-function languageText(section: Section, delimiter: string) {
+function languageText(section: TSection, delimiter: string) {
   return section.entries
-    .filter(isLanguageEntry)
-    .map((e) => `${e.language}${e.level ? ` (${e.level})` : ''}`)
+    .filter((e) => e.data.type === 'language')
+    .map((e) => {
+      const d = e.data as Extract<TEntry['data'], { type: 'language' }>
+      return `${d.language}${d.level ? ` (${d.level})` : ''}`
+    })
     .filter(Boolean)
     .join(delimiter)
 }
 
 export function ResumeRenderer({
   personalDetails,
-  content,
+  sections,
   customization,
   showPlaceholder = false,
 }: {
   personalDetails: PersonalDetails
-  content: Content
+  sections: TSection[]
   customization: Customization
   showPlaceholder?: boolean
 }) {
@@ -118,7 +69,7 @@ export function ResumeRenderer({
   const fontFamily = customization.font.fontFamily || 'Inter'
   const fs = 1 + Number(spacing.fontSize) * 0.05
   const lh = 1.2 + Number(spacing.lineHeight) * 0.1
-  const sections = sectionEntries(content, layout.sectionOrder.mix)
+  const ordered = [...sections].sort((a, b) => a.order - b.order)
 
   const headingClass =
     heading.style === 'box'
@@ -138,9 +89,10 @@ export function ResumeRenderer({
 
   const isTwoCol = layout.selected === 'two'
 
-  function renderSection(section: Section) {
+  function renderSection(section: TSection) {
     const label = section.displayName || SECTION_LABELS[section.sectionType] || 'Section'
-    const entries = section.entries.filter((e) => !('isHidden' in e && e.isHidden))
+    if (section.hidden) return null
+    const entries = section.entries.filter((e) => !e.hidden && e.data !== null)
     if (!entries.length && !showPlaceholder) return null
 
     return (
@@ -149,42 +101,50 @@ export function ResumeRenderer({
           <span className={heading.capitalization === 'uppercase' ? 'uppercase' : 'capitalize'}>{label}</span>
         </div>
         {section.sectionType === 'profile' && (
-          <div className="text-sm" style={{ lineHeight: lh }} dangerouslySetInnerHTML={{ __html: entries.find(isProfileEntry)?.text || '' }} />
+          <div className="text-sm" style={{ lineHeight: lh }} dangerouslySetInnerHTML={{ __html: (entries.find((e) => e.data.type === 'profile')?.data as Extract<TEntry['data'], { type: 'profile' }> | undefined)?.text || '' }} />
         )}
         {section.sectionType === 'work' &&
-          entries.filter(isWorkEntry).map((e) => (
-            <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
-              <div className="flex justify-between gap-2">
-                <span className="font-medium">
-                  {customization.workDisplay.jobTitleBeforeEmployer ? e.jobTitle : e.employer}
-                  {e.employer && e.jobTitle && <span className="text-muted-foreground"> - {customization.workDisplay.jobTitleBeforeEmployer ? e.employer : e.jobTitle}</span>}
-                </span>
-                <span className="text-xs" style={{ color: colors.accent }}>
-                  {formatDateRange(e.startDate, e.endDate)}
-                </span>
+          entries.map((e) => {
+            if (e.data.type !== 'work') return null
+            const w = e.data
+            return (
+              <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
+                <div className="flex justify-between gap-2">
+                  <span className="font-medium">
+                    {customization.workDisplay.jobTitleBeforeEmployer ? w.jobTitle : w.employer}
+                    {w.employer && w.jobTitle && <span className="text-muted-foreground"> - {customization.workDisplay.jobTitleBeforeEmployer ? w.employer : w.jobTitle}</span>}
+                  </span>
+                  <span className="text-xs" style={{ color: colors.accent }}>
+                    {formatDateRange(w.startDate, w.endDate)}
+                  </span>
+                </div>
+                {w.location && <div className="text-xs text-muted-foreground">{w.location}</div>}
+                {w.description && <div className="mt-1" dangerouslySetInnerHTML={{ __html: w.description }} />}
               </div>
-              {e.location && <div className="text-xs text-muted-foreground">{e.location}</div>}
-              {e.description && <div className="mt-1" dangerouslySetInnerHTML={{ __html: e.description }} />}
-            </div>
-          ))}
+            )
+          })}
         {section.sectionType === 'education' &&
-          entries.filter(isEducationEntry).map((e) => (
-            <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
-              <div className="flex justify-between gap-2">
-                <span className="font-medium">
-                  {customization.educationDisplay.degreeBeforeSchool ? e.degree : e.school}
-                  {e.school && e.degree && <span className="text-muted-foreground"> - {customization.educationDisplay.degreeBeforeSchool ? e.school : e.degree}</span>}
-                </span>
-                <span className="text-xs" style={{ color: colors.accent }}>
-                  {formatDateRange(e.startDate, e.endDate)}
-                </span>
+          entries.map((e) => {
+            if (e.data.type !== 'education') return null
+            const ed = e.data
+            return (
+              <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
+                <div className="flex justify-between gap-2">
+                  <span className="font-medium">
+                    {customization.educationDisplay.degreeBeforeSchool ? ed.degree : ed.school}
+                    {ed.school && ed.degree && <span className="text-muted-foreground"> - {customization.educationDisplay.degreeBeforeSchool ? ed.school : ed.degree}</span>}
+                  </span>
+                  <span className="text-xs" style={{ color: colors.accent }}>
+                    {formatDateRange(ed.startDate, ed.endDate)}
+                  </span>
+                </div>
+                {ed.location && <div className="text-xs text-muted-foreground">{ed.location}</div>}
               </div>
-              {e.location && <div className="text-xs text-muted-foreground">{e.location}</div>}
-            </div>
-          ))}
+            )
+          })}
         {section.sectionType === 'skill' && (
           <div className="text-sm" style={{ lineHeight: lh }}>
-            {skillText(section, customization, customization.skill.text === 'comma' ? ', ' : customization.skill.text === 'pipe' ? ' | ' : ' • ')}
+            {skillText(section, customization.skill.text === 'comma' ? ', ' : customization.skill.text === 'pipe' ? ' | ' : ' • ')}
           </div>
         )}
         {section.sectionType === 'language' && (
@@ -194,36 +154,50 @@ export function ResumeRenderer({
         )}
         {section.sectionType === 'interest' && (
           <div className="text-sm" style={{ lineHeight: lh }}>
-            {entries.filter(isInterestEntry).map((e) => e.interest).filter(Boolean).join(customization.interest.text === 'pipe' ? ' | ' : ', ')}
+            {entries.map((e) => e.data.type === 'interest' ? e.data.interest : '').filter(Boolean).join(customization.interest.text === 'pipe' ? ' | ' : ', ')}
           </div>
         )}
         {section.sectionType === 'project' &&
-          entries.filter(isProjectEntry).map((e) => (
-            <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
-              <span className="font-medium">
-                {e.projectTitle}
-                {e.projectTitleLink && <span className="text-xs" style={{ color: colors.accent }}> ({e.projectTitleLink})</span>}
-              </span>
-              {e.subTitle && <div className="text-xs text-muted-foreground">{e.subTitle}</div>}
-              {e.description && <div className="mt-0.5" dangerouslySetInnerHTML={{ __html: e.description }} />}
-            </div>
-          ))}
+          entries.map((e) => {
+            if (e.data.type !== 'project') return null
+            const p = e.data
+            return (
+              <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
+                <span className="font-medium">
+                  {p.projectTitle}
+                  {p.projectTitleLink && <span className="text-xs" style={{ color: colors.accent }}> ({p.projectTitleLink})</span>}
+                </span>
+                {p.subTitle && <div className="text-xs text-muted-foreground">{p.subTitle}</div>}
+                {p.description && <div className="mt-0.5" dangerouslySetInnerHTML={{ __html: p.description }} />}
+              </div>
+            )
+          })}
         {(section.sectionType === 'certificate' || section.sectionType === 'award' || section.sectionType === 'publication' || section.sectionType === 'organisation' || section.sectionType === 'course') &&
-          entries.filter(isCertificateEntry).map((e) => (
-            <div key={e.id} className="mb-1.5 text-sm" style={{ lineHeight: lh }}>
-              <span className="font-medium">{e.title}</span>
-              {e.issuer && <span className="text-muted-foreground"> - {e.issuer}</span>}
-              {e.date && <span className="float-right text-xs" style={{ color: colors.accent }}>{e.date}</span>}
-            </div>
-          ))}
+          entries.map((e) => {
+            if (e.data.type === 'certificate' || e.data.type === 'publication' || e.data.type === 'organisation' || e.data.type === 'course' || e.data.type === 'award') {
+              const c = e.data
+              return (
+                <div key={e.id} className="mb-1.5 text-sm" style={{ lineHeight: lh }}>
+                  <span className="font-medium">{c.title}</span>
+                  {c.issuer && <span className="text-muted-foreground"> - {c.issuer}</span>}
+                  {c.date && <span className="float-right text-xs" style={{ color: colors.accent }}>{c.date}</span>}
+                </div>
+              )
+            }
+            return null
+          })}
         {section.sectionType === 'custom' &&
-          entries.filter(isCustomEntry).map((e) => (
-            <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
-              <span className="font-medium">{e.title}</span>
-              {e.subTitle && <span className="text-muted-foreground"> - {e.subTitle}</span>}
-              {e.description && <div className="mt-0.5" dangerouslySetInnerHTML={{ __html: e.description }} />}
-            </div>
-          ))}
+          entries.map((e) => {
+            if (e.data.type !== 'custom') return null
+            const c = e.data
+            return (
+              <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
+                <span className="font-medium">{c.title}</span>
+                {c.subTitle && <span className="text-muted-foreground"> - {c.subTitle}</span>}
+                {c.description && <div className="mt-0.5" dangerouslySetInnerHTML={{ __html: c.description }} />}
+              </div>
+            )
+          })}
       </div>
     )
   }
@@ -279,14 +253,14 @@ export function ResumeRenderer({
     </div>
   )
 
-  const leftSections = isTwoCol ? sections.filter((s) => layout.sectionOrder.two.leftSectionsSorted.includes(s.id)) : []
-  const rightSections = isTwoCol ? sections.filter((s) => layout.sectionOrder.two.rightSectionsSorted.includes(s.id)) : []
-  const singleSections = isTwoCol ? [] : sections
+  const leftSections = isTwoCol ? ordered.filter((s) => layout.sectionOrder.two.leftSectionsSorted.includes(s.id)) : []
+  const rightSections = isTwoCol ? ordered.filter((s) => layout.sectionOrder.two.rightSectionsSorted.includes(s.id)) : []
+  const singleSections = isTwoCol ? [] : ordered
   const showLeft = isTwoCol ? layout.sectionOrder.two.leftSectionsSorted.length > 0 : true
   const showRight = isTwoCol ? layout.sectionOrder.two.rightSectionsSorted.length > 0 : false
 
-  const splitLeft = isTwoCol && showLeft && !showRight ? sections.slice(0, Math.ceil(sections.length / 2)) : leftSections
-  const splitRight = isTwoCol && showLeft && !showRight ? sections.slice(Math.ceil(sections.length / 2)) : rightSections
+  const splitLeft = isTwoCol && showLeft && !showRight ? ordered.slice(0, Math.ceil(ordered.length / 2)) : leftSections
+  const splitRight = isTwoCol && showLeft && !showRight ? ordered.slice(Math.ceil(ordered.length / 2)) : rightSections
 
   const twoColBodies = [
     { id: 'col-left', sections: splitLeft },

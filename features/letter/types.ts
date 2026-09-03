@@ -1,32 +1,4 @@
-export interface LetterRecipient {
-  hrName: string
-  positionOrDepartment: string
-  company: string
-  address: string
-}
-
-export interface LetterDate {
-  mode: 'current' | 'custom'
-  custom: string
-}
-
-export interface LetterDeclaration {
-  fullName: string
-  place: string
-  date: string
-  dataUrl: string
-  imageId: string
-}
-
-export interface LetterContent {
-  body: string
-  date: LetterDate
-  recipient: LetterRecipient
-  subject: string
-  declaration: LetterDeclaration
-  personalDetails?: Record<string, unknown>
-}
-
+// letter design (jsonb `design` column). Content lives in flat letter columns.
 export interface LetterDesign {
   fontFamily: string
   fontSizePt: number
@@ -50,15 +22,7 @@ export interface LetterDesign {
   declarationDisplay?: { line: string; position: string; showHeading: boolean }
   verticalMarginMm: number
   horizontalMarginMm: number
-}
-
-export const EMPTY_LETTER_CONTENT: LetterContent = {
-  body: '',
-  date: { mode: 'current', custom: '' },
-  recipient: { hrName: '', positionOrDepartment: '', company: '', address: '' },
-  subject: '',
-  declaration: { fullName: '', place: '', date: '', dataUrl: '', imageId: '' },
-  personalDetails: {},
+  syncedFromResume?: boolean
 }
 
 export const EMPTY_LETTER_DESIGN: LetterDesign = {

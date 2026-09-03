@@ -9,8 +9,13 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
-import type { Content, Customization, PersonalDetails } from '@/features/resume/types'
-import type { LetterContent, LetterDesign } from '@/features/letter/types'
+import type {
+  Customization,
+  EntryData,
+  PersonalDetails,
+  SectionType,
+} from '@/features/resume/types'
+import type { LetterDesign } from '@/features/letter/types'
 
 // better-auth tables
 
@@ -81,7 +86,6 @@ export const Resume = pgTable(
       .$type<PersonalDetails>()
       .notNull()
       .default({} as PersonalDetails),
-    content: jsonb('content').$type<Content>().notNull().default({} as Content),
     customization: jsonb('customization').$type<Customization>().notNull().default({} as Customization),
     webResumeLive: boolean('web_resume_live').notNull().default(false),
     webToken: text('web_token'),
@@ -89,6 +93,40 @@ export const Resume = pgTable(
     lastChangeAt: timestamp('last_change_at').defaultNow().notNull(),
   },
   (t) => [index('resume_user_idx').on(t.userId)]
+)
+
+export const ResumeSection = pgTable(
+  'resume_section',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    resumeId: uuid('resume_id')
+      .notNull()
+      .references(() => Resume.id, { onDelete: 'cascade' }),
+    order: integer('order').notNull().default(0),
+    sectionType: text('section_type').$type<SectionType>().notNull(),
+    displayName: text('display_name').notNull().default(''),
+    iconKey: text('icon_key').notNull().default(''),
+    hidden: boolean('hidden').notNull().default(false),
+  },
+  (t) => [index('resume_section_resume_idx').on(t.resumeId)]
+)
+
+export const ResumeEntry = pgTable(
+  'resume_entry',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    sectionId: uuid('section_id')
+      .notNull()
+      .references(() => ResumeSection.id, { onDelete: 'cascade' }),
+    order: integer('order').notNull().default(0),
+    hidden: boolean('hidden').notNull().default(false),
+    data: jsonb('data').$type<EntryData>().notNull(),
+  },
+  (t) => [index('resume_entry_section_idx').on(t.sectionId)]
 )
 
 export const Letter = pgTable(
@@ -104,7 +142,26 @@ export const Letter = pgTable(
     order: integer('order').notNull().default(0),
     lng: text('lng').notNull().default('en'),
     tags: jsonb('tags').$type<{ id: string; name: string }[]>().notNull().default([]),
-    content: jsonb('content').$type<LetterContent>().notNull().default({} as LetterContent),
+    body: text('body').notNull().default(''),
+    subject: text('subject').notNull().default(''),
+    dateMode: text('date_mode').$type<'current' | 'custom'>().notNull().default('current'),
+    dateCustom: text('date_custom').notNull().default(''),
+    senderName: text('sender_name').notNull().default(''),
+    senderJobTitle: text('sender_job_title').notNull().default(''),
+    senderEmail: text('sender_email').notNull().default(''),
+    senderPhone: text('sender_phone').notNull().default(''),
+    senderAddress: text('sender_address').notNull().default(''),
+    senderWebsite: text('sender_website').notNull().default(''),
+    senderLinkedIn: text('sender_linked_in').notNull().default(''),
+    senderGitHub: text('sender_git_hub').notNull().default(''),
+    recipientName: text('recipient_name').notNull().default(''),
+    recipientPosition: text('recipient_position').notNull().default(''),
+    recipientCompany: text('recipient_company').notNull().default(''),
+    recipientAddress: text('recipient_address').notNull().default(''),
+    signatureName: text('signature_name').notNull().default(''),
+    signaturePlace: text('signature_place').notNull().default(''),
+    signatureDate: text('signature_date').notNull().default(''),
+    signatureImageId: text('signature_image_id').notNull().default(''),
     design: jsonb('design').$type<LetterDesign>().notNull().default({} as LetterDesign),
     syncWithResumeId: uuid('sync_with_resume_id').references(() => Resume.id, {
       onDelete: 'set null',
@@ -211,7 +268,17 @@ export const UserRelations = relations(User, ({ many }) => ({
 
 export const ResumeRelations = relations(Resume, ({ one, many }) => ({
   user: one(User, { fields: [Resume.userId], references: [User.id] }),
+  sections: many(ResumeSection),
   trackerCards: many(TrackerCard),
+}))
+
+export const ResumeSectionRelations = relations(ResumeSection, ({ one, many }) => ({
+  resume: one(Resume, { fields: [ResumeSection.resumeId], references: [Resume.id] }),
+  entries: many(ResumeEntry),
+}))
+
+export const ResumeEntryRelations = relations(ResumeEntry, ({ one }) => ({
+  section: one(ResumeSection, { fields: [ResumeEntry.sectionId], references: [ResumeSection.id] }),
 }))
 
 export const LetterRelations = relations(Letter, ({ one, many }) => ({
@@ -232,6 +299,8 @@ export const TrackerCardRelations = relations(TrackerCard, ({ one }) => ({
 
 export type TUser = typeof User.$inferSelect
 export type TResume = typeof Resume.$inferSelect
+export type TResumeSection = typeof ResumeSection.$inferSelect
+export type TResumeEntry = typeof ResumeEntry.$inferSelect
 export type TLetter = typeof Letter.$inferSelect
 export type TTracker = typeof Tracker.$inferSelect
 export type TTrackerCard = typeof TrackerCard.$inferSelect

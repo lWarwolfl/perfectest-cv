@@ -6,17 +6,26 @@ import { QUERY_KEYS } from '@/features/queries/keys'
 import {
   listResumesAction,
   getResumeAction,
+  getResumeDocumentAction,
   createResumeAction,
   duplicateResumeAction,
   deleteResumeAction,
   renameResumeAction,
   saveResumePersonalDetailsAction,
-  saveResumeContentAction,
   saveResumeCustomizationAction,
+  addSectionAction,
+  deleteSectionAction,
+  saveSectionMetaAction,
+  reorderSectionsAction,
+  addEntryAction,
+  updateEntryDataAction,
+  updateEntryMetaAction,
+  reorderEntriesAction,
+  deleteEntryAction,
   applyResumeTemplateAction,
 } from '@/server/resume/resume.actions'
 import { getErrorMessage } from '@/lib/utils'
-import type { Content, Customization, PersonalDetails } from '@/features/resume/types'
+import type { Customization, PersonalDetails, EntryData, SectionType } from '@/features/resume/types'
 
 export function useListResumes() {
   return useQuery({ queryKey: [QUERY_KEYS.RESUMES], queryFn: listResumesAction })
@@ -26,6 +35,14 @@ export function useResume(id: string) {
   return useQuery({
     queryKey: [QUERY_KEYS.RESUMES, id],
     queryFn: () => getResumeAction(id),
+    enabled: !!id,
+  })
+}
+
+export function useResumeDocument(id: string) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.RESUMES, id, 'document'],
+    queryFn: () => getResumeDocumentAction(id),
     enabled: !!id,
   })
 }
@@ -67,40 +84,114 @@ export function useRenameResume() {
 }
 
 export function useSaveResumePersonalDetails() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, personalDetails }: { id: string; personalDetails: PersonalDetails }) =>
       saveResumePersonalDetailsAction(id, personalDetails),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }),
-    onError: (e) => toast.error(getErrorMessage(e)),
-  })
-}
-
-export function useSaveResumeContent() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, content }: { id: string; content: Content }) =>
-      saveResumeContentAction(id, content),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }),
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
 
 export function useSaveResumeCustomization() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, customization }: { id: string; customization: Customization }) =>
       saveResumeCustomizationAction(id, customization),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }),
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
 
-export function useApplyResumeTemplate() {
+export function useAddSection(id: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, templateId }: { id: string; templateId: string }) => applyResumeTemplateAction(id, templateId),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }); toast.success('Template applied') },
+    mutationFn: (sectionType: SectionType) => addSectionAction(id, sectionType),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useDeleteSection(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (sectionId: string) => deleteSectionAction(sectionId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useSaveSectionMeta(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ sectionId, ...patch }: { sectionId: string } & Parameters<typeof saveSectionMetaAction>[1]) =>
+      saveSectionMetaAction(sectionId, patch),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useReorderSections(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (sectionIds: string[]) => reorderSectionsAction(id, sectionIds),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useAddEntry(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (sectionId: string) => addEntryAction(sectionId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useUpdateEntryData(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ entryId, data }: { entryId: string; data: EntryData }) =>
+      updateEntryDataAction(entryId, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useUpdateEntryMeta(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ entryId, ...patch }: { entryId: string } & Parameters<typeof updateEntryMetaAction>[1]) =>
+      updateEntryMetaAction(entryId, patch),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useReorderEntries(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ sectionId, entryIds }: { sectionId: string; entryIds: string[] }) =>
+      reorderEntriesAction(sectionId, entryIds),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useDeleteEntry(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entryId: string) => deleteEntryAction(entryId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useApplyResumeTemplate(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (templateId: string) => applyResumeTemplateAction(id, templateId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] })
+      toast.success('Template applied')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }

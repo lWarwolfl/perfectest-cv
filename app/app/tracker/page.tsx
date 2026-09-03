@@ -8,7 +8,7 @@ import { getErrorMessage, uid } from '@/lib/utils'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import { useListResumes } from '@/features/resume/hooks/resume.hooks'
 import { useListLetters } from '@/features/letter/hooks/letter.hooks'
-import type { TTrackerCard, TResume, TLetter } from '@/drizzle/schema'
+import type { TTrackerCard } from '@/drizzle/schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -25,8 +25,8 @@ function CardEditor({ card, colId, trackerId, open, onOpenChange, resumes, lette
   trackerId: string
   open: boolean
   onOpenChange: (v: boolean) => void
-  resumes: TResume[]
-  letters: TLetter[]
+  resumes: { id: string; title: string }[]
+  letters: { id: string; title: string }[]
 }) {
   const qc = useQueryClient()
   const save = useMutation({

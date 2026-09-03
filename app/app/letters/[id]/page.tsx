@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSaveLetterContent, useSaveLetterDesign } from '@/features/letter/hooks/letter.hooks'
 import { getLetterAction } from '@/server/letter/letter.actions'
+import type { LetterContentPatch } from '@/server/letter/letter.actions'
 import { useQuery } from '@tanstack/react-query'
 import { QUERY_KEYS } from '@/features/queries/keys'
-import { EMPTY_LETTER_CONTENT, EMPTY_LETTER_DESIGN, type LetterContent, type LetterDesign } from '@/features/letter/types'
+import { EMPTY_LETTER_DESIGN, type LetterDesign } from '@/features/letter/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -24,15 +25,36 @@ export default function LetterEditorPage() {
     queryFn: () => getLetterAction(id),
     enabled: !!id,
   })
-  const saveContent = useSaveLetterContent()
-  const saveDesign = useSaveLetterDesign()
-  const [content, setContent] = useState<LetterContent>(EMPTY_LETTER_CONTENT)
+  const saveContent = useSaveLetterContent(id)
+  const saveDesign = useSaveLetterDesign(id)
+  const [form, setForm] = useState<LetterContentPatch>({})
   const [design, setDesign] = useState<LetterDesign>(EMPTY_LETTER_DESIGN)
   const dirty = useRef(false)
 
   useEffect(() => {
     if (letter) {
-      setContent({ ...EMPTY_LETTER_CONTENT, ...(letter.content || {}) })
+      setForm({
+        body: letter.body,
+        subject: letter.subject,
+        dateMode: letter.dateMode,
+        dateCustom: letter.dateCustom,
+        senderName: letter.senderName,
+        senderJobTitle: letter.senderJobTitle,
+        senderEmail: letter.senderEmail,
+        senderPhone: letter.senderPhone,
+        senderAddress: letter.senderAddress,
+        senderWebsite: letter.senderWebsite,
+        senderLinkedIn: letter.senderLinkedIn,
+        senderGitHub: letter.senderGitHub,
+        recipientName: letter.recipientName,
+        recipientPosition: letter.recipientPosition,
+        recipientCompany: letter.recipientCompany,
+        recipientAddress: letter.recipientAddress,
+        signatureName: letter.signatureName,
+        signaturePlace: letter.signaturePlace,
+        signatureDate: letter.signatureDate,
+        signatureImageId: letter.signatureImageId,
+      })
       setDesign({ ...EMPTY_LETTER_DESIGN, ...(letter.design || {}) })
     }
   }, [letter])
@@ -40,11 +62,11 @@ export default function LetterEditorPage() {
   useEffect(() => {
     if (!dirty.current) return
     const t = setTimeout(() => {
-      saveContent.mutate({ id, content })
-      saveDesign.mutate({ id, design })
+      saveContent.mutate(form)
+      saveDesign.mutate(design)
     }, 1500)
     return () => clearTimeout(t)
-  }, [content, design])
+  }, [form, design])
 
   function markDirty() { dirty.current = true }
 
@@ -71,21 +93,26 @@ export default function LetterEditorPage() {
             <Button variant="outline" size="sm" onClick={handlePrint}><Download className="mr-1 size-3" /> PDF</Button>
             <div>
               <Label className="text-xs">Your Name</Label>
-              <Input placeholder="Full Name" value={content.declaration?.fullName || ''} onChange={(e) => { setContent({ ...content, declaration: { ...content.declaration, fullName: e.target.value } }); markDirty() }} />
+              <Input placeholder="Full Name" value={form.senderName || ''} onChange={(e) => { setForm((f) => ({ ...f, senderName: e.target.value })); markDirty() }} />
             </div>
             <div>
               <Label className="text-xs">Recipient</Label>
-              <Input placeholder="HR Name" value={content.recipient?.hrName || ''} onChange={(e) => { setContent({ ...content, recipient: { ...content.recipient, hrName: e.target.value } }); markDirty() }} />
-              <Input placeholder="Company" value={content.recipient?.company || ''} onChange={(e) => { setContent({ ...content, recipient: { ...content.recipient, company: e.target.value } }); markDirty() }} />
-              <Input placeholder="Address" value={content.recipient?.address || ''} onChange={(e) => { setContent({ ...content, recipient: { ...content.recipient, address: e.target.value } }); markDirty() }} />
+              <Input placeholder="HR Name" value={form.recipientName || ''} onChange={(e) => { setForm((f) => ({ ...f, recipientName: e.target.value })); markDirty() }} />
+              <Input placeholder="Position / Department" value={form.recipientPosition || ''} onChange={(e) => { setForm((f) => ({ ...f, recipientPosition: e.target.value })); markDirty() }} />
+              <Input placeholder="Company" value={form.recipientCompany || ''} onChange={(e) => { setForm((f) => ({ ...f, recipientCompany: e.target.value })); markDirty() }} />
+              <Input placeholder="Address" value={form.recipientAddress || ''} onChange={(e) => { setForm((f) => ({ ...f, recipientAddress: e.target.value })); markDirty() }} />
             </div>
             <div>
               <Label className="text-xs">Subject</Label>
-              <Input placeholder="Subject" value={content.subject || ''} onChange={(e) => { setContent({ ...content, subject: e.target.value }); markDirty() }} />
+              <Input placeholder="Subject" value={form.subject || ''} onChange={(e) => { setForm((f) => ({ ...f, subject: e.target.value })); markDirty() }} />
             </div>
             <div>
               <Label className="text-xs">Body</Label>
-              <Textarea placeholder="Write your cover letter..." value={content.body || ''} onChange={(e) => { setContent({ ...content, body: e.target.value }); markDirty() }} className="min-h-[200px]" />
+              <Textarea placeholder="Write your cover letter..." value={form.body || ''} onChange={(e) => { setForm((f) => ({ ...f, body: e.target.value })); markDirty() }} className="min-h-[200px]" />
+            </div>
+            <div>
+              <Label className="text-xs">Signature Name</Label>
+              <Input placeholder="Sign-off Name" value={form.signatureName || ''} onChange={(e) => { setForm((f) => ({ ...f, signatureName: e.target.value })); markDirty() }} />
             </div>
           </TabsContent>
           <TabsContent value="design" className="flex-1 overflow-auto p-3 space-y-3">
@@ -126,25 +153,23 @@ export default function LetterEditorPage() {
       <div className="flex-1 overflow-auto bg-muted/30 p-4 print:overflow-visible print:bg-white print:p-0">
         <div className="mx-auto max-w-[794px] bg-white" style={{ fontFamily: design.fontFamily, fontSize: `${design.fontSizePt}pt` }}>
           <div className="p-8" style={{ margin: `${design.verticalMarginMm}mm ${design.horizontalMarginMm}mm` }}>
-            {design.senderDisplay?.style !== 'modernHeader' ? (
-              <div className="flex flex-col gap-1 mb-6">
-                <h1 className="text-xl font-bold" style={{ color: colors.accent }}>{content.declaration?.fullName || 'Your Name'}</h1>
-              </div>
-            ) : null}
-            {content.recipient?.company || content.recipient?.hrName ? (
+            <div className="flex flex-col gap-1 mb-6">
+              <h1 className="text-xl font-bold" style={{ color: colors.accent }}>{form.senderName || 'Your Name'}</h1>
+            </div>
+            {form.recipientCompany || form.recipientName ? (
               <div className="mb-4">
-                {content.recipient?.hrName && <p>{content.recipient.hrName}</p>}
-                {content.recipient?.company && <p>{content.recipient.company}</p>}
-                {content.recipient?.address && <p>{content.recipient.address}</p>}
+                {form.recipientName && <p>{form.recipientName}</p>}
+                {form.recipientCompany && <p>{form.recipientCompany}</p>}
+                {form.recipientAddress && <p>{form.recipientAddress}</p>}
               </div>
             ) : null}
             <p className="mb-4 text-sm">{today}</p>
-            {content.recipient?.hrName && <p className="mb-4">Dear {content.recipient.hrName},</p>}
-            {content.subject && <p className="mb-4 font-medium">Re: {content.subject}</p>}
-            <div className="text-sm" style={{ lineHeight: design.lineHeightPct }}>{content.body}</div>
+            {form.recipientName && <p className="mb-4">Dear {form.recipientName},</p>}
+            {form.subject && <p className="mb-4 font-medium">Re: {form.subject}</p>}
+            <div className="text-sm" style={{ lineHeight: design.lineHeightPct }}>{form.body || ''}</div>
             <div className="mt-8">
               <p>Sincerely,</p>
-              <p className="font-semibold">{content.declaration?.fullName || 'Your Name'}</p>
+              <p className="font-semibold">{form.signatureName || form.senderName || 'Your Name'}</p>
             </div>
           </div>
         </div>

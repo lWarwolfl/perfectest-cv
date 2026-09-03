@@ -1,13 +1,12 @@
-import type { Content, Customization, PersonalDetails } from '@/features/resume/types'
+import type { Customization, PersonalDetails } from '@/features/resume/types'
 import type { LetterDesign } from '@/features/letter/types'
-import { DEFAULT_CUSTOMIZATION, defaultContent } from '@/features/resume/defaults'
+import { DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
 
 export interface TemplatePreset {
   id: string
   name: string
   description: string
   tags: string[]
-  content: Content
   customization: Customization
   personalDetails?: PersonalDetails
 }
@@ -22,13 +21,11 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
     name: 'Classic Clear',
     description: 'Clean, traditional layout with a blue accent and serif body font',
     tags: ['simple', 'classic', 'professional'],
-    content: deepClone(defaultContent()),
     customization: {
       ...deepClone(DEFAULT_CUSTOMIZATION),
       font: { selected: 'serif', fontFamily: 'Source Sans Pro' },
       colors: { ...deepClone(DEFAULT_CUSTOMIZATION.colors), basic: { ...deepClone(DEFAULT_CUSTOMIZATION.colors.basic), single: '#044cb5', multi: { textColor: '#000', accentColor: '#002e71', backgroundColor: '#f3f3f3' }, selected: 'single' } },
       heading: { style: 'line', icons: 'none', capitalization: 'uppercase' },
-      border: { width: { line: 'm', image: 'm', filled: 'm' }, selectedStyle: 'none' },
     },
   },
   {
@@ -36,14 +33,12 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
     name: 'Modern Split',
     description: 'Two-column layout with a dark left panel and light right panel',
     tags: ['modern', 'creative'],
-    content: deepClone(defaultContent()),
     customization: {
       ...deepClone(DEFAULT_CUSTOMIZATION),
       font: { selected: 'sans', fontFamily: 'Inter' },
       colors: { ...deepClone(DEFAULT_CUSTOMIZATION.colors), basic: { ...deepClone(DEFAULT_CUSTOMIZATION.colors.basic), single: '#1e293b', multi: { textColor: '#ffffff', accentColor: '#1e293b', backgroundColor: '#1e293b' }, selected: 'multi' } },
       layout: { ...deepClone(DEFAULT_CUSTOMIZATION.layout), selected: 'two', detailsPosition: 'left', two: { leftWidth: 33, rightWidth: 67, sectionDisplay: 'halfHalf', personalDetails: 'top' } },
       header: { ...deepClone(DEFAULT_CUSTOMIZATION.header), position: 'left', detailsArrangement: 'column', detailsDisplayLeftRight: 'icon', iconFrame: 'circle', iconFrameStyle: 'filled' },
-      border: { width: { line: 'm', image: 'm', filled: 'm' }, selectedStyle: 'none' },
       heading: { style: 'thinLine', icons: 'filled', capitalization: 'uppercase' },
     },
   },
@@ -52,7 +47,6 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
     name: 'Mercury Flow',
     description: 'Clean single-column with a bold accent line at the top',
     tags: ['simple', 'modern'],
-    content: deepClone(defaultContent()),
     customization: {
       ...deepClone(DEFAULT_CUSTOMIZATION),
       font: { selected: 'sans', fontFamily: 'Nunito' },
@@ -67,14 +61,12 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
     name: 'Saffron Line',
     description: 'Warm color palette with orange accent and subtle borders',
     tags: ['creative', 'modern'],
-    content: deepClone(defaultContent()),
     customization: {
       ...deepClone(DEFAULT_CUSTOMIZATION),
       font: { selected: 'sans', fontFamily: 'Mulish' },
       colors: { ...deepClone(DEFAULT_CUSTOMIZATION.colors), basic: { ...deepClone(DEFAULT_CUSTOMIZATION.colors.basic), single: '#ea580c', multi: { textColor: '#1c1917', accentColor: '#ea580c', backgroundColor: '#fff7ed' }, selected: 'single' } },
       heading: { style: 'thickShortUnderline', icons: 'outline', capitalization: 'capitalize' },
       border: { width: { line: 'm', image: 'm', filled: 'm' }, selectedStyle: 'line' },
-      layout: { ...deepClone(DEFAULT_CUSTOMIZATION.layout), selected: 'one', detailsPosition: 'top' },
     },
   },
   {
@@ -82,14 +74,12 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
     name: 'Cobalt Edge',
     description: 'Dark navy header with white text, single-column for impact',
     tags: ['modern', 'professional'],
-    content: deepClone(defaultContent()),
     customization: {
       ...deepClone(DEFAULT_CUSTOMIZATION),
       font: { selected: 'sans', fontFamily: 'Inter' },
       colors: { ...deepClone(DEFAULT_CUSTOMIZATION.colors), basic: { ...deepClone(DEFAULT_CUSTOMIZATION.colors.basic), single: '#1e3a5f', multi: { textColor: '#1e3a5f', accentColor: '#1e3a5f', backgroundColor: '#ffffff' }, selected: 'single' } },
       header: { ...deepClone(DEFAULT_CUSTOMIZATION.header), position: 'top', photo: { show: false, size: 'm', grayscale: false, shape: 'round' }, detailsArrangement: 'wrap', iconFrame: 'rounded', iconFrameStyle: 'outline' },
       heading: { style: 'box', icons: 'filled', capitalization: 'uppercase' },
-      border: { width: { line: 'm', image: 'm', filled: 'm' }, selectedStyle: 'none' },
     },
   },
   {
@@ -97,7 +87,6 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
     name: 'Sage Green',
     description: 'Calm green tones with a clean, modern two-column layout',
     tags: ['modern', 'simple'],
-    content: deepClone(defaultContent()),
     customization: {
       ...deepClone(DEFAULT_CUSTOMIZATION),
       font: { selected: 'serif', fontFamily: 'Crimson Pro' },
@@ -112,13 +101,11 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
     name: 'Steel Grey',
     description: 'Monochromatic palette with clean typography and subtle borders',
     tags: ['simple', 'professional'],
-    content: deepClone(defaultContent()),
     customization: {
       ...deepClone(DEFAULT_CUSTOMIZATION),
       font: { selected: 'sans', fontFamily: 'Jost' },
       colors: { ...deepClone(DEFAULT_CUSTOMIZATION.colors), basic: { ...deepClone(DEFAULT_CUSTOMIZATION.colors.basic), single: '#475569', multi: { textColor: '#0f172a', accentColor: '#475569', backgroundColor: '#f1f5f9' }, selected: 'single' } },
       border: { width: { line: 's', image: 'm', filled: 'm' }, selectedStyle: 'line' },
-      heading: { style: 'line', icons: 'none', capitalization: 'uppercase' },
       spacing: { fontSize: '4', lineHeight: '4', spacingFactor: '3', marginVertical: '4', marginHorizontal: '3', nameFontSizePt: 24, jobTitleFontSizePt: 18 },
     },
   },
@@ -127,7 +114,6 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
     name: 'Editorial Rule',
     description: 'Bold header with double-line rule, serif body, clean one-column',
     tags: ['creative', 'classic'],
-    content: deepClone(defaultContent()),
     customization: {
       ...deepClone(DEFAULT_CUSTOMIZATION),
       font: { selected: 'serif', fontFamily: 'Zilla Slab' },

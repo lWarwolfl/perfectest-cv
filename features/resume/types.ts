@@ -1,3 +1,125 @@
+import type { TResumeEntry, TResumeSection } from '@/drizzle/schema'
+
+// ---- resume document
+
+// each variant carries a `type` tag, so EntryData is a discriminated union
+export type EntryData =
+  | WorkEntry
+  | EducationEntry
+  | SkillEntry
+  | LanguageEntry
+  | InterestEntry
+  | ProfileEntry
+  | ProjectEntry
+  | CertificateEntry
+  | CustomEntry
+  | GenericEntry
+  | ReferenceEntry
+  | DeclarationEntry
+
+export interface DateObject {
+  hide: boolean
+  year: string
+  month: string
+  ongoing: boolean
+  onlyYear: boolean
+  customOngoingWord: string
+}
+
+export interface WorkEntry {
+  type: 'work'
+  jobTitle: string
+  employer: string
+  employerLink: string
+  location: string
+  city: string
+  country: string
+  startDate: DateObject
+  endDate: DateObject
+  description: string
+}
+
+export interface EducationEntry {
+  type: 'education'
+  degree: string
+  school: string
+  schoolLink: string
+  location: string
+  startDate: DateObject
+  endDate: DateObject
+}
+
+export interface SkillEntry {
+  type: 'skill'
+  skill: string
+  level: string
+  infoHtml: string
+}
+
+export interface LanguageEntry {
+  type: 'language'
+  language: string
+  level: string
+  infoHtml: string
+}
+
+export interface InterestEntry {
+  type: 'interest'
+  interest: string
+  interestLink: string
+  infoHtml: string
+}
+
+export interface ProfileEntry {
+  type: 'profile'
+  text: string
+}
+
+export interface ProjectEntry {
+  type: 'project'
+  projectTitle: string
+  projectTitleLink: string
+  subTitle: string
+  description: string
+}
+
+export interface CertificateEntry {
+  type: 'certificate'
+  title: string
+  link: string
+  issuer: string
+  location: string
+  date: string
+}
+
+export interface CustomEntry {
+  type: 'custom'
+  title: string
+  subTitle: string
+  description: string
+}
+
+export interface GenericEntry {
+  type: 'publication' | 'organisation' | 'course' | 'award'
+  title: string
+  link: string
+  issuer: string
+  location: string
+  date: string
+  description: string
+}
+
+export interface ReferenceEntry {
+  type: 'reference'
+  name: string
+  contact: string
+}
+
+export interface DeclarationEntry {
+  type: 'declaration'
+  text: string
+}
+
 export type SectionType =
   | 'profile'
   | 'work'
@@ -15,149 +137,45 @@ export type SectionType =
   | 'declaration'
   | 'custom'
 
-export interface DateObject {
-  hide: boolean
-  year: string
-  month: string
-  ongoing: boolean
-  onlyYear: boolean
-  customOngoingWord: string
+// a hydrated entry row: DB columns + tagged data payload
+export type TEntry = Omit<TResumeEntry, 'data'> & {
+  data: EntryData
+  /** client-side transient flag: entry data changed, pending autosave */
+  _dirty?: boolean
 }
 
-export interface BaseEntry {
-  id: string
-  isNewEntry?: boolean
-  isHidden?: boolean
-}
+export type TSection = Omit<TResumeSection, 'entries'> & { entries: TEntry[] }
 
-export interface WorkEntry extends BaseEntry {
+// ---- letter document (flat columns, grouped for forms)
+
+export type LetterDateMode = 'current' | 'custom'
+
+export interface LetterSender {
+  name: string
   jobTitle: string
-  employer: string
-  employerLink: string
-  location: string
-  city: string
-  country: string
-  startDate: DateObject
-  endDate: DateObject
-  description: string
-}
-
-export interface EducationEntry extends BaseEntry {
-  degree: string
-  school: string
-  schoolLink: string
-  location: string
-  startDate: DateObject
-  endDate: DateObject
-}
-
-export interface SkillEntry extends BaseEntry {
-  skill: string
-  level: string
-  infoHtml: string
-}
-
-export interface LanguageEntry extends BaseEntry {
-  language: string
-  level: string
-  infoHtml: string
-}
-
-export interface InterestEntry extends BaseEntry {
-  interest: string
-  interestLink: string
-  infoHtml: string
-}
-
-export interface ProfileEntry extends BaseEntry {
-  text: string
-}
-
-export interface ProjectEntry extends BaseEntry {
-  projectTitle: string
-  projectTitleLink: string
-  subTitle: string
-  description: string
-}
-
-export interface CertificateEntry extends BaseEntry {
-  title: string
-  link: string
-  issuer: string
-  location: string
-  date: string
-}
-
-export interface CustomEntry extends BaseEntry {
-  title: string
-  subTitle: string
-  description: string
-}
-
-export interface GenericEntry extends BaseEntry {
-  title: string
-  link: string
-  issuer: string
-  location: string
-  date: string
-  description: string
-}
-
-export type AnyEntry =
-  | WorkEntry
-  | EducationEntry
-  | SkillEntry
-  | LanguageEntry
-  | InterestEntry
-  | ProfileEntry
-  | ProjectEntry
-  | CertificateEntry
-  | CustomEntry
-  | GenericEntry
-
-export interface Section {
-  id: string
-  entries: AnyEntry[]
-  iconKey: string
-  displayName: string
-  sectionType: SectionType
-}
-
-export type Content = Record<string, Section>
-
-export interface PersonalDetails {
-  fullName: string
-  jobTitle: string
-  displayEmail: string
+  email: string
   phone: string
   address: string
   website: string
-  websiteLink: string
-  social: {
-    github: { link: string; display: string }
-    linkedIn: { link: string; display: string }
-  }
-  detailsOrder: string[]
-  photo: {
-    xPct: number
-    yPct: number
-    shape: 'round' | 'square' | 'squareRounded' | 'portrait'
-    imageId: string
-    widthPct: number
-    heightPct: number
-    originalWidth: number
-    originalHeight: number
-  }
-  birthday: { day: string; year: string; month: string }
-  age: string
-  gender: string
-  nationality: string
-  visa: string
-  military: string
-  passport: string
-  maritalStatus: string
-  drivingLicense: string
+  linkedIn: string
+  gitHub: string
 }
+
+export interface LetterRecipient {
+  name: string
+  position: string
+  company: string
+  address: string
+}
+
+export interface LetterSignature {
+  name: string
+  place: string
+  date: string
+  imageId: string
+}
+
+// ---- customization (design jsonb column) + personal details (jsonb column)
 
 export interface FontCustomization {
   selected: string
@@ -292,4 +310,38 @@ export interface Customization {
   }
   expert: { footer: { name: boolean; email: boolean; pages: boolean } }
   advanced: { linkIcon: 'boxArrow' | 'diagonalChain' | 'none' }
+}
+
+export interface PersonalDetails {
+  fullName: string
+  jobTitle: string
+  displayEmail: string
+  phone: string
+  address: string
+  website: string
+  websiteLink: string
+  social: {
+    github: { link: string; display: string }
+    linkedIn: { link: string; display: string }
+  }
+  detailsOrder: string[]
+  photo: {
+    xPct: number
+    yPct: number
+    shape: 'round' | 'square' | 'squareRounded' | 'portrait'
+    imageId: string
+    widthPct: number
+    heightPct: number
+    originalWidth: number
+    originalHeight: number
+  }
+  birthday: { day: string; year: string; month: string }
+  age: string
+  gender: string
+  nationality: string
+  visa: string
+  military: string
+  passport: string
+  maritalStatus: string
+  drivingLicense: string
 }

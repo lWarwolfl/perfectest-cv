@@ -1,20 +1,8 @@
-import { uid } from '@/lib/utils'
 import type {
-  AnyEntry,
-  CertificateEntry,
-  Content,
-  CustomEntry,
   Customization,
-  EducationEntry,
-  GenericEntry,
-  InterestEntry,
-  LanguageEntry,
+  EntryData,
   PersonalDetails,
-  ProfileEntry,
-  ProjectEntry,
   SectionType,
-  SkillEntry,
-  WorkEntry,
 } from '@/features/resume/types'
 
 export const EMPTY_PERSONAL_DETAILS: PersonalDetails = {
@@ -66,41 +54,57 @@ export const SECTION_LABELS: Record<SectionType, string> = {
   custom: 'Custom Section',
 }
 
-export function defaultSection(sectionType: SectionType, id = uid()): { id: string; sectionType: SectionType } {
-  return { id, sectionType }
+export const SECTION_ICONS: Record<SectionType, string> = {
+  profile: 'user',
+  work: 'briefcase',
+  education: 'graduation',
+  skill: 'code',
+  language: 'globe',
+  interest: 'heart',
+  project: 'folder',
+  certificate: 'award',
+  publication: 'book',
+  organisation: 'users',
+  course: 'academic',
+  award: 'trophy',
+  reference: 'quote',
+  declaration: 'pen',
+  custom: 'star',
 }
 
-export function defaultEntry(sectionType: SectionType): AnyEntry {
-  const base = { id: uid(), isNewEntry: true }
-  const date = { hide: false, year: '', month: '', ongoing: false, onlyYear: false, customOngoingWord: 'present' }
+function emptyDate() {
+  return { hide: false, year: '', month: '', ongoing: false, onlyYear: false, customOngoingWord: 'present' }
+}
+
+export function defaultEntryData(sectionType: SectionType): EntryData {
   switch (sectionType) {
     case 'work':
-      return { ...base, jobTitle: '', employer: '', employerLink: '', location: '', city: '', country: '', startDate: { ...date }, endDate: { ...date }, description: '' } as WorkEntry
+      return { type: 'work', jobTitle: '', employer: '', employerLink: '', location: '', city: '', country: '', startDate: emptyDate(), endDate: emptyDate(), description: '' }
     case 'education':
-      return { ...base, degree: '', school: '', schoolLink: '', location: '', startDate: { ...date }, endDate: { ...date } } as EducationEntry
+      return { type: 'education', degree: '', school: '', schoolLink: '', location: '', startDate: emptyDate(), endDate: emptyDate() }
     case 'skill':
-      return { ...base, skill: '', level: '', infoHtml: '' } as SkillEntry
+      return { type: 'skill', skill: '', level: '', infoHtml: '' }
     case 'language':
-      return { ...base, language: '', level: '', infoHtml: '' } as LanguageEntry
+      return { type: 'language', language: '', level: '', infoHtml: '' }
     case 'interest':
-      return { ...base, interest: '', interestLink: '', infoHtml: '' } as InterestEntry
+      return { type: 'interest', interest: '', interestLink: '', infoHtml: '' }
     case 'profile':
-      return { ...base, text: '' } as ProfileEntry
+      return { type: 'profile', text: '' }
     case 'project':
-      return { ...base, projectTitle: '', projectTitleLink: '', subTitle: '', description: '' } as ProjectEntry
+      return { type: 'project', projectTitle: '', projectTitleLink: '', subTitle: '', description: '' }
     case 'certificate':
-      return { ...base, title: '', link: '', issuer: '', location: '', date: '' } as CertificateEntry
+      return { type: 'certificate', title: '', link: '', issuer: '', location: '', date: '' }
     case 'publication':
     case 'organisation':
     case 'course':
     case 'award':
-      return { ...base, title: '', link: '', issuer: '', location: '', date: '', description: '' } as GenericEntry
+      return { type: sectionType, title: '', link: '', issuer: '', location: '', date: '', description: '' }
     case 'reference':
-      return { ...base, name: '', contact: '' } as unknown as GenericEntry
+      return { type: 'reference', name: '', contact: '' }
     case 'declaration':
-      return { ...base, text: '' } as unknown as GenericEntry
+      return { type: 'declaration', text: '' }
     default:
-      return { ...base, title: '', subTitle: '', description: '' } as CustomEntry
+      return { type: 'custom', title: '', subTitle: '', description: '' }
   }
 }
 
@@ -201,17 +205,4 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   },
   expert: { footer: { name: false, email: false, pages: false } },
   advanced: { linkIcon: 'boxArrow' },
-}
-
-export function defaultContent(): Content {
-  const profile = { id: uid(), sectionType: 'profile' as SectionType }
-  const work = { id: uid(), sectionType: 'work' as SectionType }
-  const education = { id: uid(), sectionType: 'education' as SectionType }
-  const skill = { id: uid(), sectionType: 'skill' as SectionType }
-  return {
-    [profile.id]: { ...profile, displayName: 'Profile', iconKey: 'user', entries: [defaultEntry('profile') as unknown as AnyEntry] },
-    [work.id]: { ...work, displayName: 'Work Experience', iconKey: 'briefcase', entries: [] },
-    [education.id]: { ...education, displayName: 'Education', iconKey: 'graduation', entries: [] },
-    [skill.id]: { ...skill, displayName: 'Skills', iconKey: 'code', entries: [] },
-  }
 }
