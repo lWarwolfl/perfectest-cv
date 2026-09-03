@@ -17,8 +17,6 @@ import type {
 } from '@/features/resume/types'
 import type { LetterDesign } from '@/features/letter/types'
 
-// better-auth tables
-
 export const User = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -66,8 +64,6 @@ export const Verification = pgTable('verification', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
 })
-
-// app tables
 
 export const Resume = pgTable(
   'resume',
@@ -257,8 +253,6 @@ export const Image = pgTable(
   },
   (t) => [index('image_user_idx').on(t.userId)]
 )
-
-// relations
 
 export const UserRelations = relations(User, ({ many }) => ({
   resumes: many(Resume),

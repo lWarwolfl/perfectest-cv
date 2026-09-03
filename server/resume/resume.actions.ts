@@ -14,7 +14,6 @@ export async function requireUser() {
   return user
 }
 
-// hydrate a resume's sections + entries into a nested document
 export async function getResumeDocumentAction(resumeId: string) {
   const user = await requireUser()
   const [resume] = await db.select().from(Resume).where(eq(Resume.id, resumeId))
@@ -41,7 +40,6 @@ export async function getResumeDocumentAction(resumeId: string) {
 }
 export type TResumeDocument = NonNullable<Awaited<ReturnType<typeof getResumeDocumentAction>>>
 
-// seed default sections when a resume is created
 async function seedDefaultSections(resumeId: string) {
   const seedTypes: SectionType[] = ['profile', 'work', 'education', 'skill']
   await db.insert(ResumeSection).values(
@@ -209,7 +207,6 @@ export async function deleteEntryAction(entryId: string) {
   await db.delete(ResumeEntry).where(eq(ResumeEntry.id, entryId))
 }
 
-// template application: replace all sections/entries with the template's
 export async function applyResumeTemplateAction(resumeId: string, templateId: string) {
   await requireUser()
   const { RESUME_TEMPLATES } = await import('@/features/resume/templates')
@@ -228,7 +225,6 @@ export async function getPublicResumeAction(shareCode: string) {
   return resume
 }
 
-// list resumes without the heavy jsonb columns
 export async function listResumesAction() {
   const user = await requireUser()
   return db.query.Resume.findMany({

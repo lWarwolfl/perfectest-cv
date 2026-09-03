@@ -1,8 +1,5 @@
 import type { TResumeEntry, TResumeSection } from '@/drizzle/schema'
 
-// ---- resume document
-
-// each variant carries a `type` tag, so EntryData is a discriminated union
 export type EntryData =
   | WorkEntry
   | EducationEntry
@@ -140,16 +137,12 @@ export type SectionType =
   | 'declaration'
   | 'custom'
 
-// a hydrated entry row: DB columns + tagged data payload
 export type TEntry = Omit<TResumeEntry, 'data'> & {
   data: EntryData
-  /** client-side transient flag: entry data changed, pending autosave */
   _dirty?: boolean
 }
 
 export type TSection = Omit<TResumeSection, 'entries'> & { entries: TEntry[] }
-
-// ---- letter document (flat columns, grouped for forms)
 
 export type LetterDateMode = 'current' | 'custom'
 
@@ -177,8 +170,6 @@ export interface LetterSignature {
   date: string
   imageId: string
 }
-
-// ---- customization (design jsonb column) + personal details (jsonb column)
 
 export interface FontCustomization {
   selected: string
@@ -347,7 +338,6 @@ export interface PersonalDetails {
   passport: string
   maritalStatus: string
   drivingLicense: string
-  // Additional fields from the form
   dateOfBirth: string
   passportId: string
   availability: string

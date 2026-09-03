@@ -16,7 +16,6 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import AiEnhancerChips from './ai-enhancer-chips'
 
 interface RichTextEditorProps {
   onUpdate: (content: string) => void
@@ -128,7 +127,6 @@ export default function RichTextEditor({
       <div className="min-h-[120px] bg-transparent p-3 text-sm text-foreground focus:outline-none [&_.ProseMirror]:outline-none">
         <EditorContent editor={editor} />
       </div>
-      <AiEnhancerChips onUpdate={onUpdate} editor={editor} />
     </div>
   )
 }

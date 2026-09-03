@@ -8,7 +8,6 @@ import { redirect } from 'next/navigation'
 import type { LetterDesign } from '@/features/letter/types'
 import type { LetterDateMode } from '@/features/resume/types'
 
-// partial update over any flat letter column(s)
 export type LetterContentPatch = Partial<{
   body: string
   subject: string
@@ -80,7 +79,6 @@ export async function saveLetterDesignAction(id: string, design: LetterDesign) {
   await db.update(Letter).set({ design }).where(eq(Letter.id, id))
 }
 
-// copy typography/color/paper design from a resume onto this letter
 export async function copyResumeDesignAction(letterId: string, resumeId: string) {
   await requireUser()
   const resume = await db.query.Resume.findFirst({ where: eq(Resume.id, resumeId) })

@@ -257,7 +257,6 @@ export default function ResumeEditorPage() {
       </div>
       <div className="flex-1 overflow-hidden" style={{ marginTop: '4rem' }}>
         <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-4rem)] bg-muted/20">
-          {/* Left Column */}
           <div className="lg:col-span-6 xl:col-span-5 p-6 overflow-y-auto max-w-2xl mx-auto w-full">
             <div className="flex items-center gap-2 border-b p-3">
               <Button variant="ghost" size="icon-sm" onClick={() => router.push('/app/resumes')}><ChevronLeft className="size-4" /></Button>

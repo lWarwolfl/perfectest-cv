@@ -1,4 +1,3 @@
-// letter design (jsonb `design` column). Content lives in flat letter columns.
 export interface LetterDesign {
   fontFamily: string
   fontSizePt: number
