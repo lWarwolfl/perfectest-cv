@@ -23,11 +23,12 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ChevronLeft, Plus, Trash2, Download } from 'lucide-react'
 import EditorHeader from '@/components/editor/editor-header'
 import AddSectionModal from '@/components/editor/add-section-modal'
+import { useResumeStyleStore } from '@/stores/use-resume-style-store'
+import StyleSettings from '@/components/editor/customize/style-settings'
 
 function EntryForm({ entry, sectionType, onChange, onDelete }: {
   entry: TEntry
@@ -176,6 +177,7 @@ export default function ResumeEditorPage() {
   const [sections, setSections] = useState<TSection[]>([])
   const [personal, setPersonal] = useState<PersonalDetails>(EMPTY_PERSONAL_DETAILS)
   const [custom, setCustom] = useState<Customization>(DEFAULT_CUSTOMIZATION)
+  const hydrateStyle = useResumeStyleStore((s) => s.hydrate)
   const [tab, setTab] = useState('content')
   const [addSectionModalOpen, setAddSectionModalOpen] = useState(false)
   const dirty = useRef(false)
@@ -184,7 +186,9 @@ export default function ResumeEditorPage() {
     if (doc) {
       setSections(doc.sections || [])
       setPersonal({ ...EMPTY_PERSONAL_DETAILS, ...doc.resume.personalDetails })
-      setCustom({ ...DEFAULT_CUSTOMIZATION, ...doc.resume.customization })
+      const merged = { ...DEFAULT_CUSTOMIZATION, ...doc.resume.customization }
+      setCustom(merged)
+      hydrateStyle(merged)
     }
   }, [doc])
 
@@ -335,70 +339,22 @@ export default function ResumeEditorPage() {
                     <Input value={personal?.social?.github?.display || ''} onChange={(e) => { setPersonal((p) => ({ ...p, social: { ...p.social, github: { ...p.social?.github, display: e.target.value, link: e.target.value } } })); markDirty() }} />
                   </div>
                 </TabsContent>
-                <TabsContent value="style" className="flex-1 overflow-auto p-3 space-y-3">
-                  <div>
-                    <Label className="text-xs">Font</Label>
-                    <Select value={custom.font.selected || 'sans'} onValueChange={(v: string | null) => {
-                      const map: Record<string, string> = { sans: 'Inter', serif: 'Source Sans Pro', mono: 'JetBrains Mono', modern: 'Nunito', elegant: 'Crimson Pro', display: 'Zilla Slab' }
-                      const val = ((v || 'sans') as keyof typeof map)
-                      setCustom((c) => ({ ...c, font: { selected: val, fontFamily: map[val] || 'Inter' } }))
+                <TabsContent value="style" className="flex-1 overflow-auto p-3">
+                  <StyleSettings
+                    sections={sections}
+                    onChange={(next: Customization) => {
+                      setCustom(next)
+                      hydrateStyle(next)
                       markDirty()
-                    }}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sans">Sans (Inter)</SelectItem>
-                        <SelectItem value="serif">Serif (Source Sans Pro)</SelectItem>
-                        <SelectItem value="modern">Modern (Nunito)</SelectItem>
-                        <SelectItem value="elegant">Elegant (Crimson Pro)</SelectItem>
-                        <SelectItem value="display">Display (Zilla Slab)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Accent Color</Label>
-                    <div className="flex gap-2 flex-wrap">
-                      {['#044cb5', '#0891b2', '#ea580c', '#4a7c59', '#b91c1c', '#475569', '#1e293b', '#7c3aed'].map((c) => (
-                        <button key={c} className="size-7 rounded-full border-2" style={{ backgroundColor: c, borderColor: custom.colors.basic.single === c ? 'var(--primary)' : 'transparent' }} onClick={() => {
-                          setCustom((prev) => ({ ...prev, colors: { ...prev.colors, mode: 'basic', basic: { ...prev.colors.basic, single: c, selected: 'single' } } }))
-                          markDirty()
-                        }} />
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Layout</Label>
-                    <Select value={custom.layout.selected || 'one'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, layout: { ...c.layout, selected: (v || 'one') as Customization['layout']['selected'] } })); markDirty() }}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="one">Single Column</SelectItem>
-                        <SelectItem value="two">Two Column</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Heading Style</Label>
-                    <Select value={custom.heading.style || 'line'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, heading: { ...c.heading, style: (v || 'line') as Customization['heading']['style'] } })); markDirty() }}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="line">Line</SelectItem>
-                        <SelectItem value="box">Box</SelectItem>
-                        <SelectItem value="underline">Underline</SelectItem>
-                        <SelectItem value="thickShortUnderline">Thick Short</SelectItem>
-                        <SelectItem value="topBottomLine">Top & Bottom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Spacing</Label>
-                    <Select value={custom.spacing.fontSize || '3'} onValueChange={(v: string | null) => { setCustom((c) => ({ ...c, spacing: { ...c.spacing, fontSize: v || '3' } })); markDirty() }}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                          <SelectItem key={n} value={String(n)}>{n === 3 ? 'Medium' : n < 3 ? 'Compact' : 'Large'}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    }}
+                    onReorderSections={(ids) => {
+                      setSections((prev) => ids.map((sid) => prev.find((s) => s.id === sid)).filter(Boolean) as TSection[])
+                    }}
+                    onToggleSection={(sectionId, hidden) => {
+                      saveSectionMeta.mutate({ sectionId, hidden })
+                      setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, hidden } : s)))
+                    }}
+                  />
                 </TabsContent>
               </Tabs>
               <div className="py-6 flex justify-center">
