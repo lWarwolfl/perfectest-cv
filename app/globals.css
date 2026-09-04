@@ -159,7 +159,7 @@
 
 .share-bg {
   background-color: var(--background);
-  background-image: radial-gradient(color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px);
+  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 20%, transparent) 1.5px, transparent 1.5px);
   background-size: 22px 22px;
 }
 
