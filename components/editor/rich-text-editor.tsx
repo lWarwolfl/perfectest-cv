@@ -69,7 +69,7 @@ export default function RichTextEditor({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-muted/30 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-ring">
+    <div className="overflow-hidden rounded-lg border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
       <div className="flex min-h-12 flex-wrap items-center gap-1 border-b border-border/60 bg-muted/50 px-3 py-1.5">
         <Button variant="outline" size="icon-sm" onClick={toggleBold} className={boldActive ? ACTIVE_CLASSES : ''}>
           <Bold className="size-4" />

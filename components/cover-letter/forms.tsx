@@ -14,35 +14,35 @@ interface FormProps {
 export function SenderDetailsForm({ value, onChange }: FormProps) {
   return (
     <div className="space-y-3">
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Full Name</Label>
         <Input value={value.senderName || ''} onChange={(e) => onChange({ senderName: e.target.value })} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Professional Title</Label>
         <Input value={value.senderJobTitle || ''} onChange={(e) => onChange({ senderJobTitle: e.target.value })} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Email</Label>
         <Input type="email" value={value.senderEmail || ''} onChange={(e) => onChange({ senderEmail: e.target.value })} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Phone</Label>
         <Input value={value.senderPhone || ''} onChange={(e) => onChange({ senderPhone: e.target.value })} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Address</Label>
         <Input value={value.senderAddress || ''} onChange={(e) => onChange({ senderAddress: e.target.value })} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Website</Label>
         <Input value={value.senderWebsite || ''} onChange={(e) => onChange({ senderWebsite: e.target.value })} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>LinkedIn</Label>
         <Input value={value.senderLinkedIn || ''} onChange={(e) => onChange({ senderLinkedIn: e.target.value })} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>GitHub</Label>
         <Input value={value.senderGitHub || ''} onChange={(e) => onChange({ senderGitHub: e.target.value })} />
       </div>
@@ -53,7 +53,7 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
 export function DateForm({ value, onChange }: FormProps) {
   return (
     <div className="space-y-3">
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Date mode</Label>
         <Select value={value.dateMode || 'current'} onValueChange={(v) => onChange({ dateMode: v as LetterContentPatch['dateMode'] })}>
           <SelectTrigger><SelectValue /></SelectTrigger>
@@ -64,7 +64,7 @@ export function DateForm({ value, onChange }: FormProps) {
         </Select>
       </div>
       {value.dateMode === 'custom' && (
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <Label>Custom date</Label>
           <Input value={value.dateCustom || ''} onChange={(e) => onChange({ dateCustom: e.target.value })} placeholder="February 9, 2025" />
         </div>
@@ -76,19 +76,19 @@ export function DateForm({ value, onChange }: FormProps) {
 export function RecipientDetailsForm({ value, onChange }: FormProps) {
   return (
     <div className="space-y-3">
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Recipient Name / Role</Label>
         <Input value={value.recipientName || ''} onChange={(e) => onChange({ recipientName: e.target.value })} placeholder="Hr Manager" />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Company Name</Label>
         <Input value={value.recipientCompany || ''} onChange={(e) => onChange({ recipientCompany: e.target.value })} placeholder="Eversports" />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Department</Label>
         <Input value={value.recipientPosition || ''} onChange={(e) => onChange({ recipientPosition: e.target.value })} placeholder="Engineering Team" />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Address & City</Label>
         <RichTextEditor compact value={value.recipientAddress || ''} onUpdate={(content) => onChange({ recipientAddress: content })} />
       </div>
@@ -98,7 +98,7 @@ export function RecipientDetailsForm({ value, onChange }: FormProps) {
 
 export function SubjectForm({ value, onChange }: FormProps) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <Label>Subject Line</Label>
       <Input
         value={value.subject || ''}
@@ -112,11 +112,11 @@ export function SubjectForm({ value, onChange }: FormProps) {
 export function SignatureForm({ value, onChange }: FormProps) {
   return (
     <div className="space-y-3">
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Sign-off Name</Label>
         <Input value={value.signatureName || ''} onChange={(e) => onChange({ signatureName: e.target.value })} placeholder={value.senderName || 'Your Name'} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label>Place</Label>
         <Input value={value.signaturePlace || ''} onChange={(e) => onChange({ signaturePlace: e.target.value })} />
       </div>
