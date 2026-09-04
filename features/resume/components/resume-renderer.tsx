@@ -8,12 +8,31 @@ import type {
   TSection,
 } from '@/features/resume/types'
 import { SECTION_LABELS } from '@/features/resume/defaults'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Link as LinkIcon, Mail, Phone, Globe, AtSign } from 'lucide-react'
 
 export const PAGE_PX = {
   A4: { width: 794, height: 1123 },
   'US Letter': { width: 816, height: 1056 },
 } as const
+
+const CONTACT_ICONS: Record<string, typeof Mail> = { email: Mail, phone: Phone, website: Globe, linkedIn: AtSign, github: LinkIcon }
+
+const SIZE_PX = { xs: 40, s: 56, m: 72, l: 88, xl: 104 } as const
+
+function iconWrapCls(style: Customization['header']['iconStyle'], accent: string, text: string) {
+  switch (style) {
+    case 'filled-circle':
+      return { background: accent, color: '#ffffff', borderRadius: '9999px', padding: '3px' }
+    case 'soft-badge':
+      return { background: `color-mix(in srgb, ${accent} 15%, transparent)`, color: accent, borderRadius: '6px', padding: '3px' }
+    case 'neutral-gray':
+      return { color: '#9ca3af' }
+    case 'primary-accent':
+      return { color: accent }
+    default:
+      return { color: text }
+  }
+}
 
 function dateStr(d: DateObject) {
   if (!d) return ''
@@ -169,11 +188,19 @@ function headingCss(style: HeadingStyle, accent: string): React.CSSProperties {
   }
 }
 
-function linked(text: string, link: string, accent: string) {
+function linked(text: string, link: string, customization: Customization, accent: string, isHeaderDetail?: boolean) {
   if (!link) return text
+  const links = customization.links
+  const style: React.CSSProperties = {
+    color: links.blueColor && !isHeaderDetail ? '#2563eb' : accent,
+    textDecoration: links.underline && !isHeaderDetail ? 'underline' : 'none',
+  }
+  const showIcon = links.icon && !isHeaderDetail
+  const IconCmp = links.iconType === 'link' ? LinkIcon : ExternalLink
   return (
-    <a href={link} target="_blank" rel="noreferrer" style={{ color: accent, textDecoration: 'none' }}>
-      {text} <ExternalLink style={{ display: 'inline', width: '0.85em', height: '0.85em', verticalAlign: 'baseline' }} />
+    <a href={link} target="_blank" rel="noreferrer" style={style}>
+      {text}
+      {showIcon && <IconCmp style={{ display: 'inline', width: '0.85em', height: '0.85em', verticalAlign: 'baseline', marginLeft: '2px' }} />}
     </a>
   )
 }
@@ -204,12 +231,12 @@ export function ResumeRenderer({
 
   const detailChips = personalDetails.detailsOrder
     .map((key) => {
-      if (key === 'linkedIn') return personalDetails.social?.linkedIn?.display
-      if (key === 'github') return personalDetails.social?.github?.display
+      if (key === 'linkedIn') return { key, text: personalDetails.social?.linkedIn?.display }
+      if (key === 'github') return { key, text: personalDetails.social?.github?.display }
       const v = personalDetails[key as keyof PersonalDetails]
-      return typeof v === 'string' ? v : undefined
+      return typeof v === 'string' && key !== 'photo' ? { key, text: v } : undefined
     })
-    .filter((v): v is string => Boolean(v))
+    .filter((v): v is { key: string; text: string } => Boolean(v?.text))
 
   const isTwoCol = layout.selected === 'two'
   function renderSection(section: TSection) {
@@ -242,11 +269,11 @@ export function ResumeRenderer({
               <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span style={{ fontWeight: 500 }}>
-                    {customization.workDisplay.jobTitleBeforeEmployer ? w.jobTitle : linked(w.employer, w.employerLink, colors.accent)}
+                    {customization.workDisplay.jobTitleBeforeEmployer ? w.jobTitle : linked(w.employer, w.employerLink, customization, colors.accent)}
                     {w.employer && w.jobTitle && (
                       <span style={{ color: dim(colors.text) }}>
                         {' - '}
-                        {customization.workDisplay.jobTitleBeforeEmployer ? linked(w.employer, w.employerLink, colors.accent) : w.jobTitle}
+                        {customization.workDisplay.jobTitleBeforeEmployer ? linked(w.employer, w.employerLink, customization, colors.accent) : w.jobTitle}
                       </span>
                     )}
                   </span>
@@ -267,11 +294,11 @@ export function ResumeRenderer({
               <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span style={{ fontWeight: 500 }}>
-                    {customization.educationDisplay.degreeBeforeSchool ? ed.degree : linked(ed.school, ed.schoolLink, colors.accent)}
+                    {customization.educationDisplay.degreeBeforeSchool ? ed.degree : linked(ed.school, ed.schoolLink, customization, colors.accent)}
                     {ed.school && ed.degree && (
                       <span style={{ color: dim(colors.text) }}>
                         {' - '}
-                        {customization.educationDisplay.degreeBeforeSchool ? linked(ed.school, ed.schoolLink, colors.accent) : ed.degree}
+                        {customization.educationDisplay.degreeBeforeSchool ? linked(ed.school, ed.schoolLink, customization, colors.accent) : ed.degree}
                       </span>
                     )}
                   </span>
@@ -293,7 +320,7 @@ export function ResumeRenderer({
             items={entries.flatMap((e) =>
               e.data.type !== 'skill'
                 ? []
-                : [{ key: e.id, name: linked(e.data.skill, '', colors.accent), level: e.data.level, infoHtml: e.data.infoHtml }]
+                : [{ key: e.id, name: linked(e.data.skill, '', customization, colors.accent), level: e.data.level, infoHtml: e.data.infoHtml }]
             )}
           />
         )}
@@ -319,7 +346,7 @@ export function ResumeRenderer({
             items={entries.flatMap((e) =>
               e.data.type !== 'interest'
                 ? []
-                : [{ key: e.id, name: linked(e.data.interest, e.data.interestLink, colors.accent), level: '', infoHtml: e.data.infoHtml }]
+                : [{ key: e.id, name: linked(e.data.interest, e.data.interestLink, customization, colors.accent), level: '', infoHtml: e.data.infoHtml }]
             )}
           />
         )}
@@ -329,7 +356,7 @@ export function ResumeRenderer({
             const p = e.data
             return (
               <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
-                <span style={{ fontWeight: 500 }}>{linked(p.projectTitle, p.projectTitleLink, colors.accent)}</span>
+                <span style={{ fontWeight: 500 }}>{linked(p.projectTitle, p.projectTitleLink, customization, colors.accent)}</span>
                 {p.subTitle && <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{p.subTitle}</div>}
                 {hasHtml(p.description) && <div style={{ marginTop: '2px' }} dangerouslySetInnerHTML={{ __html: p.description }} />}
               </div>
@@ -341,7 +368,7 @@ export function ResumeRenderer({
               const c = e.data
               return (
                 <div key={e.id} style={{ marginBottom: '6px', lineHeight: lh }}>
-                  <span style={{ fontWeight: 500 }}>{linked(c.title, c.link, colors.accent)}</span>
+                  <span style={{ fontWeight: 500 }}>{linked(c.title, c.link, customization, colors.accent)}</span>
                   {c.issuer && <span style={{ color: dim(colors.text) }}> - {c.issuer}</span>}
                   {c.date && <span style={{ float: 'right', fontSize: '0.85em', color: colors.accent }}>{c.date}</span>}
                 </div>
@@ -365,70 +392,105 @@ export function ResumeRenderer({
     )
   }
 
+  const photoPosition = customization.photoPosition || { show: true, grayscale: false, position: 'right', size: 'm', shape: 'circle' }
+  const sizeKey = (['xs', 's', 'm', 'l', 'xl'] as const).includes(photoPosition.size as never) ? photoPosition.size : 'm'
+  const shapeRadius =
+    photoPosition.shape === 'circle' ? '9999px' : photoPosition.shape === 'rounded-lg' ? '16px' : photoPosition.shape === 'rounded-md' ? '12px' : photoPosition.shape === 'rounded-sm' ? '8px' : '0'
+  const photoEl = (header.photo.show || photoPosition.show) && personalDetails.photo.imageId && (
+    <img
+      src={personalDetails.photo.imageId}
+      alt="profile"
+      style={{
+        filter: photoPosition.grayscale || header.photo.grayscale ? 'grayscale(1)' : undefined,
+        width: SIZE_PX[sizeKey],
+        height: SIZE_PX[sizeKey],
+        borderRadius: shapeRadius,
+        objectFit: 'cover',
+        flexShrink: 0,
+      }}
+    />
+  )
+
   const headerContent = (
     <div
       style={{
         display: 'flex',
-        flexDirection: header.position === 'top' ? 'row' : 'column',
-        alignItems: 'flex-start',
+        flexDirection: photoPosition.position === 'top' ? 'column' : 'row',
+        alignItems: photoPosition.position === 'top' ? 'center' : 'flex-start',
         justifyContent: 'space-between',
         gap: '16px',
         marginBottom: header.position === 'top' ? '16px' : '0',
       }}
     >
+      {photoPosition.position === 'left' && photoEl}
       <div style={{ flex: 1, textAlign: header.alignText === 'center' ? 'center' : 'left' }}>
-        <h1
+        <div
           style={{
-            fontWeight: 700,
-            fontSize: `${customization.spacing.nameFontSizePt || 24}px`,
-            lineHeight: 1.2,
-            color: customization.applyAccentColor.name ? colors.accent : colors.text,
+            display: 'flex',
+            flexDirection: header.jobTitlePosition === 'sameLine' ? 'row' : 'column',
+            alignItems: 'baseline',
+            columnGap: '12px',
           }}
         >
-          {personalDetails.fullName || (showPlaceholder ? 'Your Name' : '')}
-        </h1>
-        {personalDetails.jobTitle && (
-          <p
+          <h1
             style={{
-              fontStyle: header.jobTitleStyle === 'italic' ? 'italic' : 'normal',
-              fontSize: `${customization.spacing.jobTitleFontSizePt || 18}px`,
-              color: customization.applyAccentColor.jobTitle ? colors.accent : colors.text,
+              fontWeight: header.nameStyle === 'regular' ? 400 : 700,
+              fontSize: `${customization.spacing.nameFontSizePt || 24}px`,
+              lineHeight: 1.2,
+              color: customization.applyAccentColor.name ? colors.accent : colors.text,
+              margin: 0,
             }}
           >
-            {personalDetails.jobTitle}
-          </p>
-        )}
+            {personalDetails.fullName || (showPlaceholder ? 'Your Name' : '')}
+          </h1>
+          {personalDetails.jobTitle && (
+            <p
+              style={{
+                fontStyle: header.jobTitleStyle === 'italic' ? 'italic' : 'normal',
+                fontSize: `${customization.spacing.jobTitleFontSizePt || 18}px`,
+                color: customization.applyAccentColor.jobTitle ? colors.accent : colors.text,
+                margin: 0,
+              }}
+            >
+              {personalDetails.jobTitle}
+            </p>
+          )}
+        </div>
       </div>
-      {header.photo.show && personalDetails.photo.imageId && (
-        <img
-          src={personalDetails.photo.imageId}
-          alt="profile"
-          style={{
-            filter: header.photo.grayscale ? 'grayscale(1)' : undefined,
-            width: `${40 + Number(header.photo.size) * 10}px`,
-            height: `${40 + Number(header.photo.size) * 10}px`,
-            borderRadius: header.photo.shape === 'round' ? '9999px' : header.photo.shape === 'squareRounded' ? '12px' : '0',
-            objectFit: 'cover',
-            flexShrink: 0,
-          }}
-        />
-      )}
+      {photoPosition.position === 'right' && photoEl}
     </div>
   )
 
   const detailsBlock = detailChips.length > 0 && (
     <div
       style={{
-        display: 'flex',
+        display: header.detailsArrangement === 'grid' ? 'grid' : 'flex',
         flexDirection: header.detailsArrangement === 'column' ? 'column' : 'row',
-        flexWrap: 'wrap',
+        flexWrap: header.detailsArrangement === 'wrap' ? 'wrap' : 'nowrap',
+        gridTemplateColumns: header.detailsArrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
         gap: '2px 12px',
         fontSize: '0.85em',
+        justifyContent: header.alignText === 'center' && header.detailsArrangement !== 'grid' ? 'center' : undefined,
       }}
     >
-      {detailChips.map((chip, i) => (
-        <span key={i}>{chip}</span>
-      ))}
+      {detailChips.map((chip, i) => {
+        const IconCmp = CONTACT_ICONS[chip.key as keyof typeof CONTACT_ICONS]
+        const icon = header.detailsSeparator === 'icon' && IconCmp && (
+          <span style={{ display: 'inline-flex', marginRight: '4px', verticalAlign: 'middle', ...iconWrapCls(header.iconStyle, colors.accent, colors.text) }}>
+            <IconCmp style={{ width: '0.9em', height: '0.9em' }} />
+          </span>
+        )
+        const separator = header.detailsSeparator !== 'icon' && i > 0 && (
+          <span style={{ marginRight: '0', color: dim(colors.text) }}>{header.detailsSeparator === 'bullet' ? ' • ' : ' | '}</span>
+        )
+        return (
+          <span key={i}>
+            {separator}
+            {icon}
+            {chip.text}
+          </span>
+        )
+      })}
     </div>
   )
 

@@ -214,11 +214,22 @@ export interface HeaderCustomization {
   detailsArrangement: 'wrap' | 'grid' | 'column'
   detailsDisplayCenter: 'icon' | 'text' | 'none'
   detailsDisplayLeftRight: 'icon' | 'text' | 'none'
+  detailsSeparator: 'icon' | 'bullet' | 'bar'
+  iconStyle: 'outline' | 'filled-circle' | 'soft-badge' | 'neutral-gray' | 'primary-accent'
   iconFrame: 'none' | 'circle' | 'square' | 'rounded'
   iconFrameStyle: 'filled' | 'outline'
   accentuateName: boolean
+  nameStyle: 'regular' | 'bold'
   jobTitlePosition: 'sameLine' | 'below'
   jobTitleStyle: 'normal' | 'italic'
+}
+
+export interface LinkCustomization {
+  underline: boolean
+  blueColor: boolean
+  icon: boolean
+  iconType: 'link' | 'external'
+  headerOverrides: { email: boolean; phone: boolean; website: boolean; linkedIn: boolean; github: boolean }
 }
 
 export interface LayoutCustomization {
@@ -287,11 +298,21 @@ export interface RegionalCustomization {
   dateDelimiter: '/' | '-'
 }
 
+export interface PhotoPositionCustomization {
+  show: boolean
+  grayscale: boolean
+  position: 'left' | 'top' | 'right'
+  size: 'xs' | 's' | 'm' | 'l' | 'xl'
+  shape: 'circle' | 'square' | 'rounded-sm' | 'rounded-md' | 'rounded-lg'
+}
+
 export interface Customization {
   font: FontCustomization
   colors: ColorCustomization
   border: BorderCustomization
   header: HeaderCustomization
+  links: LinkCustomization
+  photoPosition: PhotoPositionCustomization
   layout: LayoutCustomization
   heading: HeadingCustomization
   spacing: SpacingCustomization
@@ -302,7 +323,8 @@ export interface Customization {
   entryLayout: EntryLayoutCustomization
   regional: RegionalCustomization
   sectionHeadings: SectionHeadings
-  workDisplay: { jobTitleBeforeEmployer: boolean }
+  workDisplay: { jobTitleBeforeEmployer: boolean; groupPromotions: boolean }
+  fileName: string
   educationDisplay: { degreeBeforeSchool: boolean }
   applyAccentColor: {
     name: boolean
@@ -333,6 +355,7 @@ export interface PersonalDetails {
     yPct: number
     shape: 'round' | 'square' | 'squareRounded' | 'portrait'
     imageId: string
+    fileId?: string
     widthPct: number
     heightPct: number
     originalWidth: number

@@ -4,10 +4,11 @@ import CustomizeTabLayout from './customize-tab-layout'
 import TemplateLayoutSettings from './template-layout-settings'
 import TypographySettings from './typography-settings'
 import ColorThemeSettings from './color-theme-settings'
-import HeaderTitleSettings from './header-title-settings'
+import HeaderControls from './header-controls'
 import PageSpacingSettings from './page-spacing-settings'
 import EntryFormattingSettings from './entry-formatting-settings'
 import SkillsStyleSettings from './skills/skills-style-settings'
+import SectionDisplayPanel from './skills/section-display-panel'
 import { useResumeStyleStore } from '@/stores/use-resume-style-store'
 import { DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
 import type { Customization, TSection } from '@/features/resume/types'
@@ -64,15 +65,23 @@ export default function StyleSettings({
           emit({ applyAccentColor: { ...store.customization.applyAccentColor, ...patch } })
         }}
       />
-      <HeaderTitleSettings
+      <HeaderControls
         customization={store.customization}
         onHeaderPatch={(patch) => {
           store.patchHeader(patch)
           emit({ header: { ...store.customization.header, ...patch } })
         }}
-        onHeadingPatch={(patch) => {
-          store.patchHeading(patch)
-          emit({ heading: { ...store.customization.heading, ...patch } })
+        onLinksPatch={(patch) => {
+          store.patchLinks(patch)
+          emit({ links: { ...store.customization.links, ...patch } })
+        }}
+        onPhotoPositionPatch={(patch) => {
+          store.patchPhotoPosition(patch)
+          emit({ photoPosition: { ...store.customization.photoPosition, ...patch } })
+        }}
+        onWorkDisplayPatch={(patch) => {
+          store.patchWorkDisplay(patch)
+          emit({ workDisplay: { ...store.customization.workDisplay, ...patch } })
         }}
       />
       <PageSpacingSettings
@@ -93,12 +102,19 @@ export default function StyleSettings({
           emit({ [section]: { ...store.customization[section], ...patch } } as Partial<Customization>)
         }}
       />
+      {(['certificate', 'interest', 'language'] as const).map((section) => (
+        <SectionDisplayPanel
+          key={section}
+          customization={store.customization}
+          section={section}
+          onSectionDisplayPatch={(s, patch) => {
+            store.patchSectionDisplay(s, patch)
+            emit({ [s]: { ...store.customization[s], ...patch } } as Partial<Customization>)
+          }}
+        />
+      ))}
       <EntryFormattingSettings
         customization={store.customization}
-        onSectionDisplayPatch={(section, patch) => {
-          store.patchSectionDisplay(section, patch)
-          emit({ [section]: { ...store.customization[section], ...patch } } as Partial<Customization>)
-        }}
         onEntryLayoutPatch={(patch) => {
           store.patchEntryLayout(patch)
           emit({ entryLayout: { ...store.customization.entryLayout, ...patch } })
@@ -106,6 +122,9 @@ export default function StyleSettings({
         onRegionalPatch={(patch) => {
           store.patchRegional(patch)
           emit({ regional: { ...store.customization.regional, ...patch } })
+        }}
+        onFileNameChange={(fileName) => {
+          emit({ fileName })
         }}
         onReset={() => {
           store.reset()

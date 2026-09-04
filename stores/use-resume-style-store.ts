@@ -15,6 +15,9 @@ interface ResumeStyleState {
   patchColors: (patch: Partial<Customization['colors']>) => void
   patchBorder: (patch: Partial<Customization['border']>) => void
   patchHeader: (patch: Partial<Customization['header']>) => void
+  patchLinks: (patch: Partial<Customization['links']>) => void
+  patchPhotoPosition: (patch: Partial<Customization['photoPosition']>) => void
+  patchWorkDisplay: (patch: Partial<Customization['workDisplay']>) => void
   patchLayout: (patch: Partial<Customization['layout']>) => void
   patchHeading: (patch: Partial<Customization['heading']>) => void
   patchSpacing: (patch: Partial<Customization['spacing']>) => void
@@ -49,6 +52,21 @@ export const useResumeStyleStore = create<ResumeStyleState>((set) => ({
   patchHeader: (patch) =>
     set((s) => ({
       customization: { ...s.customization, header: { ...s.customization.header, ...patch } },
+      revision: s.revision + 1,
+    })),
+  patchLinks: (patch) =>
+    set((s) => ({
+      customization: { ...s.customization, links: { ...s.customization.links, ...patch } },
+      revision: s.revision + 1,
+    })),
+  patchPhotoPosition: (patch) =>
+    set((s) => ({
+      customization: { ...s.customization, photoPosition: { ...s.customization.photoPosition, ...patch } },
+      revision: s.revision + 1,
+    })),
+  patchWorkDisplay: (patch) =>
+    set((s) => ({
+      customization: { ...s.customization, workDisplay: { ...s.customization.workDisplay, ...patch } },
       revision: s.revision + 1,
     })),
   patchLayout: (patch) =>

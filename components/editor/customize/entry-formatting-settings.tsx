@@ -1,45 +1,30 @@
 'use client'
 
-import { List } from 'lucide-react'
+import { List, FileText } from 'lucide-react'
 import { CustomizeCard } from './customize-tab-layout'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import type { Customization, SectionDisplay } from '@/features/resume/types'
+import type { Customization } from '@/features/resume/types'
 
 interface EntryFormattingSettingsProps {
   customization: Customization
-  onSectionDisplayPatch: (section: 'skill' | 'language' | 'interest' | 'certificate', patch: Partial<SectionDisplay>) => void
   onEntryLayoutPatch: (patch: Partial<Customization['entryLayout']>) => void
   onRegionalPatch: (patch: Partial<Customization['regional']>) => void
+  onFileNameChange: (fileName: string) => void
   onReset: () => void
 }
 
-const SECTION_LABELS: Record<'skill' | 'language' | 'interest' | 'certificate', string> = {
-  skill: 'Skills',
-  language: 'Languages',
-  interest: 'Interests',
-  certificate: 'Certificates',
-}
-
-const DISPLAY_MODES: { value: SectionDisplay['selected']; label: string }[] = [
-  { value: 'grid', label: 'Grid' },
-  { value: 'rows', label: 'Rows' },
-  { value: 'compact', label: 'Compact' },
-  { value: 'bubble', label: 'Bubble' },
-  { value: 'level', label: 'Level bars' },
-]
-
 export default function EntryFormattingSettings({
   customization,
-  onSectionDisplayPatch,
   onEntryLayoutPatch,
   onRegionalPatch,
+  onFileNameChange,
   onReset,
 }: EntryFormattingSettingsProps) {
   return (
-    <CustomizeCard title="Lists & Dates" icon={List} description="Bullet styles, date formats and per-section overrides.">
+    <CustomizeCard title="Dates & Download" icon={List} description="Date formats, positions and download file name.">
       <div className="space-y-2">
         <Label>Date format</Label>
         <Select value={customization.regional.dateDisplay} onValueChange={(v) => onRegionalPatch({ dateDisplay: v || 'MM/YYYY' })}>
@@ -70,35 +55,16 @@ export default function EntryFormattingSettings({
           </SelectContent>
         </Select>
       </div>
-      {(['language', 'interest', 'certificate'] as const).map((section) => (
-        <div key={section} className="space-y-2 rounded-xl border border-border/60 p-3">
-          <Label className="text-sm font-semibold">{SECTION_LABELS[section]} style</Label>
-          <Select
-            value={customization[section].selected}
-            onValueChange={(v) => onSectionDisplayPatch(section, { selected: v as SectionDisplay['selected'] })}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DISPLAY_MODES.map((mode) => (
-                <SelectItem key={mode.value} value={mode.value}>
-                  {mode.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {customization[section].selected === 'grid' && (
-            <div className="flex items-center justify-between pt-1">
-              <Label className="text-xs text-muted-foreground">Split commas into bullets</Label>
-              <Switch
-                checked={customization[section].grid.splitCommasIntoBullets}
-                onCheckedChange={(v) => onSectionDisplayPatch(section, { grid: { ...customization[section].grid, splitCommasIntoBullets: v === true } })}
-              />
-            </div>
-          )}
-        </div>
-      ))}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-1.5">
+          <FileText className="size-3.5" /> Download file name
+        </Label>
+        <Input
+          value={customization.fileName || ''}
+          onChange={(e) => onFileNameChange(e.target.value)}
+          placeholder="Resume.pdf"
+        />
+      </div>
       <div className="mt-2 flex items-center justify-between rounded-xl bg-muted/40 p-4">
         <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={onReset}>
           Reset Customizations

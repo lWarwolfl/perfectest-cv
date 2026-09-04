@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   useResumeDocument,
   useSaveResumePersonalDetails,
@@ -21,6 +23,9 @@ import type { TSection, PersonalDetails, Customization, SectionType, EntryData, 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Spinner } from '@/components/ui/spinner'
+import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import { Eye, EyeOff, ChevronLeft, ChevronDown, Plus, Trash2, Pencil, GripVertical, UserRound } from 'lucide-react'
 import EditorHeader, { EditorShell } from '@/components/editor/editor-header'
 import { PageLoader } from '@/components/common/page-loader'
@@ -40,6 +45,13 @@ const HEADING_STYLE_OPTIONS: { value: HeadingStyle; label: string }[] = [
   { value: 'thinLine', label: 'Thin Line' },
   { value: 'zigZagLine', label: 'Zigzag' },
 ]
+
+function printWithFileName(name: string) {
+  const prev = document.title
+  document.title = name
+  window.print()
+  document.title = prev
+}
 
 function TitleInput({ label, value, link, placeholder, onChange, onLinkChange }: {
   label: string
@@ -373,12 +385,73 @@ function SectionCard({ section, onToggle, onDelete, onAddEntry, onEntryClick, sa
   )
 }
 
+function AvatarControls({ personal, onChange }: {
+  personal: PersonalDetails
+  onChange: (patch: Partial<PersonalDetails>) => void
+}) {
+  const fileId = personal.photo?.fileId || ''
+  const imageUrl = personal.photo?.imageId || ''
+  const upload = useMutation({
+    mutationFn: (file: File) => replaceImageAction({ name: 'avatar', image: file, oldFileId: fileId || undefined }),
+    onSuccess: (data) => {
+      const [img] = data
+      if (!img) return
+      onChange({ photo: { ...personal.photo, imageId: img.url, fileId: img.fileId } })
+      toast.success('Photo updated')
+    },
+    onError: () => toast.error('Failed to upload photo'),
+  })
+  const remove = useMutation({
+    mutationFn: () => deleteImageAction(fileId),
+    onSuccess: () => {
+      onChange({ photo: { ...personal.photo, imageId: '', fileId: '' } })
+      toast.success('Photo removed')
+    },
+    onError: () => toast.error('Failed to remove photo'),
+  })
+  return (
+    <div className="flex items-center gap-3">
+      <Avatar className="size-16 overflow-hidden rounded-full border border-border">
+        {imageUrl ? <AvatarImage src={imageUrl} alt={personal.fullName} /> : <AvatarFallback>{personal.fullName.charAt(0) || '?'}</AvatarFallback>}
+      </Avatar>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="avatar-upload" className="cursor-pointer text-xs font-medium text-primary hover:underline">
+          {imageUrl ? 'Change photo' : 'Upload photo'}
+        </label>
+        <input
+          id="avatar-upload"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) upload.mutate(file)
+            e.target.value = ''
+          }}
+        />
+        {imageUrl && (
+          <button
+            type="button"
+            onClick={() => remove.mutate()}
+            disabled={remove.isPending}
+            className="cursor-pointer text-xs text-destructive hover:underline"
+          >
+            Delete photo
+          </button>
+        )}
+      </div>
+      {(upload.isPending || remove.isPending) && <Spinner className="size-4 text-muted-foreground" />}
+    </div>
+  )
+}
+
 function DetailsForm({ personal, onChange }: {
   personal: PersonalDetails
   onChange: (patch: Partial<PersonalDetails>) => void
 }) {
   return (
     <div className="space-y-3">
+      <AvatarControls personal={personal} onChange={onChange} />
       {(['fullName', 'jobTitle', 'displayEmail', 'phone', 'address', 'website'] as (keyof PersonalDetails)[]).map((key) => (
         <div key={key}>
           <Label className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
@@ -507,7 +580,10 @@ export default function ResumeEditorPage() {
     setEditing(null)
   }
 
-  function handlePrint() { window.print() }
+  function handlePrint() {
+    const name = (custom.fileName || resume?.title || 'resume').replace(/\.pdf$/i, '').trim() || 'resume'
+    printWithFileName(name)
+  }
 
   const resume = doc?.resume
 
