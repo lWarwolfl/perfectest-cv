@@ -11,6 +11,7 @@ import type { LetterContentPatch } from '@/server/letter/letter.actions'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import { EMPTY_LETTER_DESIGN, type LetterDesign } from '@/features/letter/types'
 import EditorHeader, { EditorShell } from '@/components/editor/editor-header'
+import { ScreenGate } from '@/components/editor/screen-gate'
 import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
 import { PageLoader } from '@/components/common/page-loader'
 import { Button } from '@/components/ui/button'
@@ -110,7 +111,9 @@ export default function LetterEditorPage() {
   }
 
   return (
-    <EditorShell
+    <>
+      <ScreenGate overviewHref="/app/letters" onDownload={() => window.print()} />
+      <EditorShell
       header={
         <EditorHeader
           overviewHref="/app/letters"
@@ -262,6 +265,7 @@ export default function LetterEditorPage() {
           <LetterRenderer form={form} design={design} />
         </div>
       }
-    />
+      />
+    </>
   )
 }

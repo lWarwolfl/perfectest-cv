@@ -29,6 +29,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import { Eye, EyeOff, ChevronLeft, ChevronDown, Plus, Trash2, Pencil, GripVertical, UserRound } from 'lucide-react'
 import EditorHeader, { EditorShell } from '@/components/editor/editor-header'
+import { ScreenGate } from '@/components/editor/screen-gate'
 import { PageLoader } from '@/components/common/page-loader'
 import AddSectionModal from '@/components/editor/add-section-modal'
 import RichTextEditor from '@/components/editor/rich-text-editor'
@@ -617,6 +618,7 @@ export default function ResumeEditorPage() {
 
   return (
     <>
+      <ScreenGate overviewHref="/app/resumes" onDownload={handlePrint} />
       <EditorShell
         header={
           <EditorHeader
