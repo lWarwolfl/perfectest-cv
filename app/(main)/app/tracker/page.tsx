@@ -181,7 +181,7 @@ export default function TrackerPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Job Tracker</h1>
         <div className="flex gap-2">
           <Button variant={view === 'board' ? 'default' : 'outline'} size="sm" onClick={() => setView('board')}>Board</Button>
@@ -199,7 +199,7 @@ export default function TrackerPage() {
       </div>
 
       {view === 'board' ? (
-        <div className="flex gap-4 overflow-auto pb-4" style={{ minHeight: 'calc(100vh - 160px)' }}>
+        <div className="flex gap-4 -mx-3 overflow-x-auto px-3 pb-4" style={{ minHeight: 'calc(100vh - 160px)' }}>
           {columns.map((col) => (
             <div
               key={col.id}
