@@ -4,6 +4,7 @@ import { asc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/drizzle'
 import { ResumeSection, ResumeEntry } from '@/drizzle/schema'
 import { getPublicResumeAction } from '@/server/resume/resume.actions'
+import { ShareFooter } from '@/components/common/share-footer'
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
 import { DEFAULT_CUSTOMIZATION, EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
 import { pageDims } from '@/lib/page'
@@ -49,9 +50,9 @@ export default async function SharedResumePage({ params }: SharePageProps) {
   const { widthMm, heightMm } = pageDims(c.regional?.pageFormat)
 
   return (
-    <div className="preview-light min-h-screen bg-background py-6 flex justify-center px-4">
+    <div className="preview-light min-h-screen bg-background py-6 flex flex-col items-center gap-0 px-4">
       <div
-        className="w-full bg-white"
+        className="w-full bg-white border border-border shadow-sm"
         style={{ maxWidth: widthMm * 3.78, aspectRatio: `${widthMm} / ${heightMm}` }}
       >
         <ResumeRenderer
@@ -60,6 +61,7 @@ export default async function SharedResumePage({ params }: SharePageProps) {
           customization={c}
         />
       </div>
+      <ShareFooter />
     </div>
   )
 }
