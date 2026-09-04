@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { uid } from '@/lib/utils'
 
-type TrackerColumn = { id: string; name: string; cardIds: string[] }
+type TrackerColumn = { id: string; name: string; cardIds: string[]; color?: string }
 type TrackerCardRow = typeof TrackerCard.$inferSelect
 
 export async function getTrackerAction() {

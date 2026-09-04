@@ -55,7 +55,7 @@ export function useResumeDocument(id: string) {
 export function useCreateResume() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: createResumeAction,
+    mutationFn: (title?: string) => createResumeAction(title),
     onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }); toast.success('Resume created') },
     onError: (e) => toast.error(getErrorMessage(e)),
   })

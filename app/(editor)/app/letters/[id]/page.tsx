@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ChevronLeft, ChevronRight, Copy } from 'lucide-react'
-import { useSaveLetterContent, useSaveLetterDesign, useCopyResumeDesign } from '@/features/letter/hooks/letter.hooks'
+import { useSaveLetterContent, useSaveLetterDesign, useCopyResumeDesign, useCopyResumeDetails, useRenameLetter } from '@/features/letter/hooks/letter.hooks'
 import { getLetterAction } from '@/server/letter/letter.actions'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
 import { QUERY_KEYS } from '@/features/queries/keys'
@@ -26,6 +26,9 @@ import {
   SignatureForm,
   BodyForm,
 } from '@/components/cover-letter/forms'
+import HeaderControls from '@/components/editor/customize/header-controls'
+import { DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
+import type { Customization } from '@/features/resume/types'
 import type { TListResumesAction } from '@/server/resume/resume.actions'
 import { listResumesAction } from '@/server/resume/resume.actions'
 
@@ -48,18 +51,27 @@ export default function LetterEditorPage() {
   const saveContent = useSaveLetterContent(id)
   const saveDesign = useSaveLetterDesign(id)
   const copyDesign = useCopyResumeDesign()
+  const copyDetails = useCopyResumeDetails(id)
+  const rename = useRenameLetter()
   const [form, setForm] = useState<LetterContentPatch>({})
   const [design, setDesign] = useState<LetterDesign>(EMPTY_LETTER_DESIGN)
+  const [syncResumeId, setSyncResumeId] = useState('')
   const [tab, setTab] = useState<'content' | 'design'>('content')
   const [activeSection, setActiveSection] = useState<SectionKey | null>(null)
+  const [titleDraft, setTitleDraft] = useState('')
   const dirty = useRef(false)
 
   useEffect(() => {
     if (letter) {
       setForm({ ...letter })
       setDesign({ ...EMPTY_LETTER_DESIGN, ...(letter.design || {}) })
+      setTitleDraft(letter.title)
     }
   }, [letter])
+
+  useEffect(() => {
+    if (!syncResumeId && resumes?.length) setSyncResumeId(resumes[0].id)
+  }, [resumes, syncResumeId])
 
   useEffect(() => {
     if (!dirty.current) return
@@ -83,10 +95,18 @@ export default function LetterEditorPage() {
   }
 
   function handleCopyResumeDesign() {
-    const firstResume = resumes?.[0]
-    if (!firstResume) { toast.error('Create a resume first'); return }
-    copyDesign.mutate({ letterId: id, resumeId: firstResume.id })
+    const target = resumes?.find((r) => r.id === syncResumeId) || resumes?.[0]
+    if (!target) { toast.error('Create a resume first'); return }
+    copyDesign.mutate({ letterId: id, resumeId: target.id })
     qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS, id] })
+  }
+
+  function handleCopyResumeDetails() {
+    const target = resumes?.find((r) => r.id === syncResumeId) || resumes?.[0]
+    if (!target) { toast.error('Create a resume first'); return }
+    copyDetails.mutate(target.id, {
+      onSuccess: (patch) => { setForm((f) => ({ ...f, ...patch })); markDirty() },
+    })
   }
 
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -124,7 +144,7 @@ export default function LetterEditorPage() {
       }
       sidebar={
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex items-center gap-2 border-b p-3">
+          <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background p-3">
             <Button
               variant="ghost"
               size="icon-sm"
@@ -133,7 +153,15 @@ export default function LetterEditorPage() {
             >
               <ChevronLeft className="size-4" />
             </Button>
-            <span className="truncate text-sm font-medium">{letter?.title || 'Cover Letter'}</span>
+            <Input
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              className="h-8 text-sm font-medium"
+              placeholder="Letter title"
+            />
+            <Button size="sm" disabled={!titleDraft.trim() || titleDraft === (letter?.title || '')} onClick={() => { if (titleDraft.trim()) rename.mutate({ id, title: titleDraft.trim() }) }}>
+              Save
+            </Button>
           </div>
           {tab === 'content' ? (
             <div className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -170,14 +198,30 @@ export default function LetterEditorPage() {
             </div>
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
-              <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
+              <div className="space-y-2 rounded-xl border border-border bg-card p-4">
                 <div>
                   <p className="text-sm font-semibold text-foreground">Sync Styles</p>
-                  <p className="text-xs text-muted-foreground">Match your cover letter design to your primary resume</p>
+                  <p className="text-xs text-muted-foreground">Match your cover letter design to one of your resumes</p>
                 </div>
-                <Button variant="outline" size="sm" className="shrink-0" onClick={handleCopyResumeDesign}>
-                  <Copy className="size-3.5" /> Copy resume design
-                </Button>
+                <div className="space-y-1">
+                  <Label className="text-xs">Resume</Label>
+                  <Select value={syncResumeId || undefined} onValueChange={(v) => setSyncResumeId(v || '')}>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Pick a resume" /></SelectTrigger>
+                    <SelectContent>
+                      {resumes?.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={handleCopyResumeDesign} disabled={!syncResumeId}>
+                    <Copy className="size-3.5" /> Copy design
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleCopyResumeDetails} disabled={!syncResumeId}>
+                    <Copy className="size-3.5" /> Copy sender details
+                  </Button>
+                </div>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Font</Label>
@@ -245,6 +289,11 @@ export default function LetterEditorPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <HeaderControls
+                customization={{ ...DEFAULT_CUSTOMIZATION, header: design.headerSettings || DEFAULT_CUSTOMIZATION.header } as Customization}
+                onHeaderPatch={(patch) => patchDesign({ headerSettings: { ...(design.headerSettings || DEFAULT_CUSTOMIZATION.header), ...patch } })}
+                onPhotoPositionPatch={() => {}}
+              />
               <div className="space-y-1">
                 <Label className="text-xs">Date position</Label>
                 <Select value={design.letterDateDisplay?.position || 'left'} onValueChange={(v) => patchDesign({ letterDateDisplay: { position: v as 'left' | 'right' | 'center' } })}>

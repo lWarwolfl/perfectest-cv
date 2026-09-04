@@ -2,7 +2,7 @@ import { ForgotPasswordPageClient } from '@/features/auth/components/forgot-pass
 
 export default function ForgotPasswordPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-indigo-50 to-background p-4">
+    <main className="flex min-h-screen items-center justify-center p-4">
       <ForgotPasswordPageClient />
     </main>
   )

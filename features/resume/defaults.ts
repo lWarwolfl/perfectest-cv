@@ -158,10 +158,9 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   },
   links: {
     underline: true,
-    blueColor: false,
+    useAccent: false,
     icon: false,
     iconType: 'external',
-    headerOverrides: { email: false, phone: false, website: false, linkedIn: false, github: false },
   },
   photoPosition: { show: true, grayscale: false, position: 'right', size: 'm', shape: 'circle' },
   layout: {
@@ -182,7 +181,6 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
     text: 'bullet',
     rows: { spacing: 'spacious', bullets: false },
     subinfo: 'colon',
-    level: { selected: 'dots' },
   },
   language: {
     selected: 'compact',
@@ -190,7 +188,6 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
     text: 'bullet',
     rows: { spacing: 'spacious', bullets: false },
     subinfo: 'colon',
-    level: { selected: 'dots' },
   },
   interest: {
     selected: 'compact',
@@ -198,7 +195,6 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
     text: 'comma',
     rows: { spacing: 'spacious', bullets: false },
     subinfo: 'colon',
-    level: { selected: 'dots' },
   },
   certificate: {
     selected: 'rows',
@@ -206,7 +202,6 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
     text: 'bullet',
     rows: { spacing: 'spacious', bullets: false },
     subinfo: 'colon',
-    level: { selected: 'dots' },
   },
   entryLayout: {
     displayMode: 'dateLocationRight',

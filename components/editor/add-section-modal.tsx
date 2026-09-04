@@ -26,12 +26,12 @@ export default function AddSectionModal({
 }: AddSectionModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Add Section</DialogTitle>
           <DialogDescription>Choose a section type to add to your resume.</DialogDescription>
         </DialogHeader>
-        <div className="max-h-[50vh] space-y-1.5 overflow-y-auto">
+        <div className="max-h-[50vh] space-y-1.5 overflow-y-auto -mr-4 pr-6">
           {(Object.keys(SECTION_LABELS) as SectionType[]).map((type) => (
             <Button
               key={type}

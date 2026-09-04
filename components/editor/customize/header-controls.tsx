@@ -1,12 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import {
   AlignLeft,
   AlignCenter,
   ExternalLink,
   Mail,
-  ChevronDown,
   UserRound,
   Link2,
   BriefcaseBusiness,
@@ -94,24 +92,18 @@ const SHAPE_CLS = {
   'rounded-lg': 'rounded-lg',
 } as const
 
-function useDisclosure(initial = false) {
-  const [open, setOpen] = useState(initial)
-  return { open, toggle: () => setOpen((o) => !o) }
-}
-
 export function LinkStylingSettings({ customization, onLinksPatch }: LinkStylingProps) {
   const links = customization.links
-  const advanced = useDisclosure()
   return (
-    <CustomizeCard title="Links" icon={Link2} description="Underline, color and icons for all links in the resume.">
+    <CustomizeCard title="Links" icon={Link2} description="Underline, color and icons for all links, including header contact details.">
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <Checkbox id="link-underline" checked={links.underline} onCheckedChange={(v) => onLinksPatch({ underline: v === true })} />
           <Label htmlFor="link-underline" className="cursor-pointer text-sm">Underline</Label>
         </div>
         <div className="flex items-center gap-2">
-          <Checkbox id="link-blue" checked={links.blueColor} onCheckedChange={(v) => onLinksPatch({ blueColor: v === true })} />
-          <Label htmlFor="link-blue" className="cursor-pointer text-sm">Blue color</Label>
+          <Checkbox id="link-accent" checked={links.useAccent} onCheckedChange={(v) => onLinksPatch({ useAccent: v === true })} />
+          <Label htmlFor="link-accent" className="cursor-pointer text-sm">Accent color</Label>
         </div>
         <div className="flex items-center gap-2">
           <Checkbox id="link-icon" checked={links.icon} onCheckedChange={(v) => onLinksPatch({ icon: v === true })} />
@@ -119,44 +111,18 @@ export function LinkStylingSettings({ customization, onLinksPatch }: LinkStyling
         </div>
       </div>
       {links.icon && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <OptionButton active={links.iconType === 'link'} onClick={() => onLinksPatch({ iconType: 'link' })}>
             <Link2 className="mx-auto block size-4" />
           </OptionButton>
           <OptionButton active={links.iconType === 'external'} onClick={() => onLinksPatch({ iconType: 'external' })}>
             <ExternalLink className="mx-auto block size-4" />
           </OptionButton>
+          <OptionButton active={links.iconType === 'mail'} onClick={() => onLinksPatch({ iconType: 'mail' })}>
+            <Mail className="mx-auto block size-4" />
+          </OptionButton>
         </div>
       )}
-      <div className="rounded-xl border border-border/60">
-        <button
-          type="button"
-          className="flex w-full items-center justify-between p-3 text-left"
-          onClick={advanced.toggle}
-        >
-          <span className="text-sm font-semibold">Advanced Settings</span>
-          <ChevronDown className={cn('size-4 transition-transform', advanced.open && 'rotate-180')} />
-        </button>
-        {advanced.open && (
-          <div className="space-y-3 border-t border-border/60 p-3">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Apply underline and blue color to header
-            </div>
-            {(['email', 'phone', 'website', 'linkedIn', 'github'] as const).map((k) => (
-              <div key={k} className="flex items-center gap-2">
-                <Checkbox
-                  id={`link-ovr-${k}`}
-                  checked={links.headerOverrides[k]}
-                  onCheckedChange={(v) => onLinksPatch({ headerOverrides: { ...links.headerOverrides, [k]: v === true } })}
-                />
-                <Label htmlFor={`link-ovr-${k}`} className="cursor-pointer text-sm capitalize">
-                  {k === 'linkedIn' ? 'LinkedIn' : k}
-                </Label>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </CustomizeCard>
   )
 }

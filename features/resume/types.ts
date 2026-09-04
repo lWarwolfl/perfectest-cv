@@ -226,10 +226,9 @@ export interface HeaderCustomization {
 
 export interface LinkCustomization {
   underline: boolean
-  blueColor: boolean
+  useAccent: boolean
   icon: boolean
-  iconType: 'link' | 'external'
-  headerOverrides: { email: boolean; phone: boolean; website: boolean; linkedIn: boolean; github: boolean }
+  iconType: 'link' | 'external' | 'mail'
 }
 
 export interface LayoutCustomization {
@@ -277,12 +276,11 @@ export interface SpacingCustomization {
 }
 
 export interface SectionDisplay {
-  selected: 'grid' | 'rows' | 'compact' | 'bubble' | 'level'
+  selected: 'grid' | 'rows' | 'compact' | 'bubble'
   grid: { columns: 1 | 2 | 3 | 4; splitCommasIntoBullets: boolean }
   text: 'bullet' | 'pipe' | 'wrap' | 'comma'
   rows: { spacing: 'tight' | 'spacious'; bullets: boolean }
   subinfo: 'colon' | 'dash' | 'bracket'
-  level: { selected: 'dots' | 'bar' }
 }
 
 export interface EntryLayoutCustomization {

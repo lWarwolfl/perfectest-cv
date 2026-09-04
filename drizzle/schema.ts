@@ -178,7 +178,7 @@ export const Tracker = pgTable(
       .references(() => User.id, { onDelete: 'cascade' }),
     name: text('name').notNull().default('Job Tracker'),
     columns: jsonb('columns')
-      .$type<{ id: string; name: string; cardIds: string[] }[]>()
+      .$type<{ id: string; name: string; cardIds: string[]; color?: string }[]>()
       .notNull()
       .default([]),
   },

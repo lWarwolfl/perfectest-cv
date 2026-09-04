@@ -53,9 +53,9 @@ async function seedDefaultSections(resumeId: string) {
   )
 }
 
-export async function createResumeAction() {
+export async function createResumeAction(title?: string) {
   const user = await requireUser()
-  const [resume] = await db.insert(Resume).values({ userId: user.id }).returning()
+  const [resume] = await db.insert(Resume).values({ userId: user.id, ...(title ? { title } : {}) }).returning()
   await seedDefaultSections(resume.id)
   return resume
 }

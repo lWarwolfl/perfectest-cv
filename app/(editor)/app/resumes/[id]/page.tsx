@@ -22,6 +22,7 @@ import { SECTION_LABELS, EMPTY_PERSONAL_DETAILS, DEFAULT_CUSTOMIZATION } from '@
 import type { TSection, PersonalDetails, Customization, SectionType, EntryData, SkillEntry, LanguageEntry, HeadingStyle } from '@/features/resume/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -141,19 +142,25 @@ function EntryForm({ entry, sectionType, onChange, onDelete }: {
   }
   if (sectionType === 'skill' || sectionType === 'language') {
     const e = entry.data as SkillEntry
+    const nameKey = sectionType === 'skill' ? 'skill' : 'language'
+    const nameValue = sectionType === 'skill' ? e.skill : (entry.data as LanguageEntry).language
     return (
       <div className="space-y-2 rounded-lg border p-2">
         <div className="flex items-center gap-2">
           <Input
             placeholder={sectionType === 'skill' ? 'Skill' : 'Language'}
-            value={sectionType === 'skill' ? e.skill : (entry.data as LanguageEntry).language}
-            onChange={(v) => up({ [sectionType === 'skill' ? 'skill' : 'language']: v.target.value } as Partial<EntryData>)}
+            value={nameValue}
+            onChange={(v) => up({ [nameKey]: v.target.value } as Partial<EntryData>)}
             className="flex-1"
           />
           <Input placeholder="Level" value={e.level} onChange={(v) => up({ level: v.target.value })} className="w-24" />
           <Button variant="ghost" size="icon-sm" onClick={onDelete}><Trash2 className="size-3" /></Button>
         </div>
-        <RichTextEditor compact value={e.infoHtml} onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)} />
+        <Textarea
+          placeholder="Subinfo"
+          value={stripHtml(e.infoHtml)}
+          onChange={(v) => up({ infoHtml: v.target.value.replace(/\s{2,}/g, ' ').replace(/\n/g, ' ') } as Partial<EntryData>)}
+        />
       </div>
     )
   }
@@ -513,6 +520,7 @@ export default function ResumeEditorPage() {
   const [tab, setTab] = useState<'content' | 'design'>('content')
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [addSectionModalOpen, setAddSectionModalOpen] = useState(false)
+  const [titleDraft, setTitleDraft] = useState('')
   const dirty = useRef(false)
 
   useEffect(() => {
@@ -523,6 +531,7 @@ export default function ResumeEditorPage() {
       const merged = mergeCustomization(DEFAULT_CUSTOMIZATION, doc.resume.customization)
       setCustom(merged)
       hydrateStyle(merged)
+      setTitleDraft(doc.resume.title)
       // Profile section is mandatory: auto-create it if missing, and keep exactly one entry.
       if (!next.some((s) => s.sectionType === 'profile')) {
         addSection.mutate('profile')
@@ -630,18 +639,18 @@ export default function ResumeEditorPage() {
         }
         sidebar={
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex items-center gap-2 border-b p-3">
+            <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background p-3">
               <Button variant="ghost" size="icon-sm" onClick={() => router.push('/app/resumes')} aria-label="Back to resumes">
                 <ChevronLeft className="size-4" />
               </Button>
               <Input
-                value={resume?.title || ''}
-                onChange={(e) => { rename.mutate({ id, title: e.target.value }) }}
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
                 className="h-8 text-sm font-medium"
                 placeholder="Resume title"
               />
-              <Button variant="ghost" size="icon-sm" onClick={() => setDetailsOpen((o) => !o)} aria-label="Personal details">
-                <Plus className="size-4" />
+              <Button size="sm" disabled={!titleDraft.trim() || titleDraft === (resume?.title || '')} onClick={() => { if (titleDraft.trim()) rename.mutate({ id, title: titleDraft.trim() }) }}>
+                Save
               </Button>
             </div>
             {tab === 'content' ? (

@@ -7,15 +7,15 @@ import type {
   TEntry,
   TSection,
 } from '@/features/resume/types'
-import { SECTION_LABELS } from '@/features/resume/defaults'
-import { ExternalLink, Link as LinkIcon, Mail, Phone, Globe, AtSign } from 'lucide-react'
+import { SECTION_LABELS, DEFAULT_CUSTOMIZATION, EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
+import { ExternalLink, Link as LinkIcon, Mail, Phone, Globe, AtSign, MapPin } from 'lucide-react'
 
 export const PAGE_PX = {
   A4: { width: 794, height: 1123 },
   'US Letter': { width: 816, height: 1056 },
 } as const
 
-const CONTACT_ICONS: Record<string, typeof Mail> = { email: Mail, phone: Phone, website: Globe, linkedIn: AtSign, github: LinkIcon }
+const CONTACT_ICONS: Record<string, typeof Mail> = { displayEmail: Mail, email: Mail, phone: Phone, address: MapPin, website: Globe, linkedIn: AtSign, github: LinkIcon }
 
 const SIZE_PX = { xs: 40, s: 56, m: 72, l: 88, xl: 104 } as const
 
@@ -60,7 +60,8 @@ function formatDateRange(start: DateObject, end: DateObject, dateDisplay: string
 }
 
 function colorStyle(customization: Customization) {
-  const colors = customization.colors
+  const merged = { ...customization, colors: { ...DEFAULT_CUSTOMIZATION.colors, ...customization.colors } } as Customization
+  const colors = merged.colors
   const basic = colors.basic
   const multi = colors.mode === 'advanced' ? colors.advanced.multi.light : basic.multi
   const accent = colors.mode === 'advanced' ? colors.advanced.single : basic.selected === 'multi' ? multi.accentColor : basic.single
@@ -88,6 +89,7 @@ function DisplayList({ display, items, accent, text, lh }: {
     const label = subinfo === 'colon' ? `: ${level}` : subinfo === 'dash' ? ` - ${level}` : ` (${level})`
     return <span style={{ color: dim(text) }}>{label}</span>
   }
+  const subText = (level: string) => (subinfo === 'colon' ? `: ${level}` : subinfo === 'dash' ? `- ${level}` : `(${level})`)
   const levelDots = (level: string) => {
     const n = Number(level)
     if (!Number.isInteger(n) || n < 1 || n > 5) return null
@@ -129,23 +131,8 @@ function DisplayList({ display, items, accent, text, lh }: {
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: `2px 12px`, lineHeight: lh }}>
         {items.map((it) => (
           <div key={it.key}>
-            {it.name}
-            {sub(it.level)}
-            {levelDots(it.level)}
-            {hasHtml(it.infoHtml) && <div style={{ fontSize: '0.9em', color: dim(text) }} dangerouslySetInnerHTML={{ __html: it.infoHtml! }} />}
-          </div>
-        ))}
-      </div>
-    )
-  }
-  if (display.selected === 'level') {
-    return (
-      <div style={{ lineHeight: lh }}>
-        {items.map((it) => (
-          <div key={it.key} style={{ marginBottom: '2px' }}>
-            {it.name}
-            {sub(it.level)}
-            {levelDots(it.level)}
+            <div>{it.name}{levelDots(it.level)}</div>
+            {it.level && <div style={{ fontSize: '0.9em', color: dim(text) }}>{subText(it.level)}</div>}
             {hasHtml(it.infoHtml) && <div style={{ fontSize: '0.9em', color: dim(text) }} dangerouslySetInnerHTML={{ __html: it.infoHtml! }} />}
           </div>
         ))}
@@ -201,18 +188,18 @@ function headingCss(style: HeadingStyle, accent: string, text: string, useAccent
   }
 }
 
-function linked(text: string, link: string, customization: Customization, accent: string, isHeaderDetail?: boolean) {
-  if (!link) return text
+function linked(label: string, link: string, customization: Customization, accent: string, textColor: string) {
+  if (!link) return label
   const links = customization.links
   const style: React.CSSProperties = {
-    color: links.blueColor && !isHeaderDetail ? '#2563eb' : accent,
-    textDecoration: links.underline && !isHeaderDetail ? 'underline' : 'none',
+    color: links.useAccent ? accent : textColor,
+    textDecoration: links.underline ? 'underline' : 'none',
   }
-  const showIcon = links.icon && !isHeaderDetail
-  const IconCmp = links.iconType === 'link' ? LinkIcon : ExternalLink
+  const showIcon = links.icon
+  const IconCmp = links.iconType === 'link' ? LinkIcon : links.iconType === 'mail' ? Mail : ExternalLink
   return (
     <a href={link} target="_blank" rel="noreferrer" style={style}>
-      {text}
+      {label}
       {showIcon && <IconCmp style={{ display: 'inline', width: '0.85em', height: '0.85em', verticalAlign: 'baseline', marginLeft: '2px' }} />}
     </a>
   )
@@ -223,9 +210,9 @@ function hasHtml(s: string | undefined) {
 }
 
 export function ResumeRenderer({
-  personalDetails,
+  personalDetails: rawPersonalDetails,
   sections,
-  customization,
+  customization: rawCustomization,
   showPlaceholder = false,
 }: {
   personalDetails: PersonalDetails
@@ -233,6 +220,8 @@ export function ResumeRenderer({
   customization: Customization
   showPlaceholder?: boolean
 }) {
+  const personalDetails = { ...EMPTY_PERSONAL_DETAILS, ...rawPersonalDetails }
+  const customization = { ...DEFAULT_CUSTOMIZATION, ...rawCustomization } as Customization
   const colors = colorStyle(customization)
   const { header, layout, heading, spacing } = customization
   const fontFamily = customization.font.fontFamily || 'Inter'
@@ -242,6 +231,13 @@ export function ResumeRenderer({
   const page = PAGE_PX[customization.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4']
   const sectionHeadings = customization.sectionHeadings || {}
 
+  const detailLinks: Record<string, string> = {
+    displayEmail: personalDetails.displayEmail ? `mailto:${personalDetails.displayEmail}` : '',
+    phone: personalDetails.phone ? `tel:${personalDetails.phone}` : '',
+    website: personalDetails.websiteLink || personalDetails.website,
+    linkedIn: personalDetails.social?.linkedIn?.link || '',
+    github: personalDetails.social?.github?.link || '',
+  }
   const detailChips = personalDetails.detailsOrder
     .map((key) => {
       if (key === 'linkedIn') return { key, text: personalDetails.social?.linkedIn?.display }
@@ -287,11 +283,11 @@ export function ResumeRenderer({
               <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span style={{ fontWeight: 500 }}>
-                    {customization.workDisplay.jobTitleBeforeEmployer ? w.jobTitle : linked(w.employer, w.employerLink, customization, colors.accent)}
+                    {customization.workDisplay.jobTitleBeforeEmployer ? w.jobTitle : linked(w.employer, w.employerLink, customization, colors.accent, colors.text)}
                     {w.employer && w.jobTitle && (
                       <span style={{ color: dim(colors.text) }}>
                         {' - '}
-                        {customization.workDisplay.jobTitleBeforeEmployer ? linked(w.employer, w.employerLink, customization, colors.accent) : w.jobTitle}
+                        {customization.workDisplay.jobTitleBeforeEmployer ? linked(w.employer, w.employerLink, customization, colors.accent, colors.text) : w.jobTitle}
                       </span>
                     )}
                   </span>
@@ -312,11 +308,11 @@ export function ResumeRenderer({
               <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span style={{ fontWeight: 500 }}>
-                    {customization.educationDisplay.degreeBeforeSchool ? ed.degree : linked(ed.school, ed.schoolLink, customization, colors.accent)}
+                    {customization.educationDisplay.degreeBeforeSchool ? ed.degree : linked(ed.school, ed.schoolLink, customization, colors.accent, colors.text)}
                     {ed.school && ed.degree && (
                       <span style={{ color: dim(colors.text) }}>
                         {' - '}
-                        {customization.educationDisplay.degreeBeforeSchool ? linked(ed.school, ed.schoolLink, customization, colors.accent) : ed.degree}
+                        {customization.educationDisplay.degreeBeforeSchool ? linked(ed.school, ed.schoolLink, customization, colors.accent, colors.text) : ed.degree}
                       </span>
                     )}
                   </span>
@@ -338,7 +334,7 @@ export function ResumeRenderer({
             items={entries.flatMap((e) =>
               e.data.type !== 'skill'
                 ? []
-                : [{ key: e.id, name: linked(e.data.skill, '', customization, colors.accent), level: e.data.level, infoHtml: e.data.infoHtml }]
+                : [{ key: e.id, name: linked(e.data.skill, '', customization, colors.accent, colors.text), level: e.data.level, infoHtml: e.data.infoHtml }]
             )}
           />
         )}
@@ -364,7 +360,7 @@ export function ResumeRenderer({
             items={entries.flatMap((e) =>
               e.data.type !== 'interest'
                 ? []
-                : [{ key: e.id, name: linked(e.data.interest, e.data.interestLink, customization, colors.accent), level: '', infoHtml: e.data.infoHtml }]
+                : [{ key: e.id, name: linked(e.data.interest, e.data.interestLink, customization, colors.accent, colors.text), level: '', infoHtml: e.data.infoHtml }]
             )}
           />
         )}
@@ -374,7 +370,7 @@ export function ResumeRenderer({
             const p = e.data
             return (
               <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
-                <span style={{ fontWeight: 500 }}>{linked(p.projectTitle, p.projectTitleLink, customization, colors.accent)}</span>
+                <span style={{ fontWeight: 500 }}>{linked(p.projectTitle, p.projectTitleLink, customization, colors.accent, colors.text)}</span>
                 {p.subTitle && <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{p.subTitle}</div>}
                 {hasHtml(p.description) && <div style={{ marginTop: '2px' }} dangerouslySetInnerHTML={{ __html: p.description }} />}
               </div>
@@ -386,7 +382,7 @@ export function ResumeRenderer({
               const c = e.data
               return (
                 <div key={e.id} style={{ marginBottom: '6px', lineHeight: lh }}>
-                  <span style={{ fontWeight: 500 }}>{linked(c.title, c.link, customization, colors.accent)}</span>
+                  <span style={{ fontWeight: 500 }}>{linked(c.title, c.link, customization, colors.accent, colors.text)}</span>
                   {c.issuer && <span style={{ color: dim(colors.text) }}> - {c.issuer}</span>}
                   {c.date && <span style={{ float: 'right', fontSize: '0.85em', color: customization.applyAccentColor.dates ? colors.accent : colors.text }}>{c.date}</span>}
                 </div>
@@ -429,6 +425,7 @@ export function ResumeRenderer({
     />
   )
 
+  const centered = header.alignText === 'center' || photoPosition.position === 'top'
   const headerContent = (
     <div
       style={{
@@ -441,12 +438,12 @@ export function ResumeRenderer({
       }}
     >
       {photoPosition.position === 'left' && photoEl}
-      <div style={{ flex: 1, textAlign: header.alignText === 'center' ? 'center' : 'left' }}>
+      <div style={{ flex: 1, textAlign: centered ? 'center' : 'left' }}>
         <div
           style={{
             display: 'flex',
             flexDirection: header.jobTitlePosition === 'sameLine' ? 'row' : 'column',
-            alignItems: 'baseline',
+            alignItems: centered ? 'center' : 'baseline',
             columnGap: '12px',
           }}
         >
@@ -488,11 +485,12 @@ export function ResumeRenderer({
         gridTemplateColumns: header.detailsArrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
         gap: '2px 12px',
         fontSize: '0.85em',
-        justifyContent: header.alignText === 'center' && header.detailsArrangement !== 'grid' ? 'center' : undefined,
+        justifyContent: centered && header.detailsArrangement !== 'grid' ? 'center' : undefined,
+        textAlign: centered ? 'center' : undefined,
       }}
     >
       {detailChips.map((chip, i) => {
-        const IconCmp = CONTACT_ICONS[chip.key as keyof typeof CONTACT_ICONS]
+        const IconCmp = CONTACT_ICONS[chip.key]
         const icon = header.detailsSeparator === 'icon' && IconCmp && (
           <span style={{ display: 'inline-flex', marginRight: '4px', verticalAlign: 'middle', ...iconWrapCls(header.iconStyle, colors.accent, colors.text, customization.applyAccentColor.icons) }}>
             <IconCmp style={{ width: '0.9em', height: '0.9em' }} />
@@ -501,11 +499,15 @@ export function ResumeRenderer({
         const separator = header.detailsSeparator !== 'icon' && i > 0 && (
           <span style={{ marginRight: '0', color: dim(colors.text) }}>{header.detailsSeparator === 'bullet' ? ' • ' : ' | '}</span>
         )
+        const link = detailLinks[chip.key] || ''
+        const content = link
+          ? <a href={link} target="_blank" rel="noreferrer" style={{ color: colors.text, textDecoration: 'none' }}>{chip.text}</a>
+          : <>{chip.text}</>
         return (
           <span key={i}>
             {separator}
             {icon}
-            {chip.text}
+            {content}
           </span>
         )
       })}

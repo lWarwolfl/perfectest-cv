@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { Pencil, Trash2 } from 'lucide-react'
-import { useListResumePreviews, useCreateResume, useDeleteResume } from '@/features/resume/hooks/resume.hooks'
+import { Copy, Pencil, Plus, Trash2 } from 'lucide-react'
+import { useListResumePreviews, useCreateResume, useDeleteResume, useDuplicateResume } from '@/features/resume/hooks/resume.hooks'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { PageLoader } from '@/components/common/page-loader'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
@@ -13,14 +15,19 @@ export default function ResumesPage() {
   const { data: resumes, isLoading } = useListResumePreviews()
   const create = useCreateResume()
   const del = useDeleteResume()
+  const dup = useDuplicateResume()
+  const [newName, setNewName] = useState('')
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Resumes</h1>
-        <Button onClick={() => create.mutate()} disabled={create.isPending}>
-          New Resume
-        </Button>
+        <div className="flex items-center gap-2">
+          <Input placeholder="Resume name" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-9 w-44" />
+          <Button onClick={() => { create.mutate(newName.trim() || undefined); setNewName('') }} disabled={create.isPending}>
+            <Plus className="size-4" /> New Resume
+          </Button>
+        </div>
       </div>
       {isLoading && <PageLoader />}
       {!isLoading && !resumes?.length && (
@@ -38,14 +45,17 @@ export default function ResumesPage() {
                 customization={r.doc.customization ?? DEFAULT_CUSTOMIZATION}
               />
             </PreviewFrame>
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col gap-2">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{r.title}</p>
                 <p className="text-xs text-muted-foreground">Updated {new Date(r.updatedAt).toLocaleDateString()}</p>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button size="sm" render={<Link href={`/app/resumes/${r.id}`} />}>
                   <Pencil className="size-3.5" /> Edit
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => dup.mutate(r.id)} disabled={dup.isPending}>
+                  <Copy className="size-3.5" /> Duplicate
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => del.mutate(r.id)}>
                   <Trash2 className="size-3.5" /> Delete

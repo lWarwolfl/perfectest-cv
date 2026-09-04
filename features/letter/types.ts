@@ -17,6 +17,7 @@ export interface LetterDesign {
     classic?: { blockOrder: string[]; senderAlignment: string; recipientAlignment?: string; showDivider?: boolean; dateAlignment?: string; fullNameBold?: boolean }
     header?: Record<string, unknown>
   }
+  headerSettings?: import('@/features/resume/types').Customization['header']
   letterDateDisplay?: { position: 'left' | 'right' | 'center' }
   declarationDisplay?: { line: string; position: string; showHeading: boolean }
   verticalMarginMm: number

@@ -1,12 +1,12 @@
-import { Suspense } from 'react'
 import { ResetPasswordPageClient } from '@/features/auth/components/reset-password-page.client'
+import { Suspense } from 'react'
 
 export default function ResetPasswordPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-indigo-50 to-background p-4">
+    <main className="flex min-h-screen items-center justify-center p-4">
       <Suspense>
         <ResetPasswordPageClient />
-        </Suspense>
+      </Suspense>
     </main>
   )
 }

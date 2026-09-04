@@ -28,5 +28,5 @@ export function CustomizeCard({
 }
 
 export default function CustomizeTabLayout({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto w-full max-w-xl space-y-6 overflow-y-auto p-6">{children}</div>
+  return <div className="mx-auto w-full max-w-xl space-y-6 p-6">{children}</div>
 }

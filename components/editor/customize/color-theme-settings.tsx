@@ -6,6 +6,7 @@ import { CustomizeCard } from './customize-tab-layout'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { ColorPicker } from '@/components/ui/color-picker'
 import type { Customization } from '@/features/resume/types'
 
 interface ColorThemeSettingsProps {
@@ -27,14 +28,7 @@ function HexField({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <label className="relative size-7 shrink-0 cursor-pointer rounded-lg border border-border shadow-inner" style={{ backgroundColor: value }}>
-        <input
-          type="color"
-          value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : '#000000'}
-          onChange={(e) => onChange(e.target.value)}
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-        />
-      </label>
+      <ColorPicker value={value} onChange={onChange} />
       <Input value={value} onChange={(e) => onChange(e.target.value)} className="w-28 font-mono text-xs" />
       <span className="text-xs text-muted-foreground">{label}</span>
     </div>

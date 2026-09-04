@@ -13,13 +13,12 @@ const ALL_LAYOUTS: { value: SectionDisplay['selected']; label: string }[] = [
   { value: 'rows', label: 'Rows' },
   { value: 'compact', label: 'Compact' },
   { value: 'bubble', label: 'Bubble' },
-  { value: 'level', label: 'Level' },
 ]
 
 const SUPPORTED: Record<SectionKey, SectionDisplay['selected'][]> = {
   certificate: ['grid', 'rows', 'compact', 'bubble'],
   interest: ['grid', 'rows', 'compact', 'bubble'],
-  language: ['grid', 'rows', 'compact', 'bubble', 'level'],
+  language: ['grid', 'rows', 'compact', 'bubble'],
 }
 
 const SECTION_TITLES: Record<SectionKey, string> = {
@@ -193,28 +192,6 @@ export default function SectionDisplayPanel({ customization, section, onSectionD
       )}
 
       {display.selected === 'bubble' && <SubinfoSelector value={display.subinfo} onChange={(v) => patch({ subinfo: v })} />}
-
-      {display.selected === 'level' && (
-        <div className="space-y-2">
-          <Label className="text-sm font-bold text-foreground">Level style</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {(['dots', 'bar'] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => patch({ level: { ...display.level, selected: v } })}
-                className={`rounded-xl border px-2 py-2 text-sm capitalize transition-colors ${
-                  display.level.selected === v
-                    ? 'border-primary bg-primary/10 font-semibold text-primary'
-                    : 'border-border bg-card text-foreground hover:bg-muted'
-                }`}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </CustomizeCard>
   )
 }

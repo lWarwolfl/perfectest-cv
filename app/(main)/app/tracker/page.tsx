@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Plus, Trash2, ExternalLink } from 'lucide-react'
+import { ColorPicker } from '@/components/ui/color-picker'
 
 function CardEditor({ card, colId, trackerId, open, onOpenChange, resumes, letters }: {
   card: Partial<TTrackerCard> | null
@@ -47,10 +48,11 @@ function CardEditor({ card, colId, trackerId, open, onOpenChange, resumes, lette
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
+
         <DialogHeader>
           <DialogTitle>{card?.id ? 'Edit Job' : 'Add Job'}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 max-h-[60vh] overflow-auto">
+        <div className="max-h-[60vh] space-y-3 overflow-y-auto -mr-4 pr-6">
           <Input placeholder="Company" value={(form.company as string) || ''} onChange={(e) => setForm({ ...form, company: e.target.value })} />
           <Input placeholder="Job Title" value={(form.jobTitle as string) || ''} onChange={(e) => setForm({ ...form, jobTitle: e.target.value })} />
           <div className="flex gap-2">
@@ -209,9 +211,13 @@ export default function TrackerPage() {
               onDrop={(e) => handleDrop(e, col.id)}
               style={{ background: dragOver === col.id ? 'oklch(0.9 0.01 100)' : undefined }}
             >
-              <div className="flex items-center justify-between px-3 py-2">
+              <div className="flex items-center justify-between px-3 py-2" style={col.color ? { borderBottom: `3px solid ${col.color}` } : undefined}>
                 <span className="text-sm font-medium">{col.name} <span className="text-muted-foreground">({col.cardIds?.length || 0})</span></span>
                 <div className="flex gap-1">
+                  <ColorPicker value={col.color || '#64748b'} onChange={(hex) => {
+                    const cols = columns.map((c) => (c.id === col.id ? { ...c, color: hex } : c))
+                    saveColumnsAction(tracker!.id, cols).then(() => qc.invalidateQueries({ queryKey: [QUERY_KEYS.TRACKERS] }))
+                  }} />
                   <Button variant="ghost" size="icon-sm" onClick={() => {
                     setEditingCard({}); setEditingCol(col.id); setCardOpen(true)
                   }}><Plus className="size-3" /></Button>

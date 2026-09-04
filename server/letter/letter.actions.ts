@@ -5,6 +5,9 @@ import { Letter, Resume } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
 import { desc, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
+import { DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
+import { EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
+import { EMPTY_LETTER_DESIGN } from '@/features/letter/types'
 import type { LetterDesign } from '@/features/letter/types'
 import type { LetterDateMode } from '@/features/resume/types'
 
@@ -75,10 +78,33 @@ export async function getLetterAction(id: string) {
   return letter
 }
 
-export async function createLetterAction() {
+export async function createLetterAction(title?: string) {
   const user = await requireUser()
-  const [letter] = await db.insert(Letter).values({ userId: user.id }).returning()
+  const [letter] = await db.insert(Letter).values({ userId: user.id, ...(title ? { title } : {}) }).returning()
   return letter
+}
+
+export async function duplicateLetterAction(letterId: string) {
+  const user = await requireUser()
+  const letter = await db.query.Letter.findFirst({ where: eq(Letter.id, letterId) })
+  if (!letter) throw new Error('Letter not found')
+  const [copy] = await db
+    .insert(Letter)
+    .values({
+      ...letter,
+      id: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
+      userId: user.id,
+      title: `${letter.title} (copy)`,
+    })
+    .returning()
+  return copy
+}
+
+export async function renameLetterAction(letterId: string, title: string) {
+  await requireUser()
+  await db.update(Letter).set({ title }).where(eq(Letter.id, letterId))
 }
 
 export async function deleteLetterAction(id: string) {
@@ -96,15 +122,35 @@ export async function saveLetterDesignAction(id: string, design: LetterDesign) {
   await db.update(Letter).set({ design }).where(eq(Letter.id, id))
 }
 
+export async function copyResumeDetailsAction(letterId: string, resumeId: string) {
+  await requireUser()
+  const resume = await db.query.Resume.findFirst({ where: eq(Resume.id, resumeId) })
+  if (!resume) throw new Error('Resume not found')
+  const p = { ...EMPTY_PERSONAL_DETAILS, ...(resume.personalDetails || {}) }
+  const patch: LetterContentPatch = {
+    senderName: p.fullName,
+    senderJobTitle: p.jobTitle,
+    senderEmail: p.displayEmail,
+    senderPhone: p.phone,
+    senderAddress: p.address,
+    senderWebsite: p.website,
+    senderLinkedIn: p.social.linkedIn.display || p.social.linkedIn.link,
+    senderGitHub: p.social.github.display || p.social.github.link,
+  }
+  await db.update(Letter).set(patch).where(eq(Letter.id, letterId))
+  return patch
+}
+
 export async function copyResumeDesignAction(letterId: string, resumeId: string) {
   await requireUser()
   const resume = await db.query.Resume.findFirst({ where: eq(Resume.id, resumeId) })
   if (!resume) throw new Error('Resume not found')
   const letter = await db.query.Letter.findFirst({ where: eq(Letter.id, letterId) })
   if (!letter) throw new Error('Letter not found')
-  const c = resume.customization
+  const c = { ...DEFAULT_CUSTOMIZATION, ...(resume.customization || {}) }
   const design: LetterDesign = {
-    ...letter.design,
+    ...EMPTY_LETTER_DESIGN,
+    ...(letter.design || {}),
     fontFamily: c.font.fontFamily,
     fontSizePt: 10 + Number(c.spacing.fontSize),
     lineHeightPct: 1.2 + Number(c.spacing.lineHeight) * 0.1,
@@ -120,6 +166,7 @@ export async function copyResumeDesignAction(letterId: string, resumeId: string)
     },
     verticalMarginMm: 10 + Number(c.spacing.marginVertical),
     horizontalMarginMm: 10 + Number(c.spacing.marginHorizontal),
+    headerSettings: c.header,
     syncedFromResume: true,
   }
   await db.update(Letter).set({ design }).where(eq(Letter.id, letterId))

@@ -16,7 +16,6 @@ const LAYOUT_MODES: { value: SectionDisplay['selected']; label: string }[] = [
   { value: 'rows', label: 'Rows' },
   { value: 'compact', label: 'Compact' },
   { value: 'bubble', label: 'Bubble' },
-  { value: 'level', label: 'Level' },
 ]
 
 function SubinfoSelector({ value, onChange }: { value: SectionDisplay['subinfo']; onChange: (v: SectionDisplay['subinfo']) => void }) {
