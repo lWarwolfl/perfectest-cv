@@ -515,7 +515,7 @@ export function ResumeRenderer({
 
   return (
     <div
-      className="mx-auto w-full bg-white"
+      className="print-page mx-auto w-full bg-white"
       style={{
         fontFamily,
         fontSize: `${10 + fs}px`,

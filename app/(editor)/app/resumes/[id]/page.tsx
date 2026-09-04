@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useShareResume } from '@/features/share/share.hooks'
+import { ShareButton } from '@/components/common/share-button'
 import {
   useResumeDocument,
   useSaveResumePersonalDetails,
@@ -28,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Spinner } from '@/components/ui/spinner'
 import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
-import { Eye, EyeOff, ChevronLeft, ChevronDown, Plus, Trash2, Pencil, GripVertical, UserRound } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeftRight, ChevronDown, Plus, Trash2, Pencil, GripVertical, UserRound } from 'lucide-react'
 import EditorHeader, { EditorShell } from '@/components/editor/editor-header'
 import { ScreenGate } from '@/components/editor/screen-gate'
 import { PageLoader } from '@/components/common/page-loader'
@@ -497,7 +499,6 @@ function DetailsForm({ personal, onChange }: {
 
 export default function ResumeEditorPage() {
   const params = useParams()
-  const router = useRouter()
   const id = params.id as string
   const { data: doc, isLoading } = useResumeDocument(id)
   const savePersonal = useSaveResumePersonalDetails()
@@ -510,6 +511,7 @@ export default function ResumeEditorPage() {
   const updateData = useUpdateEntryData(id)
   const saveSectionMeta = useSaveSectionMeta(id)
   const reorderSections = useReorderSections(id)
+  const share = useShareResume()
 
   const [sections, setSections] = useState<TSection[]>([])
   const [personal, setPersonal] = useState<PersonalDetails>(EMPTY_PERSONAL_DETAILS)
@@ -634,13 +636,21 @@ export default function ResumeEditorPage() {
             activeTab={tab}
             onTabChange={setTab}
             onDownload={handlePrint}
+            share={
+              <ShareButton
+                live={resume?.webResumeLive ?? false}
+                kind="resume"
+                pending={share.isPending}
+                onToggle={(live) => share.mutateAsync({ id, live })}
+              />
+            }
           />
         }
         sidebar={
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background p-3">
-              <Button variant="ghost" size="icon-sm" onClick={() => router.push('/app/resumes')} aria-label="Back to resumes">
-                <ChevronLeft className="size-4" />
+              <Button variant="ghost" size="icon-sm" onClick={() => setTab(tab === 'content' ? 'design' : 'content')} aria-label="Swap content/design">
+                <ArrowLeftRight className="size-4" />
               </Button>
               <Input
                 value={titleDraft}

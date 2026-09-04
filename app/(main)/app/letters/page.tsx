@@ -4,10 +4,13 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Copy, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useListLetterPreviews, useCreateLetter, useDeleteLetter, useDuplicateLetter } from '@/features/letter/hooks/letter.hooks'
+import { useShareLetter } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageLoader } from '@/components/common/page-loader'
 import { PreviewFrame } from '@/components/common/preview-frame'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import { ShareButton } from '@/components/common/share-button'
 import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
 import { EMPTY_LETTER_DESIGN } from '@/features/letter/types'
 
@@ -16,7 +19,9 @@ export default function LettersPage() {
   const create = useCreateLetter()
   const del = useDeleteLetter()
   const dup = useDuplicateLetter()
+  const share = useShareLetter()
   const [newName, setNewName] = useState('')
+  const [confirm, setConfirm] = useState<{ kind: 'delete' | 'duplicate'; id: string; title: string } | null>(null)
 
   return (
     <div className="space-y-6">
@@ -48,17 +53,42 @@ export default function LettersPage() {
                 <Button size="sm" render={<Link href={`/app/letters/${l.id}`} />}>
                   <Pencil className="size-3.5" /> Edit
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => dup.mutate(l.id)} disabled={dup.isPending}>
+                <Button variant="outline" size="sm" onClick={() => setConfirm({ kind: 'duplicate', id: l.id, title: l.title })}>
                   <Copy className="size-3.5" /> Duplicate
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => del.mutate(l.id)}>
+                <Button variant="outline" size="sm" onClick={() => setConfirm({ kind: 'delete', id: l.id, title: l.title })}>
                   <Trash2 className="size-3.5" /> Delete
                 </Button>
+                <ShareButton
+                  live={l.webResumeLive}
+                  kind="letter"
+                  pending={share.isPending}
+                  onToggle={(live) => share.mutateAsync({ id: l.id, live })}
+                />
               </div>
             </div>
           </div>
         ))}
       </div>
+      <ConfirmDialog
+        open={!!confirm}
+        onOpenChange={(open) => !open && setConfirm(null)}
+        title={confirm?.kind === 'delete' ? `Delete "${confirm.title}"?` : `Duplicate "${confirm?.title}"?`}
+        description={
+          confirm?.kind === 'delete'
+            ? 'This permanently removes the cover letter. This cannot be undone.'
+            : 'A full copy of the cover letter will be created.'
+        }
+        confirmLabel={confirm?.kind === 'delete' ? 'Delete' : 'Duplicate'}
+        destructive={confirm?.kind === 'delete'}
+        pending={del.isPending || dup.isPending}
+        onConfirm={() => {
+          if (!confirm) return
+          if (confirm.kind === 'delete') del.mutate(confirm.id)
+          else dup.mutate(confirm.id)
+          setConfirm(null)
+        }}
+      />
     </div>
   )
 }

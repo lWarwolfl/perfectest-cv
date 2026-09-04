@@ -128,7 +128,7 @@ export function LetterRenderer({
 
   return (
     <div
-      className="mx-auto w-full max-w-[794px]"
+      className="print-page mx-auto w-full max-w-[794px]"
       style={{ fontFamily: design.fontFamily || 'Inter', fontSize: `${design.fontSizePt || 11}pt`, color: colors.text, backgroundColor: colors.bg, minHeight: '1123px' }}
     >
       <div style={{ padding: '24px', margin: `${design.verticalMarginMm}mm ${design.horizontalMarginMm}mm` }}>

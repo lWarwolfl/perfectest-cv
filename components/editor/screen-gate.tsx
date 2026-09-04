@@ -7,8 +7,6 @@ import logo from '@public/logo.svg'
 import { Button } from '@/components/ui/button'
 import { MonitorDown } from 'lucide-react'
 
-// ponytail: 1024px breakpoint matches the lg: Tailwind tier, where the editor
-// sidebar (30rem) + A4 preview fit. Revisit if the sidebar width changes.
 export function ScreenGate({ overviewHref, onDownload }: { overviewHref: string; onDownload: () => void }) {
   const [tooSmall, setTooSmall] = useState(false)
 

@@ -5,6 +5,7 @@ import { Resume, ResumeSection, ResumeEntry } from '@/drizzle/schema'
 import { getCurrentUser } from '@/lib/auth/server'
 import { asc, desc, eq, inArray } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { SECTION_LABELS, SECTION_ICONS, defaultEntryData } from '@/features/resume/defaults'
 import type { TSection, TEntry, Customization, PersonalDetails, EntryData, SectionType } from '@/features/resume/types'
 
@@ -218,6 +219,19 @@ export async function applyResumeTemplateAction(resumeId: string, templateId: st
   return template
 }
 
+export async function setResumeShareAction(resumeId: string, live: boolean) {
+  const user = await requireUser()
+  const resume = await db.query.Resume.findFirst({
+    where: (t, { and }) => and(eq(t.id, resumeId), eq(t.userId, user.id)),
+  })
+  if (!resume) throw new Error('Resume not found')
+  const token = live ? crypto.randomUUID() : null
+  await db.update(Resume).set({ webResumeLive: live, webToken: token }).where(eq(Resume.id, resumeId))
+  if (resume.webToken) revalidatePath(`/share/resume/${resume.webToken}`)
+  if (token) revalidatePath(`/share/resume/${token}`)
+  return { live, token }
+}
+
 export async function getPublicResumeAction(shareCode: string) {
   const resume = await db.query.Resume.findFirst({
     where: (t, { eq, and }) => and(eq(t.webToken, shareCode), eq(t.webResumeLive, true)),
@@ -235,10 +249,10 @@ export async function listResumesAction() {
       title: true,
       createdAt: true,
       updatedAt: true,
+      webResumeLive: true,
       lng: true,
       tags: true,
       order: true,
-      webResumeLive: true,
       feedbackEnabled: true,
     },
   })
@@ -250,7 +264,7 @@ export async function listResumePreviewsAction() {
   const resumes = await db.query.Resume.findMany({
     where: eq(Resume.userId, user.id),
     orderBy: [desc(Resume.updatedAt)],
-    columns: { id: true, title: true, updatedAt: true },
+    columns: { id: true, title: true, updatedAt: true, webResumeLive: true },
   })
   return Promise.all(
     resumes.map(async (r) => {
@@ -259,6 +273,7 @@ export async function listResumePreviewsAction() {
         id: r.id,
         title: r.title,
         updatedAt: r.updatedAt,
+        webResumeLive: r.webResumeLive,
         doc: { sections: doc?.sections ?? [], personalDetails: doc?.resume.personalDetails ?? null, customization: doc?.resume.customization ?? null },
       }
     })

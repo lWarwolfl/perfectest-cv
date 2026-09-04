@@ -13,6 +13,7 @@ interface EditorHeaderProps {
   activeTab: 'content' | 'design'
   onTabChange: (tab: 'content' | 'design') => void
   onDownload: () => void
+  share?: React.ReactNode
 }
 
 export default function EditorHeader({
@@ -20,6 +21,7 @@ export default function EditorHeader({
   activeTab,
   onTabChange,
   onDownload,
+  share,
 }: EditorHeaderProps) {
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-5">
@@ -43,6 +45,7 @@ export default function EditorHeader({
       </div>
       <div className="flex items-center gap-3">
         <ThemeToggle />
+        {share}
         <Button onClick={onDownload}>
           <Download className="size-4" />
           Download PDF
@@ -66,7 +69,7 @@ export function EditorShell({
   return (
     <div className={cn('flex h-full flex-col', className)}>
       {header}
-      <div className="flex min-h-0 flex-1 max-lg:hidden">
+      <div className="editor-body flex min-h-0 flex-1 max-lg:hidden">
         <div className="flex w-[30rem] shrink-0 flex-col border-r border-border print:hidden">
           {sidebar}
         </div>

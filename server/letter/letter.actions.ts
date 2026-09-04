@@ -5,6 +5,7 @@ import { Letter, Resume } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
 import { desc, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
 import { EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
 import { EMPTY_LETTER_DESIGN } from '@/features/letter/types'
@@ -59,6 +60,7 @@ export async function listLetterPreviewsAction() {
     orderBy: [desc(Letter.updatedAt)],
     columns: {
       id: true, title: true, updatedAt: true, design: true,
+      webResumeLive: true,
       body: true, subject: true, dateMode: true, dateCustom: true,
       senderName: true, senderJobTitle: true, senderEmail: true, senderPhone: true,
       senderAddress: true, senderWebsite: true, senderLinkedIn: true, senderGitHub: true,
@@ -120,6 +122,25 @@ export async function saveLetterContentAction(id: string, patch: LetterContentPa
 export async function saveLetterDesignAction(id: string, design: LetterDesign) {
   await requireUser()
   await db.update(Letter).set({ design }).where(eq(Letter.id, id))
+}
+
+export async function setLetterShareAction(letterId: string, live: boolean) {
+  const user = await requireUser()
+  const letter = await db.query.Letter.findFirst({
+    where: (t, { and }) => and(eq(t.id, letterId), eq(t.userId, user.id)),
+  })
+  if (!letter) throw new Error('Letter not found')
+  const token = live ? crypto.randomUUID() : null
+  await db.update(Letter).set({ webResumeLive: live, webToken: token }).where(eq(Letter.id, letterId))
+  if (letter.webToken) revalidatePath(`/share/letter/${letter.webToken}`)
+  if (token) revalidatePath(`/share/letter/${token}`)
+  return { live, token }
+}
+
+export async function getPublicLetterAction(shareCode: string) {
+  return db.query.Letter.findFirst({
+    where: (t, { eq, and }) => and(eq(t.webToken, shareCode), eq(t.webResumeLive, true)),
+  })
 }
 
 export async function copyResumeDetailsAction(letterId: string, resumeId: string) {

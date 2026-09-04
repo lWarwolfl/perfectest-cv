@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { ChevronLeft, ChevronRight, Copy } from 'lucide-react'
+import { ArrowLeftRight, ChevronRight, Copy } from 'lucide-react'
+import { useShareLetter } from '@/features/share/share.hooks'
+import { ShareButton } from '@/components/common/share-button'
 import { useSaveLetterContent, useSaveLetterDesign, useCopyResumeDesign, useCopyResumeDetails, useRenameLetter } from '@/features/letter/hooks/letter.hooks'
 import { getLetterAction } from '@/server/letter/letter.actions'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
@@ -36,7 +38,6 @@ type SectionKey = 'sender' | 'date' | 'recipient' | 'subject' | 'body' | 'signat
 
 export default function LetterEditorPage() {
   const params = useParams()
-  const router = useRouter()
   const qc = useQueryClient()
   const id = params.id as string
   const { data: letter, isLoading } = useQuery({
@@ -53,6 +54,7 @@ export default function LetterEditorPage() {
   const copyDesign = useCopyResumeDesign()
   const copyDetails = useCopyResumeDetails(id)
   const rename = useRenameLetter()
+  const share = useShareLetter()
   const [form, setForm] = useState<LetterContentPatch>({})
   const [design, setDesign] = useState<LetterDesign>(EMPTY_LETTER_DESIGN)
   const [syncResumeId, setSyncResumeId] = useState('')
@@ -140,6 +142,14 @@ export default function LetterEditorPage() {
           activeTab={tab}
           onTabChange={(t) => { setTab(t); setActiveSection(null) }}
           onDownload={() => window.print()}
+          share={
+            <ShareButton
+              live={letter?.webResumeLive ?? false}
+              kind="letter"
+              pending={share.isPending}
+              onToggle={(live) => share.mutateAsync({ id, live })}
+            />
+          }
         />
       }
       sidebar={
@@ -148,10 +158,10 @@ export default function LetterEditorPage() {
             <Button
               variant="ghost"
               size="icon-sm"
-              onClick={() => (activeSection ? setActiveSection(null) : router.push('/app/letters'))}
-              aria-label="Back"
+              onClick={() => (activeSection ? setActiveSection(null) : setTab(tab === 'content' ? 'design' : 'content'))}
+              aria-label="Swap content/design"
             >
-              <ChevronLeft className="size-4" />
+              <ArrowLeftRight className="size-4" />
             </Button>
             <Input
               value={titleDraft}
