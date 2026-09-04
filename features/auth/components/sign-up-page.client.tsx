@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { AuthBrand, GoogleButton, AuthDivider } from '@/features/auth/components/auth-brand'
 import { useSignUp } from '@/features/auth/hooks/auth.hooks'
 import { signUpSchema, type TSignUp } from '@/features/auth/schemas/auth.schema'
 
@@ -24,11 +25,13 @@ export function SignUpPageClient() {
   })
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Create account</CardTitle>
-        <CardDescription>Build your first resume in minutes</CardDescription>
-      </CardHeader>
+    <div className="w-full max-w-sm space-y-6">
+      <AuthBrand />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Create account</CardTitle>
+          <CardDescription>Build your first resume in minutes</CardDescription>
+        </CardHeader>
       <CardContent>
         <form
           onSubmit={form.handleSubmit((data) =>
@@ -84,6 +87,10 @@ export function SignUpPageClient() {
             {signUp.isPending ? 'Creating account…' : 'Sign up'}
           </Button>
         </form>
+        <div className="mt-4 space-y-3">
+          <AuthDivider />
+          <GoogleButton label="Sign up with Google" />
+        </div>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
           <Link href="/auth/signin" className="font-medium text-primary hover:underline">
@@ -92,5 +99,6 @@ export function SignUpPageClient() {
         </p>
       </CardContent>
     </Card>
+    </div>
   )
 }

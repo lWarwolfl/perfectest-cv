@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { AuthBrand, GoogleButton, AuthDivider } from '@/features/auth/components/auth-brand'
 import { useSignIn } from '@/features/auth/hooks/auth.hooks'
 import { signInSchema, type TSignIn } from '@/features/auth/schemas/auth.schema'
 
@@ -24,7 +25,9 @@ export function SignInPageClient() {
   })
 
   return (
-    <Card className="w-full max-w-sm">
+    <div className="w-full max-w-sm space-y-6">
+      <AuthBrand />
+      <Card>
       <CardHeader>
         <CardTitle className="text-2xl">Sign in</CardTitle>
         <CardDescription>Welcome back to Perfectest CV</CardDescription>
@@ -56,10 +59,19 @@ export function SignInPageClient() {
               </Field>
             )}
           />
+          <div className="flex justify-end">
+            <Link href="/auth/forgot-password" className="text-sm font-medium text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <Button type="submit" disabled={signIn.isPending} className="w-full">
             {signIn.isPending ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+        <div className="mt-4 space-y-3">
+          <AuthDivider />
+          <GoogleButton label="Sign in with Google" />
+        </div>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           No account?{' '}
           <Link href="/auth/signup" className="font-medium text-primary hover:underline">
@@ -68,5 +80,6 @@ export function SignInPageClient() {
         </p>
       </CardContent>
     </Card>
+    </div>
   )
 }
