@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import {
   listLettersAction,
+  listLetterPreviewsAction,
   createLetterAction,
   deleteLetterAction,
   saveLetterContentAction,
@@ -17,6 +18,10 @@ import type { LetterDesign } from '@/features/letter/types'
 
 export function useListLetters() {
   return useQuery({ queryKey: [QUERY_KEYS.LETTERS], queryFn: listLettersAction })
+}
+
+export function useListLetterPreviews() {
+  return useQuery({ queryKey: [QUERY_KEYS.LETTERS, 'previews'], queryFn: listLetterPreviewsAction })
 }
 
 export function useCreateLetter() {

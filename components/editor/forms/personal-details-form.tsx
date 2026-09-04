@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Camera, Lightbulb, Link as LinkIcon } from 'lucide-react'
+import { Icon } from '@iconify/react'
+import { Camera, Lightbulb } from 'lucide-react'
 import { uploadImageAction } from '@/server/image/uploadImage.action'
-import LinkPopover from '@/components/editor/link-popover'
+import LinkDialog from '@/components/editor/link-dialog'
 import type { PersonalDetails } from '@/features/resume/types'
 
 interface PersonalDetailsFormValues {
@@ -244,46 +245,31 @@ export default function PersonalDetailsForm({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Label htmlFor="website">Website</Label>
+            <Label htmlFor="website" className="flex items-center gap-1.5">
+              <Icon icon="mdi:globe" className="size-3.5" /> Website
+            </Label>
             <div className="flex-1">
               <Input id="website" type="url" placeholder="Website" {...reg('website')} />
             </div>
-            <LinkPopover
-              trigger={
-                <Button variant="outline" size="icon" type="button">
-                  <LinkIcon className="size-3" />
-                </Button>
-              }
-              onLinkSet={(url) => setValue('website', url)}
-            />
+            <LinkDialog value={getValues('website')} onConfirm={(url) => { setValue('website', url); sync() }} />
           </div>
           <div className="flex items-center gap-3">
-            <Label htmlFor="linkedIn">LinkedIn</Label>
+            <Label htmlFor="linkedIn" className="flex items-center gap-1.5">
+              <Icon icon="mdi:linkedin" className="size-3.5" /> LinkedIn
+            </Label>
             <div className="flex-1">
               <Input id="linkedIn" type="url" placeholder="LinkedIn" {...reg('linkedIn')} />
             </div>
-            <LinkPopover
-              trigger={
-                <Button variant="outline" size="icon" type="button">
-                  <LinkIcon className="size-3" />
-                </Button>
-              }
-              onLinkSet={(url) => setValue('linkedIn', url)}
-            />
+            <LinkDialog value={getValues('linkedIn')} onConfirm={(url) => { setValue('linkedIn', url); sync() }} />
           </div>
           <div className="flex items-center gap-3">
-            <Label htmlFor="github">GitHub</Label>
+            <Label htmlFor="github" className="flex items-center gap-1.5">
+              <Icon icon="mdi:github" className="size-3.5" /> GitHub
+            </Label>
             <div className="flex-1">
               <Input id="github" type="url" placeholder="GitHub" {...reg('github')} />
             </div>
-            <LinkPopover
-              trigger={
-                <Button variant="outline" size="icon" type="button">
-                  <LinkIcon className="size-3" />
-                </Button>
-              }
-              onLinkSet={(url) => setValue('github', url)}
-            />
+            <LinkDialog value={getValues('github')} onConfirm={(url) => { setValue('github', url); sync() }} />
           </div>
         </div>
 

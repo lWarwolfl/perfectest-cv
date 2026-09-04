@@ -7,6 +7,7 @@ import ColorThemeSettings from './color-theme-settings'
 import HeaderTitleSettings from './header-title-settings'
 import PageSpacingSettings from './page-spacing-settings'
 import EntryFormattingSettings from './entry-formatting-settings'
+import SkillsStyleSettings from './skills/skills-style-settings'
 import { useResumeStyleStore } from '@/stores/use-resume-style-store'
 import { DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
 import type { Customization, TSection } from '@/features/resume/types'
@@ -83,6 +84,13 @@ export default function StyleSettings({
         onRegionalPatch={(patch) => {
           store.patchRegional(patch)
           emit({ regional: { ...store.customization.regional, ...patch } })
+        }}
+      />
+      <SkillsStyleSettings
+        customization={store.customization}
+        onSectionDisplayPatch={(section, patch) => {
+          store.patchSectionDisplay(section, patch)
+          emit({ [section]: { ...store.customization[section], ...patch } } as Partial<Customization>)
         }}
       />
       <EntryFormattingSettings

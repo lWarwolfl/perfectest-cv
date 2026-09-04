@@ -49,6 +49,23 @@ export async function listLettersAction() {
 }
 export type TListLettersAction = Awaited<ReturnType<typeof listLettersAction>>
 
+export async function listLetterPreviewsAction() {
+  const user = await requireUser()
+  return db.query.Letter.findMany({
+    where: eq(Letter.userId, user.id),
+    orderBy: [desc(Letter.updatedAt)],
+    columns: {
+      id: true, title: true, updatedAt: true, design: true,
+      body: true, subject: true, dateMode: true, dateCustom: true,
+      senderName: true, senderJobTitle: true, senderEmail: true, senderPhone: true,
+      senderAddress: true, senderWebsite: true, senderLinkedIn: true, senderGitHub: true,
+      recipientName: true, recipientPosition: true, recipientCompany: true, recipientAddress: true,
+      signatureName: true, signaturePlace: true, signatureDate: true, signatureImageId: true,
+    },
+  })
+}
+export type TListLetterPreviewsAction = Awaited<ReturnType<typeof listLetterPreviewsAction>>
+
 export async function getLetterAction(id: string) {
   const user = await requireUser()
   const letter = await db.query.Letter.findFirst({

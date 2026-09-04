@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import {
   listResumesAction,
+  listResumePreviewsAction,
   getResumeAction,
   getResumeDocumentAction,
   createResumeAction,
@@ -29,6 +30,10 @@ import type { Customization, PersonalDetails, EntryData, SectionType } from '@/f
 
 export function useListResumes() {
   return useQuery({ queryKey: [QUERY_KEYS.RESUMES], queryFn: listResumesAction })
+}
+
+export function useListResumePreviews() {
+  return useQuery({ queryKey: [QUERY_KEYS.RESUMES, 'previews'], queryFn: listResumePreviewsAction })
 }
 
 export function useResume(id: string) {

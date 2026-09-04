@@ -8,6 +8,7 @@ import { getErrorMessage, uid } from '@/lib/utils'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import { useListResumes } from '@/features/resume/hooks/resume.hooks'
 import { useListLetters } from '@/features/letter/hooks/letter.hooks'
+import { PageLoader } from '@/components/common/page-loader'
 import type { TTrackerCard } from '@/drizzle/schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -176,7 +177,7 @@ export default function TrackerPage() {
   const allCards = tracker?.cards || []
   const columns = tracker?.columns || []
 
-  if (isLoading) return <p className="p-8 text-muted-foreground">Loading...</p>
+  if (isLoading) return <PageLoader />
 
   return (
     <div className="space-y-4">

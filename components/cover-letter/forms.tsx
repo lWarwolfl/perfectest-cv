@@ -2,7 +2,6 @@
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import RichTextEditor from '@/components/editor/rich-text-editor'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
@@ -91,7 +90,7 @@ export function RecipientDetailsForm({ value, onChange }: FormProps) {
       </div>
       <div className="space-y-1">
         <Label>Address & City</Label>
-        <Textarea value={value.recipientAddress || ''} onChange={(e) => onChange({ recipientAddress: e.target.value })} />
+        <RichTextEditor compact value={value.recipientAddress || ''} onUpdate={(content) => onChange({ recipientAddress: content })} />
       </div>
     </div>
   )

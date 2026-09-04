@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 interface RichTextEditorProps {
   onUpdate: (content: string) => void
   value?: string
+  compact?: boolean
 }
 
 const ACTIVE_CLASSES = 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground'
@@ -27,6 +28,7 @@ const ACTIVE_CLASSES = 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-
 export default function RichTextEditor({
   onUpdate,
   value = '',
+  compact = false,
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
@@ -68,31 +70,31 @@ export default function RichTextEditor({
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-muted/30 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-ring">
-      <div className="flex h-10 items-center gap-1 overflow-x-auto border-b border-border/60 bg-muted/50 px-3">
-        <Button variant="outline" size="icon" onClick={toggleBold} className={boldActive ? ACTIVE_CLASSES : ''}>
+      <div className="flex min-h-12 flex-wrap items-center gap-1 border-b border-border/60 bg-muted/50 px-3 py-1.5">
+        <Button variant="outline" size="icon-sm" onClick={toggleBold} className={boldActive ? ACTIVE_CLASSES : ''}>
           <Bold className="size-4" />
         </Button>
-        <Button variant="outline" size="icon" onClick={toggleItalic} className={italicActive ? ACTIVE_CLASSES : ''}>
+        <Button variant="outline" size="icon-sm" onClick={toggleItalic} className={italicActive ? ACTIVE_CLASSES : ''}>
           <Italic className="size-4" />
         </Button>
-        <Button variant="outline" size="icon" onClick={toggleUnderline} className={underlineActive ? ACTIVE_CLASSES : ''}>
+        <Button variant="outline" size="icon-sm" onClick={toggleUnderline} className={underlineActive ? ACTIVE_CLASSES : ''}>
           <UnderlineIcon className="size-4" />
         </Button>
         <Button
           variant="outline"
-          size="icon"
+          size="icon-sm"
           onClick={toggleBulletList}
           className={bulletListActive ? ACTIVE_CLASSES : ''}
         >
           <List className="size-4" />
         </Button>
-        <Button variant="outline" size="icon" onClick={toggleLink} className={linkActive ? ACTIVE_CLASSES : ''}>
+        <Button variant="outline" size="icon-sm" onClick={toggleLink} className={linkActive ? ACTIVE_CLASSES : ''}>
           <LinkIcon className="size-4" />
         </Button>
-        <div className="flex flex-1 items-center gap-1">
+        <div className="flex items-center gap-1">
           <Button
             variant="outline"
-            size="icon"
+            size="icon-sm"
             onClick={() => setTextAlign('left')}
             className={alignActive('left') ? ACTIVE_CLASSES : ''}
           >
@@ -100,7 +102,7 @@ export default function RichTextEditor({
           </Button>
           <Button
             variant="outline"
-            size="icon"
+            size="icon-sm"
             onClick={() => setTextAlign('center')}
             className={alignActive('center') ? ACTIVE_CLASSES : ''}
           >
@@ -108,7 +110,7 @@ export default function RichTextEditor({
           </Button>
           <Button
             variant="outline"
-            size="icon"
+            size="icon-sm"
             onClick={() => setTextAlign('right')}
             className={alignActive('right') ? ACTIVE_CLASSES : ''}
           >
@@ -116,7 +118,7 @@ export default function RichTextEditor({
           </Button>
           <Button
             variant="outline"
-            size="icon"
+            size="icon-sm"
             onClick={() => setTextAlign('justify')}
             className={alignActive('justify') ? ACTIVE_CLASSES : ''}
           >
@@ -124,7 +126,9 @@ export default function RichTextEditor({
           </Button>
         </div>
       </div>
-      <div className="min-h-[120px] bg-transparent p-3 text-sm text-foreground focus:outline-none [&_.ProseMirror]:outline-none">
+      <div
+        className={`min-h-[140px] bg-transparent p-3 text-sm text-foreground focus:outline-none [&_.ProseMirror]:outline-none ${compact ? '[&_.ProseMirror]:min-h-[64px]' : ''}`}
+      >
         <EditorContent editor={editor} />
       </div>
     </div>

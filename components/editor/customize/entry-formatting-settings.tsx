@@ -24,10 +24,11 @@ const SECTION_LABELS: Record<'skill' | 'language' | 'interest' | 'certificate', 
 }
 
 const DISPLAY_MODES: { value: SectionDisplay['selected']; label: string }[] = [
-  { value: 'text', label: 'Plain text' },
   { value: 'grid', label: 'Grid' },
+  { value: 'rows', label: 'Rows' },
+  { value: 'compact', label: 'Compact' },
+  { value: 'bubble', label: 'Bubble' },
   { value: 'level', label: 'Level bars' },
-  { value: 'bubble', label: 'Dots' },
 ]
 
 export default function EntryFormattingSettings({
@@ -69,7 +70,7 @@ export default function EntryFormattingSettings({
           </SelectContent>
         </Select>
       </div>
-      {(['skill', 'language', 'interest', 'certificate'] as const).map((section) => (
+      {(['language', 'interest', 'certificate'] as const).map((section) => (
         <div key={section} className="space-y-2 rounded-xl border border-border/60 p-3">
           <Label className="text-sm font-semibold">{SECTION_LABELS[section]} style</Label>
           <Select

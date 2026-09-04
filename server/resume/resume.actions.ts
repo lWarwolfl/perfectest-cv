@@ -245,6 +245,27 @@ export async function listResumesAction() {
 }
 export type TListResumesAction = Awaited<ReturnType<typeof listResumesAction>>
 
+export async function listResumePreviewsAction() {
+  const user = await requireUser()
+  const resumes = await db.query.Resume.findMany({
+    where: eq(Resume.userId, user.id),
+    orderBy: [desc(Resume.updatedAt)],
+    columns: { id: true, title: true, updatedAt: true },
+  })
+  return Promise.all(
+    resumes.map(async (r) => {
+      const doc = await getResumeDocumentAction(r.id)
+      return {
+        id: r.id,
+        title: r.title,
+        updatedAt: r.updatedAt,
+        doc: { sections: doc?.sections ?? [], personalDetails: doc?.resume.personalDetails ?? null, customization: doc?.resume.customization ?? null },
+      }
+    })
+  )
+}
+export type TListResumePreviewsAction = Awaited<ReturnType<typeof listResumePreviewsAction>>
+
 export async function getResumeAction(id: string) {
   const user = await requireUser()
   const resume = await db.query.Resume.findFirst({

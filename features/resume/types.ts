@@ -246,6 +246,12 @@ export interface HeadingCustomization {
   capitalization: 'uppercase' | 'capitalize'
 }
 
+export type HeadingStyle = HeadingCustomization['style']
+
+export interface SectionHeadings {
+  [sectionId: string]: { style?: HeadingStyle; showTitle?: boolean }
+}
+
 export interface SpacingCustomization {
   fontSize: string
   lineHeight: string
@@ -257,9 +263,11 @@ export interface SpacingCustomization {
 }
 
 export interface SectionDisplay {
-  selected: 'grid' | 'text' | 'level' | 'bubble'
-  grid: { columns: 'one' | 'two' | 'three' | 'four'; splitCommasIntoBullets: boolean }
+  selected: 'grid' | 'rows' | 'compact' | 'bubble' | 'level'
+  grid: { columns: 1 | 2 | 3 | 4; splitCommasIntoBullets: boolean }
   text: 'bullet' | 'pipe' | 'wrap' | 'comma'
+  rows: { spacing: 'tight' | 'spacious'; bullets: boolean }
+  subinfo: 'colon' | 'dash' | 'bracket'
   level: { selected: 'dots' | 'bar' }
 }
 
@@ -293,6 +301,7 @@ export interface Customization {
   certificate: SectionDisplay
   entryLayout: EntryLayoutCustomization
   regional: RegionalCustomization
+  sectionHeadings: SectionHeadings
   workDisplay: { jobTitleBeforeEmployer: boolean }
   educationDisplay: { degreeBeforeSchool: boolean }
   applyAccentColor: {

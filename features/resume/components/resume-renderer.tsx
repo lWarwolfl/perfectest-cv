@@ -1,11 +1,19 @@
 import type {
   Customization,
   DateObject,
+  HeadingStyle,
   PersonalDetails,
+  SectionDisplay,
   TEntry,
   TSection,
 } from '@/features/resume/types'
 import { SECTION_LABELS } from '@/features/resume/defaults'
+import { ExternalLink } from 'lucide-react'
+
+export const PAGE_PX = {
+  A4: { width: 794, height: 1123 },
+  'US Letter': { width: 816, height: 1056 },
+} as const
 
 function dateStr(d: DateObject) {
   if (!d) return ''
@@ -34,23 +42,144 @@ function colorStyle(customization: Customization) {
   return { accent, text, bg }
 }
 
-function skillText(section: TSection, delimiter: string) {
-  return section.entries
-    .filter((e) => e.data.type === 'skill')
-    .map((e) => (e.data as Extract<TEntry['data'], { type: 'skill' }>).skill)
-    .filter(Boolean)
-    .join(delimiter)
+function dim(text: string) {
+  return `color-mix(in srgb, ${text} 55%, transparent)`
 }
 
-function languageText(section: TSection, delimiter: string) {
-  return section.entries
-    .filter((e) => e.data.type === 'language')
-    .map((e) => {
-      const d = e.data as Extract<TEntry['data'], { type: 'language' }>
-      return `${d.language}${d.level ? ` (${d.level})` : ''}`
-    })
-    .filter(Boolean)
-    .join(delimiter)
+function DisplayList({ display, items, accent, text, lh }: {
+  display: SectionDisplay
+  items: { key: string; name: React.ReactNode; level: string; infoHtml?: string }[]
+  accent: string
+  text: string
+  lh: number
+}) {
+  const rows = display.rows ?? { spacing: 'spacious' as const, bullets: false }
+  const subinfo = display.subinfo ?? 'colon' as const
+  const cols = [1, 2, 3, 4].includes(Number(display.grid?.columns)) ? Number(display.grid.columns) : 2
+  const sub = (level: string) => {
+    if (!level) return null
+    const label = subinfo === 'colon' ? `: ${level}` : subinfo === 'dash' ? ` - ${level}` : ` (${level})`
+    return <span style={{ color: dim(text) }}>{label}</span>
+  }
+  const levelDots = (level: string) => {
+    const n = Number(level)
+    if (!Number.isInteger(n) || n < 1 || n > 5) return null
+    return (
+      <span style={{ color: accent, letterSpacing: '1px', marginLeft: '6px' }}>
+        {'●'.repeat(n)}
+        <span style={{ color: dim(text) }}>{'●'.repeat(5 - n)}</span>
+      </span>
+    )
+  }
+  if (display.selected === 'compact') {
+    const sep = display.text === 'pipe' ? ' | ' : display.text === 'comma' ? ', ' : ' • '
+    return (
+      <div style={{ lineHeight: lh }}>
+        {items.map((it, i) => (
+          <span key={it.key}>
+            {i > 0 && sep}
+            {it.name}
+            {sub(it.level)}
+          </span>
+        ))}
+      </div>
+    )
+  }
+  if (display.selected === 'bubble') {
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', lineHeight: lh }}>
+        {items.map((it) => (
+          <span key={it.key} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: `color-mix(in srgb, ${accent} 8%, transparent)`, border: `1px solid ${dim(accent)}`, borderRadius: '9999px', padding: '1px 8px', fontSize: '0.9em' }}>
+            {it.name}
+            {it.level && <span style={{ color: dim(text) }}>{it.level}</span>}
+          </span>
+        ))}
+      </div>
+    )
+  }
+  if (display.selected === 'grid') {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: `2px 12px`, lineHeight: lh }}>
+        {items.map((it) => (
+          <div key={it.key}>
+            {it.name}
+            {sub(it.level)}
+            {levelDots(it.level)}
+            {hasHtml(it.infoHtml) && <div style={{ fontSize: '0.9em', color: dim(text) }} dangerouslySetInnerHTML={{ __html: it.infoHtml! }} />}
+          </div>
+        ))}
+      </div>
+    )
+  }
+  if (display.selected === 'level') {
+    return (
+      <div style={{ lineHeight: lh }}>
+        {items.map((it) => (
+          <div key={it.key} style={{ marginBottom: '2px' }}>
+            {it.name}
+            {sub(it.level)}
+            {levelDots(it.level)}
+            {hasHtml(it.infoHtml) && <div style={{ fontSize: '0.9em', color: dim(text) }} dangerouslySetInnerHTML={{ __html: it.infoHtml! }} />}
+          </div>
+        ))}
+      </div>
+    )
+  }
+  const gap = rows.spacing === 'tight' ? '2px' : '6px'
+  return (
+    <div style={{ lineHeight: lh }}>
+      {items.map((it) => (
+        <div key={it.key} style={{ marginBottom: hasHtml(it.infoHtml) ? gap : '2px' }}>
+          <div>
+            {rows.bullets ? '• ' : ''}
+            {it.name}
+            {sub(it.level)}
+          </div>
+          {hasHtml(it.infoHtml) && <div style={{ fontSize: '0.9em', color: dim(text) }} dangerouslySetInnerHTML={{ __html: it.infoHtml! }} />}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function headingCss(style: HeadingStyle, accent: string): React.CSSProperties {
+  switch (style) {
+    case 'box':
+      return { backgroundColor: accent, color: '#ffffff', padding: '2px 8px', width: 'fit-content' }
+    case 'thickShortUnderline':
+      return { color: accent, borderBottom: `4px solid ${accent}`, width: 'fit-content', paddingBottom: '1px' }
+    case 'topBottomLine':
+      return { color: accent, borderTop: `2px solid ${accent}`, borderBottom: `2px solid ${accent}`, padding: '2px 0' }
+    case 'thinLine':
+      return { color: accent, borderBottom: `1px solid ${accent}`, paddingBottom: '2px', letterSpacing: '0.04em' }
+    case 'underline':
+      return { color: accent, textDecoration: 'underline', textUnderlineOffset: '3px' }
+    case 'zigZagLine':
+      return {
+        color: accent,
+        textDecoration: 'underline wavy',
+        textDecorationColor: accent,
+        textUnderlineOffset: '4px',
+        width: 'fit-content',
+      }
+    case 'simple':
+      return { color: accent, fontWeight: 700 }
+    default:
+      return { color: accent, borderBottom: `1px solid ${accent}`, paddingBottom: '2px' }
+  }
+}
+
+function linked(text: string, link: string, accent: string) {
+  if (!link) return text
+  return (
+    <a href={link} target="_blank" rel="noreferrer" style={{ color: accent, textDecoration: 'none' }}>
+      {text} <ExternalLink style={{ display: 'inline', width: '0.85em', height: '0.85em', verticalAlign: 'baseline' }} />
+    </a>
+  )
+}
+
+function hasHtml(s: string | undefined) {
+  return Boolean(s && s.replace(/<[^>]*>/g, '').trim())
 }
 
 export function ResumeRenderer({
@@ -70,56 +199,63 @@ export function ResumeRenderer({
   const fs = 1 + Number(spacing.fontSize) * 0.05
   const lh = 1.2 + Number(spacing.lineHeight) * 0.1
   const ordered = [...sections].sort((a, b) => a.order - b.order)
-
-  const headingClass =
-    heading.style === 'box'
-      ? `inline-block px-2 py-0.5 bg-[${colors.accent}] text-white`
-      : heading.style === 'thickShortUnderline'
-        ? `border-b-4 border-[${colors.accent}]`
-        : heading.style === 'topBottomLine'
-          ? `border-y-2 border-[${colors.accent}] py-0.5`
-          : `border-b border-[${colors.accent}] pb-0.5`
+  const page = PAGE_PX[customization.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4']
+  const sectionHeadings = customization.sectionHeadings || {}
 
   const detailChips = personalDetails.detailsOrder
-    .filter((k) => {
-      const v = personalDetails[k as keyof PersonalDetails]
-      return typeof v === 'string' && v
+    .map((key) => {
+      if (key === 'linkedIn') return personalDetails.social?.linkedIn?.display
+      if (key === 'github') return personalDetails.social?.github?.display
+      const v = personalDetails[key as keyof PersonalDetails]
+      return typeof v === 'string' ? v : undefined
     })
-    .map((k) => ({ key: k, value: personalDetails[k as keyof PersonalDetails] as string }))
+    .filter((v): v is string => Boolean(v))
 
   const isTwoCol = layout.selected === 'two'
-
   function renderSection(section: TSection) {
     const label = section.displayName || SECTION_LABELS[section.sectionType] || 'Section'
     if (section.hidden) return null
     const entries = section.entries.filter((e) => !e.hidden && e.data !== null)
     if (!entries.length && !showPlaceholder) return null
 
+    const cfg = sectionHeadings[section.id] || {}
+    const style = cfg.style || heading.style
+    const showTitle = cfg.showTitle !== false
+
     return (
-      <div key={section.id} className="mb-4" style={{ marginBottom: `${Number(spacing.spacingFactor) * 2}px` }}>
-        <div className={`mb-1.5 font-semibold ${headingClass}`} style={{ color: heading.style === 'box' ? '#fff' : colors.accent }}>
-          <span className={heading.capitalization === 'uppercase' ? 'uppercase' : 'capitalize'}>{label}</span>
-        </div>
+      <div key={section.id} style={{ marginBottom: `${Number(spacing.spacingFactor) * 2}px` }}>
+        {showTitle && (
+          <div style={{ ...headingCss(style, colors.accent), marginBottom: '6px' }}>
+            <span className={heading.capitalization === 'uppercase' ? 'uppercase' : 'capitalize'} style={{ fontWeight: 600, fontSize: '1.05em' }}>
+              {label}
+            </span>
+          </div>
+        )}
         {section.sectionType === 'profile' && (
-          <div className="text-sm" style={{ lineHeight: lh }} dangerouslySetInnerHTML={{ __html: (entries.find((e) => e.data.type === 'profile')?.data as Extract<TEntry['data'], { type: 'profile' }> | undefined)?.text || '' }} />
+          <div style={{ lineHeight: lh }} dangerouslySetInnerHTML={{ __html: (entries.find((e) => e.data.type === 'profile')?.data as Extract<TEntry['data'], { type: 'profile' }> | undefined)?.text || (showPlaceholder ? 'Write a short professional summary about yourself.' : '') }} />
         )}
         {section.sectionType === 'work' &&
           entries.map((e) => {
             if (e.data.type !== 'work') return null
             const w = e.data
             return (
-              <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
-                <div className="flex justify-between gap-2">
-                  <span className="font-medium">
-                    {customization.workDisplay.jobTitleBeforeEmployer ? w.jobTitle : w.employer}
-                    {w.employer && w.jobTitle && <span className="text-muted-foreground"> - {customization.workDisplay.jobTitleBeforeEmployer ? w.employer : w.jobTitle}</span>}
+              <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                  <span style={{ fontWeight: 500 }}>
+                    {customization.workDisplay.jobTitleBeforeEmployer ? w.jobTitle : linked(w.employer, w.employerLink, colors.accent)}
+                    {w.employer && w.jobTitle && (
+                      <span style={{ color: dim(colors.text) }}>
+                        {' - '}
+                        {customization.workDisplay.jobTitleBeforeEmployer ? linked(w.employer, w.employerLink, colors.accent) : w.jobTitle}
+                      </span>
+                    )}
                   </span>
-                  <span className="text-xs" style={{ color: colors.accent }}>
+                  <span style={{ fontSize: '0.85em', color: colors.accent }}>
                     {formatDateRange(w.startDate, w.endDate)}
                   </span>
                 </div>
-                {w.location && <div className="text-xs text-muted-foreground">{w.location}</div>}
-                {w.description && <div className="mt-1" dangerouslySetInnerHTML={{ __html: w.description }} />}
+                {w.location && <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{w.location}</div>}
+                {hasHtml(w.description) && <div style={{ marginTop: '4px' }} dangerouslySetInnerHTML={{ __html: w.description }} />}
               </div>
             )
           })}
@@ -128,47 +264,74 @@ export function ResumeRenderer({
             if (e.data.type !== 'education') return null
             const ed = e.data
             return (
-              <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
-                <div className="flex justify-between gap-2">
-                  <span className="font-medium">
-                    {customization.educationDisplay.degreeBeforeSchool ? ed.degree : ed.school}
-                    {ed.school && ed.degree && <span className="text-muted-foreground"> - {customization.educationDisplay.degreeBeforeSchool ? ed.school : ed.degree}</span>}
+              <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                  <span style={{ fontWeight: 500 }}>
+                    {customization.educationDisplay.degreeBeforeSchool ? ed.degree : linked(ed.school, ed.schoolLink, colors.accent)}
+                    {ed.school && ed.degree && (
+                      <span style={{ color: dim(colors.text) }}>
+                        {' - '}
+                        {customization.educationDisplay.degreeBeforeSchool ? linked(ed.school, ed.schoolLink, colors.accent) : ed.degree}
+                      </span>
+                    )}
                   </span>
-                  <span className="text-xs" style={{ color: colors.accent }}>
+                  <span style={{ fontSize: '0.85em', color: colors.accent }}>
                     {formatDateRange(ed.startDate, ed.endDate)}
                   </span>
                 </div>
-                {ed.location && <div className="text-xs text-muted-foreground">{ed.location}</div>}
+                {ed.location && <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{ed.location}</div>}
+                {hasHtml(ed.description) && <div style={{ marginTop: '4px' }} dangerouslySetInnerHTML={{ __html: ed.description }} />}
               </div>
             )
           })}
         {section.sectionType === 'skill' && (
-          <div className="text-sm" style={{ lineHeight: lh }}>
-            {skillText(section, customization.skill.text === 'comma' ? ', ' : customization.skill.text === 'pipe' ? ' | ' : ' • ')}
-          </div>
+          <DisplayList
+            display={customization.skill}
+            accent={colors.accent}
+            text={colors.text}
+            lh={lh}
+            items={entries.flatMap((e) =>
+              e.data.type !== 'skill'
+                ? []
+                : [{ key: e.id, name: linked(e.data.skill, '', colors.accent), level: e.data.level, infoHtml: e.data.infoHtml }]
+            )}
+          />
         )}
         {section.sectionType === 'language' && (
-          <div className="text-sm" style={{ lineHeight: lh }}>
-            {languageText(section, ', ')}
-          </div>
+          <DisplayList
+            display={customization.language}
+            accent={colors.accent}
+            text={colors.text}
+            lh={lh}
+            items={entries.flatMap((e) =>
+              e.data.type !== 'language'
+                ? []
+                : [{ key: e.id, name: e.data.language, level: e.data.level, infoHtml: e.data.infoHtml }]
+            )}
+          />
         )}
         {section.sectionType === 'interest' && (
-          <div className="text-sm" style={{ lineHeight: lh }}>
-            {entries.map((e) => e.data.type === 'interest' ? e.data.interest : '').filter(Boolean).join(customization.interest.text === 'pipe' ? ' | ' : ', ')}
-          </div>
+          <DisplayList
+            display={customization.interest}
+            accent={colors.accent}
+            text={colors.text}
+            lh={lh}
+            items={entries.flatMap((e) =>
+              e.data.type !== 'interest'
+                ? []
+                : [{ key: e.id, name: linked(e.data.interest, e.data.interestLink, colors.accent), level: '', infoHtml: e.data.infoHtml }]
+            )}
+          />
         )}
         {section.sectionType === 'project' &&
           entries.map((e) => {
             if (e.data.type !== 'project') return null
             const p = e.data
             return (
-              <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
-                <span className="font-medium">
-                  {p.projectTitle}
-                  {p.projectTitleLink && <span className="text-xs" style={{ color: colors.accent }}> ({p.projectTitleLink})</span>}
-                </span>
-                {p.subTitle && <div className="text-xs text-muted-foreground">{p.subTitle}</div>}
-                {p.description && <div className="mt-0.5" dangerouslySetInnerHTML={{ __html: p.description }} />}
+              <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
+                <span style={{ fontWeight: 500 }}>{linked(p.projectTitle, p.projectTitleLink, colors.accent)}</span>
+                {p.subTitle && <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{p.subTitle}</div>}
+                {hasHtml(p.description) && <div style={{ marginTop: '2px' }} dangerouslySetInnerHTML={{ __html: p.description }} />}
               </div>
             )
           })}
@@ -177,10 +340,10 @@ export function ResumeRenderer({
             if (e.data.type === 'certificate' || e.data.type === 'publication' || e.data.type === 'organisation' || e.data.type === 'course' || e.data.type === 'award') {
               const c = e.data
               return (
-                <div key={e.id} className="mb-1.5 text-sm" style={{ lineHeight: lh }}>
-                  <span className="font-medium">{c.title}</span>
-                  {c.issuer && <span className="text-muted-foreground"> - {c.issuer}</span>}
-                  {c.date && <span className="float-right text-xs" style={{ color: colors.accent }}>{c.date}</span>}
+                <div key={e.id} style={{ marginBottom: '6px', lineHeight: lh }}>
+                  <span style={{ fontWeight: 500 }}>{linked(c.title, c.link, colors.accent)}</span>
+                  {c.issuer && <span style={{ color: dim(colors.text) }}> - {c.issuer}</span>}
+                  {c.date && <span style={{ float: 'right', fontSize: '0.85em', color: colors.accent }}>{c.date}</span>}
                 </div>
               )
             }
@@ -191,10 +354,10 @@ export function ResumeRenderer({
             if (e.data.type !== 'custom') return null
             const c = e.data
             return (
-              <div key={e.id} className="mb-2 text-sm" style={{ lineHeight: lh }}>
-                <span className="font-medium">{c.title}</span>
-                {c.subTitle && <span className="text-muted-foreground"> - {c.subTitle}</span>}
-                {c.description && <div className="mt-0.5" dangerouslySetInnerHTML={{ __html: c.description }} />}
+              <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
+                <span style={{ fontWeight: 500 }}>{c.title}</span>
+                {c.subTitle && <span style={{ color: dim(colors.text) }}> - {c.subTitle}</span>}
+                {hasHtml(c.description) && <div style={{ marginTop: '2px' }} dangerouslySetInnerHTML={{ __html: c.description }} />}
               </div>
             )
           })}
@@ -204,14 +367,21 @@ export function ResumeRenderer({
 
   const headerContent = (
     <div
-      className={header.position === 'top' ? 'flex items-start justify-between gap-4' : 'flex flex-col gap-2'}
-      style={{ marginBottom: header.position === 'top' ? '16px' : '0' }}
+      style={{
+        display: 'flex',
+        flexDirection: header.position === 'top' ? 'row' : 'column',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: '16px',
+        marginBottom: header.position === 'top' ? '16px' : '0',
+      }}
     >
-      <div className={header.alignText === 'center' ? 'text-center flex-1' : 'flex-1'}>
+      <div style={{ flex: 1, textAlign: header.alignText === 'center' ? 'center' : 'left' }}>
         <h1
-          className="font-bold"
           style={{
+            fontWeight: 700,
             fontSize: `${customization.spacing.nameFontSizePt || 24}px`,
+            lineHeight: 1.2,
             color: customization.applyAccentColor.name ? colors.accent : colors.text,
           }}
         >
@@ -219,8 +389,11 @@ export function ResumeRenderer({
         </h1>
         {personalDetails.jobTitle && (
           <p
-            className={header.jobTitleStyle === 'italic' ? 'italic' : ''}
-            style={{ fontSize: `${customization.spacing.jobTitleFontSizePt || 18}px`, color: customization.applyAccentColor.jobTitle ? colors.accent : colors.text }}
+            style={{
+              fontStyle: header.jobTitleStyle === 'italic' ? 'italic' : 'normal',
+              fontSize: `${customization.spacing.jobTitleFontSizePt || 18}px`,
+              color: customization.applyAccentColor.jobTitle ? colors.accent : colors.text,
+            }}
           >
             {personalDetails.jobTitle}
           </p>
@@ -230,8 +403,8 @@ export function ResumeRenderer({
         <img
           src={personalDetails.photo.imageId}
           alt="profile"
-          className={header.photo.grayscale ? 'grayscale' : ''}
           style={{
+            filter: header.photo.grayscale ? 'grayscale(1)' : undefined,
             width: `${40 + Number(header.photo.size) * 10}px`,
             height: `${40 + Number(header.photo.size) * 10}px`,
             borderRadius: header.photo.shape === 'round' ? '9999px' : header.photo.shape === 'squareRounded' ? '12px' : '0',
@@ -244,58 +417,59 @@ export function ResumeRenderer({
   )
 
   const detailsBlock = detailChips.length > 0 && (
-    <div className={header.detailsArrangement === 'column' ? 'flex flex-col gap-0.5 text-xs' : 'flex flex-wrap gap-x-3 gap-y-0.5 text-xs'}>
-      {detailChips.map((chip) => (
-        <span key={chip.key} className="text-xs" style={{ color: colors.text }}>
-          {chip.value}
-        </span>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: header.detailsArrangement === 'column' ? 'column' : 'row',
+        flexWrap: 'wrap',
+        gap: '2px 12px',
+        fontSize: '0.85em',
+      }}
+    >
+      {detailChips.map((chip, i) => (
+        <span key={i}>{chip}</span>
       ))}
     </div>
   )
 
-  const leftSections = isTwoCol ? ordered.filter((s) => layout.sectionOrder.two.leftSectionsSorted.includes(s.id)) : []
-  const rightSections = isTwoCol ? ordered.filter((s) => layout.sectionOrder.two.rightSectionsSorted.includes(s.id)) : []
-  const singleSections = isTwoCol ? [] : ordered
-  const showLeft = isTwoCol ? layout.sectionOrder.two.leftSectionsSorted.length > 0 : true
-  const showRight = isTwoCol ? layout.sectionOrder.two.rightSectionsSorted.length > 0 : false
-
-  const splitLeft = isTwoCol && showLeft && !showRight ? ordered.slice(0, Math.ceil(ordered.length / 2)) : leftSections
-  const splitRight = isTwoCol && showLeft && !showRight ? ordered.slice(Math.ceil(ordered.length / 2)) : rightSections
+  const splitLeft = isTwoCol ? ordered.slice(0, Math.ceil(ordered.length / 2)) : []
+  const splitRight = isTwoCol ? ordered.slice(Math.ceil(ordered.length / 2)) : []
 
   const twoColBodies = [
     { id: 'col-left', sections: splitLeft },
     { id: 'col-right', sections: splitRight },
   ]
+  const leftWidth = Math.min(Math.max(layout.two.leftWidth || 50, 10), 90)
 
   return (
     <div
-      className="mx-auto w-full max-w-[794px] bg-white text-foreground"
+      className="mx-auto w-full bg-white"
       style={{
         fontFamily,
         fontSize: `${10 + fs}px`,
         lineHeight: lh,
         color: colors.text,
         padding: `${14 + Number(spacing.marginVertical) * 3}px ${16 + Number(spacing.marginHorizontal) * 3}px`,
-        minHeight: '1123px',
+        minHeight: `${page.height}px`,
+        width: `${page.width}px`,
       }}
     >
-      <div className={isTwoCol ? 'grid grid-cols-[1fr_1.2fr] gap-6' : ''}>
-        {isTwoCol && (
-          <div>
-            {headerContent}
-            {detailsBlock}
-            <div className="mt-3">{twoColBodies[0].sections.map(renderSection)}</div>
+      <div
+        style={
+          isTwoCol
+            ? { display: 'grid', gridTemplateColumns: `${leftWidth}fr ${100 - leftWidth}fr`, gap: '24px' }
+            : undefined
+        }
+      >
+        <div style={isTwoCol ? { minWidth: 0 } : undefined}>
+          {headerContent}
+          {detailsBlock}
+          <div style={{ marginTop: '12px' }}>
+            {(isTwoCol ? twoColBodies[0].sections : ordered).map(renderSection)}
           </div>
-        )}
-        {!isTwoCol && (
-          <div>
-            {headerContent}
-            {detailsBlock}
-            <div className="mt-3">{singleSections.map(renderSection)}</div>
-          </div>
-        )}
+        </div>
         {isTwoCol && (
-          <div>
+          <div style={{ minWidth: 0 }}>
             {twoColBodies[1].sections.map(renderSection)}
           </div>
         )}
