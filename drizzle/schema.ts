@@ -159,6 +159,8 @@ export const Letter = pgTable(
     signatureDate: text('signature_date').notNull().default(''),
     signatureImageId: text('signature_image_id').notNull().default(''),
     design: jsonb('design').$type<LetterDesign>().notNull().default({} as LetterDesign),
+    webResumeLive: boolean('web_resume_live').notNull().default(false),
+    webToken: text('web_token'),
     syncWithResumeId: uuid('sync_with_resume_id').references(() => Resume.id, {
       onDelete: 'set null',
     }),
