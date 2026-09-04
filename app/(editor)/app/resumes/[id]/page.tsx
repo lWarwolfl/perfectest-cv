@@ -23,6 +23,7 @@ import type { TSection, PersonalDetails, Customization, SectionType, EntryData, 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Spinner } from '@/components/ui/spinner'
 import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
@@ -44,6 +45,8 @@ const HEADING_STYLE_OPTIONS: { value: HeadingStyle; label: string }[] = [
   { value: 'thickShortUnderline', label: 'Thick Short' },
   { value: 'thinLine', label: 'Thin Line' },
   { value: 'zigZagLine', label: 'Zigzag' },
+  { value: 'dottedLine', label: 'Dotted' },
+  { value: 'plain', label: 'Plain' },
 ]
 
 function printWithFileName(name: string) {
@@ -51,6 +54,20 @@ function printWithFileName(name: string) {
   document.title = name
   window.print()
   document.title = prev
+}
+
+function mergeCustomization(base: Customization, saved: Customization | null | undefined): Customization {
+  const out = { ...base } as unknown as Record<string, unknown>
+  for (const key of Object.keys(base) as (keyof Customization)[]) {
+    const value = saved?.[key] as unknown
+    const b = base[key] as unknown
+    if (b && typeof b === 'object' && !Array.isArray(b) && value && typeof value === 'object' && !Array.isArray(value)) {
+      out[key] = { ...(b as Record<string, unknown>), ...(value as Record<string, unknown>) }
+    } else if (value !== undefined && value !== null) {
+      out[key] = value
+    }
+  }
+  return out as unknown as Customization
 }
 
 function TitleInput({ label, value, link, placeholder, onChange, onLinkChange }: {
@@ -324,15 +341,16 @@ function SectionCard({ section, onToggle, onDelete, onAddEntry, onEntryClick, sa
           {!isProfile && (
             <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/40 p-2">
               <span className="text-xs font-medium text-muted-foreground">Title style</span>
-              <select
-                value={headingStyle}
-                onChange={(e) => onSectionHeadingPatch(section.id, { style: e.target.value as HeadingStyle })}
-                className="h-7 rounded-md border border-border bg-background px-1.5 text-xs"
-              >
-                {HEADING_STYLE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+              <Select value={headingStyle} onValueChange={(v) => onSectionHeadingPatch(section.id, { style: v as HeadingStyle })}>
+                <SelectTrigger className="h-7 w-[130px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {HEADING_STYLE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 variant="ghost"
                 size="sm"
@@ -501,7 +519,7 @@ export default function ResumeEditorPage() {
       const next = [...(doc.sections || [])].sort((a, b) => a.order - b.order)
       setSections(next)
       setPersonal({ ...EMPTY_PERSONAL_DETAILS, ...doc.resume.personalDetails })
-      const merged = { ...DEFAULT_CUSTOMIZATION, ...doc.resume.customization }
+      const merged = mergeCustomization(DEFAULT_CUSTOMIZATION, doc.resume.customization)
       setCustom(merged)
       hydrateStyle(merged)
       // Profile section is mandatory: auto-create it if missing, and keep exactly one entry.

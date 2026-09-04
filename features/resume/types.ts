@@ -253,6 +253,8 @@ export interface HeadingCustomization {
     | 'thinLine'
     | 'underline'
     | 'zigZagLine'
+    | 'dottedLine'
+    | 'plain'
   icons: 'none' | 'filled' | 'outline'
   capitalization: 'uppercase' | 'capitalize'
 }
@@ -269,6 +271,7 @@ export interface SpacingCustomization {
   spacingFactor: string
   marginVertical: string
   marginHorizontal: string
+  headingGap: string
   nameFontSizePt: number
   jobTitleFontSizePt: number
 }

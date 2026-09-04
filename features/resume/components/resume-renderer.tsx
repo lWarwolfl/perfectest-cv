@@ -19,34 +19,42 @@ const CONTACT_ICONS: Record<string, typeof Mail> = { email: Mail, phone: Phone, 
 
 const SIZE_PX = { xs: 40, s: 56, m: 72, l: 88, xl: 104 } as const
 
-function iconWrapCls(style: Customization['header']['iconStyle'], accent: string, text: string) {
+function iconWrapCls(style: Customization['header']['iconStyle'], accent: string, text: string, useAccent: boolean) {
+  const c = useAccent ? accent : text
   switch (style) {
     case 'filled-circle':
-      return { background: accent, color: '#ffffff', borderRadius: '9999px', padding: '3px' }
+      return { background: c, color: '#ffffff', borderRadius: '9999px', padding: '3px' }
     case 'soft-badge':
-      return { background: `color-mix(in srgb, ${accent} 15%, transparent)`, color: accent, borderRadius: '6px', padding: '3px' }
+      return { background: `color-mix(in srgb, ${c} 15%, transparent)`, color: c, borderRadius: '6px', padding: '3px' }
     case 'neutral-gray':
       return { color: '#9ca3af' }
     case 'primary-accent':
-      return { color: accent }
+      return { color: c }
     default:
-      return { color: text }
+      return { color: useAccent ? accent : text }
   }
 }
 
-function dateStr(d: DateObject) {
+function dateStr(d: DateObject, dateDisplay: string) {
   if (!d) return ''
   if (d.hide) return ''
   if (d.onlyYear) return d.year || ''
-  if (d.ongoing) return `${d.month && d.month !== '0' ? `${d.month}/` : ''}${d.year || ''} ${d.customOngoingWord || 'present'}`.trim()
-  const month = d.month && d.month !== '0' ? `${d.month}/` : ''
-  const year = d.year || ''
-  return `${month}${year}`.trim()
+  const y = d.year || ''
+  if (d.ongoing) return `${d.month && d.month !== '0' ? `${monthStr(d.month, dateDisplay)} ` : ''}${y} ${d.customOngoingWord || 'present'}`.trim()
+  if (dateDisplay === 'YYYY') return y
+  const m = monthStr(d.month, dateDisplay)
+  return `${m ? `${m} ` : ''}${y}`.trim()
 }
 
-function formatDateRange(start: DateObject, end: DateObject) {
-  const s = dateStr(start)
-  const e = dateStr(end)
+function monthStr(month: string | undefined, dateDisplay: string) {
+  if (!month || month === '0') return ''
+  if (dateDisplay === 'MMM YYYY') return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(month) - 1] || ''
+  return month
+}
+
+function formatDateRange(start: DateObject, end: DateObject, dateDisplay: string) {
+  const s = dateStr(start, dateDisplay)
+  const e = dateStr(end, dateDisplay)
   if (!s && !e) return ''
   return [s, e].filter(Boolean).join(' - ')
 }
@@ -161,30 +169,35 @@ function DisplayList({ display, items, accent, text, lh }: {
   )
 }
 
-function headingCss(style: HeadingStyle, accent: string): React.CSSProperties {
+function headingCss(style: HeadingStyle, accent: string, text: string, useAccent: boolean): React.CSSProperties {
+  const c = useAccent ? accent : text
   switch (style) {
     case 'box':
-      return { backgroundColor: accent, color: '#ffffff', padding: '2px 8px', width: 'fit-content' }
+      return { backgroundColor: c, color: '#ffffff', padding: '2px 8px', width: 'fit-content' }
     case 'thickShortUnderline':
-      return { color: accent, borderBottom: `4px solid ${accent}`, width: 'fit-content', paddingBottom: '1px' }
+      return { color: c, borderBottom: `4px solid ${c}`, width: 'fit-content', paddingBottom: '1px' }
     case 'topBottomLine':
-      return { color: accent, borderTop: `2px solid ${accent}`, borderBottom: `2px solid ${accent}`, padding: '2px 0' }
+      return { color: c, borderTop: `2px solid ${c}`, borderBottom: `2px solid ${c}`, padding: '2px 0' }
     case 'thinLine':
-      return { color: accent, borderBottom: `1px solid ${accent}`, paddingBottom: '2px', letterSpacing: '0.04em' }
+      return { color: c, borderBottom: `1px solid ${c}`, paddingBottom: '2px', letterSpacing: '0.04em' }
+    case 'dottedLine':
+      return { color: c, borderBottom: `2px dotted ${c}`, paddingBottom: '2px', width: 'fit-content' }
     case 'underline':
-      return { color: accent, textDecoration: 'underline', textUnderlineOffset: '3px' }
+      return { color: c, textDecoration: 'underline', textUnderlineOffset: '3px' }
     case 'zigZagLine':
       return {
-        color: accent,
+        color: c,
         textDecoration: 'underline wavy',
-        textDecorationColor: accent,
+        textDecorationColor: c,
         textUnderlineOffset: '4px',
         width: 'fit-content',
       }
+    case 'plain':
+      return { color: c }
     case 'simple':
-      return { color: accent, fontWeight: 700 }
+      return { color: c, fontWeight: 700 }
     default:
-      return { color: accent, borderBottom: `1px solid ${accent}`, paddingBottom: '2px' }
+      return { color: c, borderBottom: `1px solid ${c}`, paddingBottom: '2px' }
   }
 }
 
@@ -252,7 +265,12 @@ export function ResumeRenderer({
     return (
       <div key={section.id} style={{ marginBottom: `${Number(spacing.spacingFactor) * 2}px` }}>
         {showTitle && (
-          <div style={{ ...headingCss(style, colors.accent), marginBottom: '6px' }}>
+          <div
+            style={{
+              ...headingCss(style, colors.accent, colors.text, customization.applyAccentColor.headings !== false),
+              marginBottom: `${Number(spacing.headingGap ?? 3) * 2}px`,
+            }}
+          >
             <span className={heading.capitalization === 'uppercase' ? 'uppercase' : 'capitalize'} style={{ fontWeight: 600, fontSize: '1.05em' }}>
               {label}
             </span>
@@ -277,8 +295,8 @@ export function ResumeRenderer({
                       </span>
                     )}
                   </span>
-                  <span style={{ fontSize: '0.85em', color: colors.accent }}>
-                    {formatDateRange(w.startDate, w.endDate)}
+                  <span style={{ fontSize: '0.85em', color: customization.applyAccentColor.dates ? colors.accent : colors.text }}>
+                    {formatDateRange(w.startDate, w.endDate, customization.regional.dateDisplay)}
                   </span>
                 </div>
                 {w.location && <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{w.location}</div>}
@@ -302,8 +320,8 @@ export function ResumeRenderer({
                       </span>
                     )}
                   </span>
-                  <span style={{ fontSize: '0.85em', color: colors.accent }}>
-                    {formatDateRange(ed.startDate, ed.endDate)}
+                  <span style={{ fontSize: '0.85em', color: customization.applyAccentColor.dates ? colors.accent : colors.text }}>
+                    {formatDateRange(ed.startDate, ed.endDate, customization.regional.dateDisplay)}
                   </span>
                 </div>
                 {ed.location && <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{ed.location}</div>}
@@ -370,7 +388,7 @@ export function ResumeRenderer({
                 <div key={e.id} style={{ marginBottom: '6px', lineHeight: lh }}>
                   <span style={{ fontWeight: 500 }}>{linked(c.title, c.link, customization, colors.accent)}</span>
                   {c.issuer && <span style={{ color: dim(colors.text) }}> - {c.issuer}</span>}
-                  {c.date && <span style={{ float: 'right', fontSize: '0.85em', color: colors.accent }}>{c.date}</span>}
+                  {c.date && <span style={{ float: 'right', fontSize: '0.85em', color: customization.applyAccentColor.dates ? colors.accent : colors.text }}>{c.date}</span>}
                 </div>
               )
             }
@@ -476,7 +494,7 @@ export function ResumeRenderer({
       {detailChips.map((chip, i) => {
         const IconCmp = CONTACT_ICONS[chip.key as keyof typeof CONTACT_ICONS]
         const icon = header.detailsSeparator === 'icon' && IconCmp && (
-          <span style={{ display: 'inline-flex', marginRight: '4px', verticalAlign: 'middle', ...iconWrapCls(header.iconStyle, colors.accent, colors.text) }}>
+          <span style={{ display: 'inline-flex', marginRight: '4px', verticalAlign: 'middle', ...iconWrapCls(header.iconStyle, colors.accent, colors.text, customization.applyAccentColor.icons) }}>
             <IconCmp style={{ width: '0.9em', height: '0.9em' }} />
           </span>
         )

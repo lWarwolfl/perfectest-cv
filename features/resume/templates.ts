@@ -106,7 +106,7 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
       font: { selected: 'sans', fontFamily: 'Jost' },
       colors: { ...deepClone(DEFAULT_CUSTOMIZATION.colors), basic: { ...deepClone(DEFAULT_CUSTOMIZATION.colors.basic), single: '#475569', multi: { textColor: '#0f172a', accentColor: '#475569', backgroundColor: '#f1f5f9' }, selected: 'single' } },
       border: { width: { line: 's', image: 'm', filled: 'm' }, selectedStyle: 'line' },
-      spacing: { fontSize: '4', lineHeight: '4', spacingFactor: '3', marginVertical: '4', marginHorizontal: '3', nameFontSizePt: 24, jobTitleFontSizePt: 18 },
+      spacing: { fontSize: '4', lineHeight: '4', spacingFactor: '3', marginVertical: '4', marginHorizontal: '3', headingGap: '3', nameFontSizePt: 24, jobTitleFontSizePt: 18 },
     },
   },
   {

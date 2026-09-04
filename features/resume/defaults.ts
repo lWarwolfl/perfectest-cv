@@ -175,7 +175,7 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
     },
   },
   heading: { style: 'line', icons: 'none', capitalization: 'uppercase' },
-  spacing: { fontSize: '3', lineHeight: '3', spacingFactor: '3', marginVertical: '3', marginHorizontal: '3', nameFontSizePt: 24, jobTitleFontSizePt: 18 },
+  spacing: { fontSize: '3', lineHeight: '3', spacingFactor: '3', marginVertical: '3', marginHorizontal: '3', headingGap: '3', nameFontSizePt: 24, jobTitleFontSizePt: 18 },
   skill: {
     selected: 'rows',
     grid: { columns: 2, splitCommasIntoBullets: false },

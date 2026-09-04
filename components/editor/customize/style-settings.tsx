@@ -4,7 +4,7 @@ import CustomizeTabLayout from './customize-tab-layout'
 import TemplateLayoutSettings from './template-layout-settings'
 import TypographySettings from './typography-settings'
 import ColorThemeSettings from './color-theme-settings'
-import HeaderControls from './header-controls'
+import HeaderControls, { LinkStylingSettings, WorkExperienceSettings } from './header-controls'
 import PageSpacingSettings from './page-spacing-settings'
 import EntryFormattingSettings from './entry-formatting-settings'
 import SkillsStyleSettings from './skills/skills-style-settings'
@@ -71,14 +71,20 @@ export default function StyleSettings({
           store.patchHeader(patch)
           emit({ header: { ...store.customization.header, ...patch } })
         }}
-        onLinksPatch={(patch) => {
-          store.patchLinks(patch)
-          emit({ links: { ...store.customization.links, ...patch } })
-        }}
         onPhotoPositionPatch={(patch) => {
           store.patchPhotoPosition(patch)
           emit({ photoPosition: { ...store.customization.photoPosition, ...patch } })
         }}
+      />
+      <LinkStylingSettings
+        customization={store.customization}
+        onLinksPatch={(patch) => {
+          store.patchLinks(patch)
+          emit({ links: { ...store.customization.links, ...patch } })
+        }}
+      />
+      <WorkExperienceSettings
+        customization={store.customization}
         onWorkDisplayPatch={(patch) => {
           store.patchWorkDisplay(patch)
           emit({ workDisplay: { ...store.customization.workDisplay, ...patch } })

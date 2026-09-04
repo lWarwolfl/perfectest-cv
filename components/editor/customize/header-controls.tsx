@@ -4,11 +4,12 @@ import { useState } from 'react'
 import {
   AlignLeft,
   AlignCenter,
-  Mail,
-  Link as LinkIcon,
   ExternalLink,
+  Mail,
   ChevronDown,
   UserRound,
+  Link2,
+  BriefcaseBusiness,
 } from 'lucide-react'
 import { CustomizeCard } from './customize-tab-layout'
 import { Label } from '@/components/ui/label'
@@ -19,8 +20,16 @@ import type { Customization } from '@/features/resume/types'
 interface HeaderControlsProps {
   customization: Customization
   onHeaderPatch: (patch: Partial<Customization['header']>) => void
-  onLinksPatch: (patch: Partial<Customization['links']>) => void
   onPhotoPositionPatch: (patch: Partial<Customization['photoPosition']>) => void
+}
+
+interface LinkStylingProps {
+  customization: Customization
+  onLinksPatch: (patch: Partial<Customization['links']>) => void
+}
+
+interface WorkExperienceSettingsProps {
+  customization: Customization
   onWorkDisplayPatch: (patch: Partial<Customization['workDisplay']>) => void
 }
 
@@ -85,20 +94,105 @@ const SHAPE_CLS = {
   'rounded-lg': 'rounded-lg',
 } as const
 
-export default function HeaderControls({
-  customization,
-  onHeaderPatch,
-  onLinksPatch,
-  onPhotoPositionPatch,
-  onWorkDisplayPatch,
-}: HeaderControlsProps) {
-  const header = customization.header
+function useDisclosure(initial = false) {
+  const [open, setOpen] = useState(initial)
+  return { open, toggle: () => setOpen((o) => !o) }
+}
+
+export function LinkStylingSettings({ customization, onLinksPatch }: LinkStylingProps) {
   const links = customization.links
+  const advanced = useDisclosure()
+  return (
+    <CustomizeCard title="Links" icon={Link2} description="Underline, color and icons for all links in the resume.">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Checkbox id="link-underline" checked={links.underline} onCheckedChange={(v) => onLinksPatch({ underline: v === true })} />
+          <Label htmlFor="link-underline" className="cursor-pointer text-sm">Underline</Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox id="link-blue" checked={links.blueColor} onCheckedChange={(v) => onLinksPatch({ blueColor: v === true })} />
+          <Label htmlFor="link-blue" className="cursor-pointer text-sm">Blue color</Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox id="link-icon" checked={links.icon} onCheckedChange={(v) => onLinksPatch({ icon: v === true })} />
+          <Label htmlFor="link-icon" className="cursor-pointer text-sm">Link icon</Label>
+        </div>
+      </div>
+      {links.icon && (
+        <div className="grid grid-cols-2 gap-2">
+          <OptionButton active={links.iconType === 'link'} onClick={() => onLinksPatch({ iconType: 'link' })}>
+            <Link2 className="mx-auto block size-4" />
+          </OptionButton>
+          <OptionButton active={links.iconType === 'external'} onClick={() => onLinksPatch({ iconType: 'external' })}>
+            <ExternalLink className="mx-auto block size-4" />
+          </OptionButton>
+        </div>
+      )}
+      <div className="rounded-xl border border-border/60">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between p-3 text-left"
+          onClick={advanced.toggle}
+        >
+          <span className="text-sm font-semibold">Advanced Settings</span>
+          <ChevronDown className={cn('size-4 transition-transform', advanced.open && 'rotate-180')} />
+        </button>
+        {advanced.open && (
+          <div className="space-y-3 border-t border-border/60 p-3">
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Apply underline and blue color to header
+            </div>
+            {(['email', 'phone', 'website', 'linkedIn', 'github'] as const).map((k) => (
+              <div key={k} className="flex items-center gap-2">
+                <Checkbox
+                  id={`link-ovr-${k}`}
+                  checked={links.headerOverrides[k]}
+                  onCheckedChange={(v) => onLinksPatch({ headerOverrides: { ...links.headerOverrides, [k]: v === true } })}
+                />
+                <Label htmlFor={`link-ovr-${k}`} className="cursor-pointer text-sm capitalize">
+                  {k === 'linkedIn' ? 'LinkedIn' : k}
+                </Label>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </CustomizeCard>
+  )
+}
+
+export function WorkExperienceSettings({ customization, onWorkDisplayPatch }: WorkExperienceSettingsProps) {
+  return (
+    <CustomizeCard title="Work Experience" icon={BriefcaseBusiness} description="How job entries are displayed.">
+      <div className="space-y-2">
+        <Label className="text-sm font-bold text-foreground">Title / subtitle order</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <OptionButton active={customization.workDisplay.jobTitleBeforeEmployer} onClick={() => onWorkDisplayPatch({ jobTitleBeforeEmployer: true })}>
+            <span className="block text-center">Job Title - Employer</span>
+          </OptionButton>
+          <OptionButton active={!customization.workDisplay.jobTitleBeforeEmployer} onClick={() => onWorkDisplayPatch({ jobTitleBeforeEmployer: false })}>
+            <span className="block text-center">Employer - Job Title</span>
+          </OptionButton>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="work-group-promotions"
+          checked={customization.workDisplay.groupPromotions}
+          onCheckedChange={(v) => onWorkDisplayPatch({ groupPromotions: v === true })}
+        />
+        <Label htmlFor="work-group-promotions" className="cursor-pointer text-sm">Group promotions</Label>
+      </div>
+    </CustomizeCard>
+  )
+}
+
+export default function HeaderControls({ customization, onHeaderPatch, onPhotoPositionPatch }: HeaderControlsProps) {
+  const header = customization.header
   const photo = customization.photoPosition
-  const [advancedOpen, setAdvancedOpen] = useState(false)
 
   return (
-    <CustomizeCard title="Header" icon={UserRound} description="Name, contact details, icons, photo and links.">
+    <CustomizeCard title="Header" icon={UserRound} description="Name, contact details, icons and photo.">
       <div className="space-y-2">
         <Label className="text-sm font-bold text-foreground">Text alignment</Label>
         <div className="grid grid-cols-2 gap-2">
@@ -281,85 +375,6 @@ export default function HeaderControls({
             </div>
           </>
         )}
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Link styling</Label>
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Checkbox id="link-underline" checked={links.underline} onCheckedChange={(v) => onLinksPatch({ underline: v === true })} />
-            <Label htmlFor="link-underline" className="cursor-pointer text-sm">Underline</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox id="link-blue" checked={links.blueColor} onCheckedChange={(v) => onLinksPatch({ blueColor: v === true })} />
-            <Label htmlFor="link-blue" className="cursor-pointer text-sm">Blue color</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox id="link-icon" checked={links.icon} onCheckedChange={(v) => onLinksPatch({ icon: v === true })} />
-            <Label htmlFor="link-icon" className="cursor-pointer text-sm">Link icon</Label>
-          </div>
-        </div>
-        {links.icon && (
-          <div className="grid grid-cols-2 gap-2">
-            <OptionButton active={links.iconType === 'link'} onClick={() => onLinksPatch({ iconType: 'link' })}>
-              <LinkIcon className="mx-auto block size-4" />
-            </OptionButton>
-            <OptionButton active={links.iconType === 'external'} onClick={() => onLinksPatch({ iconType: 'external' })}>
-              <ExternalLink className="mx-auto block size-4" />
-            </OptionButton>
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-xl border border-border/60">
-        <button
-          type="button"
-          className="flex w-full items-center justify-between p-3 text-left"
-          onClick={() => setAdvancedOpen((o) => !o)}
-        >
-          <span className="text-sm font-semibold">Advanced Settings</span>
-          <ChevronDown className={cn('size-4 transition-transform', advancedOpen && 'rotate-180')} />
-        </button>
-        {advancedOpen && (
-          <div className="space-y-3 border-t border-border/60 p-3">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Apply underline and blue color to header
-            </div>
-            {(['email', 'phone', 'website', 'linkedIn', 'github'] as const).map((k) => (
-              <div key={k} className="flex items-center gap-2">
-                <Checkbox
-                  id={`link-ovr-${k}`}
-                  checked={links.headerOverrides[k]}
-                  onCheckedChange={(v) => onLinksPatch({ headerOverrides: { ...links.headerOverrides, [k]: v === true } })}
-                />
-                <Label htmlFor={`link-ovr-${k}`} className="cursor-pointer text-sm capitalize">
-                  {k === 'linkedIn' ? 'LinkedIn' : k}
-                </Label>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Title / subtitle order</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <OptionButton active={customization.workDisplay.jobTitleBeforeEmployer} onClick={() => onWorkDisplayPatch({ jobTitleBeforeEmployer: true })}>
-            <span className="block text-center">Job Title - Employer</span>
-          </OptionButton>
-          <OptionButton active={!customization.workDisplay.jobTitleBeforeEmployer} onClick={() => onWorkDisplayPatch({ jobTitleBeforeEmployer: false })}>
-            <span className="block text-center">Employer - Job Title</span>
-          </OptionButton>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="work-group-promotions"
-          checked={customization.workDisplay.groupPromotions}
-          onCheckedChange={(v) => onWorkDisplayPatch({ groupPromotions: v === true })}
-        />
-        <Label htmlFor="work-group-promotions" className="cursor-pointer text-sm">Group promotions</Label>
       </div>
     </CustomizeCard>
   )

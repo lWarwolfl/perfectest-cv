@@ -76,6 +76,20 @@ export default function PageSpacingSettings({
           className="accent-primary"
         />
       </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label>Heading gap</Label>
+          <span className="text-sm font-semibold text-foreground">{Number(spacing.headingGap ?? 3) * 2}px</span>
+        </div>
+        <Input
+          type="range"
+          min={0}
+          max={10}
+          value={spacing.headingGap ?? 3}
+          onChange={(e) => onPatch({ headingGap: e.target.value })}
+          className="accent-primary"
+        />
+      </div>
     </CustomizeCard>
   )
 }
