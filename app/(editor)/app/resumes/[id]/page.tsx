@@ -153,7 +153,6 @@ function EntryForm({ entry, sectionType, onChange, onDelete }: {
             onChange={(v) => up({ [nameKey]: v.target.value } as Partial<EntryData>)}
             className="flex-1"
           />
-          <Input placeholder="Level" value={e.level} onChange={(v) => up({ level: v.target.value })} className="w-24" />
           <Button variant="ghost" size="icon-sm" onClick={onDelete}><Trash2 className="size-3" /></Button>
         </div>
         <Textarea

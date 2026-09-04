@@ -76,7 +76,7 @@ function dim(text: string) {
 
 function DisplayList({ display, items, accent, text, lh }: {
   display: SectionDisplay
-  items: { key: string; name: React.ReactNode; level: string; infoHtml?: string }[]
+  items: { key: string; name: React.ReactNode; infoHtml?: string }[]
   accent: string
   text: string
   lh: number
@@ -84,22 +84,13 @@ function DisplayList({ display, items, accent, text, lh }: {
   const rows = display.rows ?? { spacing: 'spacious' as const, bullets: false }
   const subinfo = display.subinfo ?? 'colon' as const
   const cols = [1, 2, 3, 4].includes(Number(display.grid?.columns)) ? Number(display.grid.columns) : 2
-  const sub = (level: string) => {
-    if (!level) return null
-    const label = subinfo === 'colon' ? `: ${level}` : subinfo === 'dash' ? ` - ${level}` : ` (${level})`
+  const infoText = (it: { infoHtml?: string }) => (it.infoHtml || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  const sub = (info: string) => {
+    if (!info) return null
+    const label = subinfo === 'colon' ? `: ${info}` : subinfo === 'dash' ? ` - ${info}` : ` (${info})`
     return <span style={{ color: dim(text) }}>{label}</span>
   }
-  const subText = (level: string) => (subinfo === 'colon' ? `: ${level}` : subinfo === 'dash' ? `- ${level}` : `(${level})`)
-  const levelDots = (level: string) => {
-    const n = Number(level)
-    if (!Number.isInteger(n) || n < 1 || n > 5) return null
-    return (
-      <span style={{ color: accent, letterSpacing: '1px', marginLeft: '6px' }}>
-        {'●'.repeat(n)}
-        <span style={{ color: dim(text) }}>{'●'.repeat(5 - n)}</span>
-      </span>
-    )
-  }
+  const subText = (info: string) => (subinfo === 'colon' ? `: ${info}` : subinfo === 'dash' ? `- ${info}` : `(${info})`)
   if (display.selected === 'compact') {
     const sep = display.text === 'pipe' ? ' | ' : display.text === 'comma' ? ', ' : ' • '
     return (
@@ -108,7 +99,7 @@ function DisplayList({ display, items, accent, text, lh }: {
           <span key={it.key}>
             {i > 0 && sep}
             {it.name}
-            {sub(it.level)}
+            {sub(infoText(it))}
           </span>
         ))}
       </div>
@@ -120,7 +111,7 @@ function DisplayList({ display, items, accent, text, lh }: {
         {items.map((it) => (
           <span key={it.key} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: `color-mix(in srgb, ${accent} 8%, transparent)`, border: `1px solid ${dim(accent)}`, borderRadius: '9999px', padding: '1px 8px', fontSize: '0.9em' }}>
             {it.name}
-            {it.level && <span style={{ color: dim(text) }}>{it.level}</span>}
+            {sub(infoText(it))}
           </span>
         ))}
       </div>
@@ -129,27 +120,26 @@ function DisplayList({ display, items, accent, text, lh }: {
   if (display.selected === 'grid') {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: `2px 12px`, lineHeight: lh }}>
-        {items.map((it) => (
-          <div key={it.key}>
-            <div>{it.name}{levelDots(it.level)}</div>
-            {it.level && <div style={{ fontSize: '0.9em', color: dim(text) }}>{subText(it.level)}</div>}
-            {hasHtml(it.infoHtml) && <div style={{ fontSize: '0.9em', color: dim(text) }} dangerouslySetInnerHTML={{ __html: it.infoHtml! }} />}
-          </div>
-        ))}
+        {items.map((it) => {
+          const info = infoText(it)
+          return (
+            <div key={it.key}>
+              <div>{it.name}</div>
+              {info && <div style={{ fontSize: '0.9em', color: dim(text) }}>{subText(info)}</div>}
+            </div>
+          )
+        })}
       </div>
     )
   }
   const gap = rows.spacing === 'tight' ? '2px' : '6px'
   return (
-    <div style={{ lineHeight: lh }}>
+    <div style={{ lineHeight: lh, display: 'flex', flexDirection: 'column', gap }}>
       {items.map((it) => (
-        <div key={it.key} style={{ marginBottom: hasHtml(it.infoHtml) ? gap : '2px' }}>
-          <div>
-            {rows.bullets ? '• ' : ''}
-            {it.name}
-            {sub(it.level)}
-          </div>
-          {hasHtml(it.infoHtml) && <div style={{ fontSize: '0.9em', color: dim(text) }} dangerouslySetInnerHTML={{ __html: it.infoHtml! }} />}
+        <div key={it.key}>
+          {rows.bullets ? '• ' : ''}
+          {it.name}
+          {sub(infoText(it))}
         </div>
       ))}
     </div>
@@ -334,7 +324,7 @@ export function ResumeRenderer({
             items={entries.flatMap((e) =>
               e.data.type !== 'skill'
                 ? []
-                : [{ key: e.id, name: linked(e.data.skill, '', customization, colors.accent, colors.text), level: e.data.level, infoHtml: e.data.infoHtml }]
+                : [{ key: e.id, name: linked(e.data.skill, '', customization, colors.accent, colors.text), infoHtml: e.data.infoHtml }]
             )}
           />
         )}
@@ -347,7 +337,7 @@ export function ResumeRenderer({
             items={entries.flatMap((e) =>
               e.data.type !== 'language'
                 ? []
-                : [{ key: e.id, name: e.data.language, level: e.data.level, infoHtml: e.data.infoHtml }]
+                : [{ key: e.id, name: e.data.language, infoHtml: e.data.infoHtml }]
             )}
           />
         )}
