@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { getPublicLetterAction } from '@/server/letter/letter.actions'
 import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
 import { EMPTY_LETTER_DESIGN } from '@/features/letter/types'
-import { pageDims } from '@/components/common/preview-frame'
+import { pageDims } from '@/lib/page'
 import type { LetterDesign } from '@/features/letter/types'
 
 interface SharePageProps {

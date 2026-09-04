@@ -6,7 +6,7 @@ import { ResumeSection, ResumeEntry } from '@/drizzle/schema'
 import { getPublicResumeAction } from '@/server/resume/resume.actions'
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
 import { DEFAULT_CUSTOMIZATION, EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
-import { pageDims } from '@/components/common/preview-frame'
+import { pageDims } from '@/lib/page'
 import type { TEntry, TSection } from '@/features/resume/types'
 
 interface SharePageProps {
