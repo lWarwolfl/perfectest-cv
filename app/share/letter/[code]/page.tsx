@@ -11,7 +11,7 @@ interface SharePageProps {
   params: Promise<{ code: string }>
 }
 
-export const revalidate = 300
+export const revalidate = 86400
 
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
   const { code } = await params
