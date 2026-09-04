@@ -1,10 +1,11 @@
-import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth/server'
 import { listResumesAction } from '@/server/resume/resume.actions'
 import { listLettersAction } from '@/server/letter/letter.actions'
 import { getTrackerAction } from '@/server/tracker/tracker.actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -13,6 +14,11 @@ export default async function DashboardPage() {
     listLettersAction(),
     getTrackerAction(),
   ])
+
+  const jobStatus = (tracker?.columns ?? []).map((col) => ({
+    name: col.name,
+    count: col.cardIds?.length ?? 0,
+  }))
 
   return (
     <div className="space-y-6">
@@ -49,6 +55,10 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+      <DashboardCharts
+        docs={{ resumes: resumes.length, letters: letters.length }}
+        jobStatus={jobStatus}
+      />
     </div>
   )
 }
