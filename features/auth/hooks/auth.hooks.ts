@@ -19,7 +19,15 @@ export function useSignIn() {
       router.push('/app/dashboard')
       router.refresh()
     },
-    onError: (e) => toast.error(getErrorMessage(e)),
+    onError: (e) => {
+      const msg = getErrorMessage(e)
+      if (/verif/i.test(msg)) {
+        toast.error('Verify your email first, then sign in')
+        router.push('/auth/verify-email')
+      } else {
+        toast.error(msg)
+      }
+    },
   })
 }
 
@@ -32,8 +40,8 @@ export function useSignUp() {
       return result
     },
     onSuccess: () => {
-      toast.success('Account created — you can now sign in')
-      router.push('/auth/signin')
+      toast.success('Account created, check your inbox to verify your email')
+      router.push('/auth/verify-email')
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
@@ -49,5 +57,42 @@ export function useSignOut() {
       router.push('/auth/signin')
       router.refresh()
     },
+  })
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (data: { email: string }) => {
+      const { error } = await authClient.requestPasswordReset({ email: data.email, redirectTo: '/auth/reset-password' })
+      if (error) throw new Error(error.message || error.statusText)
+    },
+    onSuccess: () => toast.success("If that email exists, we've sent a reset link"),
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useResetPassword() {
+  const router = useRouter()
+  return useMutation({
+    mutationFn: async (data: { newPassword: string }) => {
+      const { error } = await authClient.resetPassword({ newPassword: data.newPassword })
+      if (error) throw new Error(error.message || error.statusText)
+    },
+    onSuccess: () => {
+      toast.success('Password updated, sign in with your new password')
+      router.push('/auth/signin')
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: async (data: { email: string }) => {
+      const { error } = await authClient.sendVerificationEmail({ email: data.email, callbackURL: '/auth/verified' })
+      if (error) throw new Error(error.message || error.statusText)
+    },
+    onSuccess: () => toast.success('Verification email sent'),
+    onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
