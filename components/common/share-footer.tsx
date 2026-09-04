@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { Check, Copy } from 'lucide-react'
+import logo from '@public/logo.svg'
 
 export function ShareFooter() {
   const [copied, setCopied] = useState(false)
@@ -25,7 +27,8 @@ export function ShareFooter() {
         </button>
         <span className="min-w-0 truncate">{url}</span>
       </div>
-      <span>
+      <span className="flex shrink-0 items-center gap-1.5">
+        <Image alt="Perfectest CV logo" src={logo} className="size-5" />
         Made with{' '}
         <Link href="/" className="font-medium text-foreground hover:underline">
           Perfectest CV

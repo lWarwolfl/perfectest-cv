@@ -28,7 +28,7 @@ export default async function SharedLetterPage({ params }: SharePageProps) {
   const { widthMm, heightMm } = pageDims('A4')
 
   return (
-    <div className="preview-light min-h-screen bg-background py-6 flex flex-col items-center gap-0 px-4">
+    <div className="preview-light min-h-screen share-bg py-6 flex flex-col items-center gap-0 px-4">
       <div
         className="w-full bg-white border border-border shadow-sm"
         style={{ maxWidth: widthMm * 3.78, aspectRatio: `${widthMm} / ${heightMm}` }}
