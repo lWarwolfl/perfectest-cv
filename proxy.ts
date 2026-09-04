@@ -5,7 +5,9 @@ const authPrefixes = ['/auth']
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const sessionCookie = request.cookies.get('better-auth.session_token')?.value
+  const sessionCookie =
+    request.cookies.get('better-auth.session_token')?.value ??
+    request.cookies.get('__Secure-better-auth.session_token')?.value
 
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
   const isAuthPage = authPrefixes.some((p) => pathname.startsWith(p))
