@@ -189,17 +189,12 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     const nameKey = sectionType === 'skill' ? 'skill' : 'language'
     const nameValue = sectionType === 'skill' ? e.skill : (entry.data as LanguageEntry).language
     return (
-      <div className="space-y-2 rounded-lg border p-2">
-        <div className="flex items-end gap-2">
-          <LabeledInput
-            label={sectionType === 'skill' ? 'Skill' : 'Language'}
-            placeholder={sectionType === 'skill' ? 'Skill' : 'Language'}
-            value={nameValue}
-            onChange={(v) => up({ [nameKey]: v.target.value } as Partial<EntryData>)}
-            className="flex-1"
-          />
+      <div className="space-y-2 rounded-lg border p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground">{sectionType === 'skill' ? 'Skill' : 'Language'}</span>
           <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
         </div>
+        <TitleInput label={sectionType === 'skill' ? 'Skill' : 'Language'} value={nameValue} onChange={(v) => up({ [nameKey]: v } as Partial<EntryData>)} />
         <RichTextEditor compact value={e.infoHtml} onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)} />
       </div>
     )
@@ -207,12 +202,12 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
   if (sectionType === 'interest') {
     const e = entry.data as Extract<EntryData, { type: 'interest' }>
     return (
-      <div className="space-y-2 rounded-lg border p-2">
-        <div className="flex items-end gap-2">
-          <LabeledInput label="Interest" placeholder="Interest" value={e.interest} onChange={(v) => up({ interest: v.target.value })} className="flex-1" />
-          <LinkDialog value={e.interestLink} onConfirm={(url) => up({ interestLink: url })} />
+      <div className="space-y-2 rounded-lg border p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground">Interest</span>
           <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
         </div>
+        <TitleInput label="Interest" value={e.interest} link={e.interestLink} onChange={(v) => up({ interest: v })} onLinkChange={(url) => up({ interestLink: url })} />
         <RichTextEditor compact value={e.infoHtml} onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)} />
       </div>
     )
