@@ -77,26 +77,26 @@ export default function ColorThemeSettings({
           <HexField label="Background" value={basic.multi.backgroundColor} onChange={(hex) => onPatch({ mode: 'basic', basic: { ...basic, selected: 'multi', multi: { ...basic.multi, backgroundColor: hex } } })} />
         </div>
       )}
-      <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">Apply accent color to</Label>
-        {(
-          [
-            ['name', 'Name'],
-            ['jobTitle', 'Job title'],
-            ['dates', 'Dates'],
-            ['headings', 'Section headings'],
-            ['icons', 'Icons'],
-          ] as const
-        ).map(([key, label]) => (
-          <label key={key} className="flex cursor-pointer items-center gap-2 text-sm">
-            <Checkbox
-              checked={customization.applyAccentColor[key]}
-              onCheckedChange={(v) => onApplyAccentPatch({ [key]: v === true })}
-            />
-            {label}
-          </label>
-        ))}
-      </div>
+    <div className="space-y-2">
+      <Label className="text-xs text-muted-foreground">Apply accent color to</Label>
+      {(
+        [
+          ['name', 'Name'],
+          ['jobTitle', 'Job title'],
+          ['dates', 'Dates'],
+          ['headings', 'Section headings'],
+          ['icons', 'Icons'],
+        ] as const
+      ).map(([key, label]) => (
+        <label key={key} className="flex cursor-pointer items-center gap-2 text-sm">
+          <Checkbox
+            checked={customization.applyAccentColor[key]}
+            onCheckedChange={(v) => onApplyAccentPatch({ [key]: v === true })}
+          />
+          {label}
+        </label>
+      ))}
+    </div>
     </CustomizeCard>
   )
 }

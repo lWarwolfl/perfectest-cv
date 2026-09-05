@@ -17,11 +17,12 @@ import {
 
 type ShareResult = { live: boolean; token: string | null } | undefined
 
-export function ShareButton({ live, kind, pending, onToggle }: {
+export function ShareButton({ live, kind, pending, onToggle, className }: {
   live: boolean
   kind: 'resume' | 'letter'
   pending: boolean
   onToggle: (live: boolean) => Promise<ShareResult>
+  className?: string
 }) {
   const label = kind === 'resume' ? 'resume' : 'cover letter'
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -51,7 +52,7 @@ export function ShareButton({ live, kind, pending, onToggle }: {
 
   return (
     <>
-      <Button variant="outline" onClick={() => setConfirmOpen(true)} disabled={pending}>
+      <Button variant="outline" size="sm" className={className} onClick={() => setConfirmOpen(true)} disabled={pending}>
         <Link2 className="size-3.5" />
         Share
       </Button>

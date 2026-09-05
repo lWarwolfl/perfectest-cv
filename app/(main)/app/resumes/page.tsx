@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Copy, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Copy, Pencil, Trash2 } from 'lucide-react'
 import { useListResumePreviews, useCreateResume, useDeleteResume, useDuplicateResume } from '@/features/resume/hooks/resume.hooks'
 import { useShareResume } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
-import { LabeledInput } from '@/components/ui/labeled'
-import { PageLoader } from '@/components/common/page-loader'
+import { CreateCard } from '@/components/common/create-card'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { ShareButton } from '@/components/common/share-button'
@@ -20,7 +19,6 @@ export default function ResumesPage() {
   const del = useDeleteResume()
   const dup = useDuplicateResume()
   const share = useShareResume()
-  const [newName, setNewName] = useState('')
   const [confirm, setConfirm] = useState<{ kind: 'delete' | 'duplicate'; id: string; title: string } | null>(null)
 
   return (
@@ -28,15 +26,11 @@ export default function ResumesPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Resumes</h1>
       </div>
-      {isLoading && <PageLoader />}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="flex aspect-[210/297] flex-col gap-2 rounded-lg border-2 border-dashed p-3">
-          <LabeledInput label="New resume name" hideLabel placeholder="Resume name" value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <Button variant="outline" onClick={() => { create.mutate(newName.trim() || undefined); setNewName('') }} disabled={create.isPending}>
-            <Plus className="size-4" /> New Resume
-          </Button>
-        </div>
-        {resumes?.map((r) => (
+        <CreateCard label="Resume name" buttonLabel="New Resume" className="aspect-[210/297] justify-center" pending={create.isPending} onCreate={(name) => create.mutate(name || undefined)} />
+        {isLoading
+          ? Array.from({ length: 2 }, (_, i) => <div key={i} className="aspect-[210/297] animate-pulse rounded-lg bg-muted" />)
+          : resumes?.map((r) => (
           <div key={r.id} className="flex flex-col gap-3">
             <PreviewFrame pageFormat={r.doc.customization?.regional?.pageFormat}>
               <ResumeRenderer

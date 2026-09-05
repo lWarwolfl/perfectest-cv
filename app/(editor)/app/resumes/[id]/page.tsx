@@ -187,6 +187,7 @@ export default function ResumeEditorPage() {
             onDownload={handlePrint}
             share={
               <ShareButton
+                className="h-8 text-sm"
                 live={resume?.webResumeLive ?? false}
                 kind="resume"
                 pending={share.isPending}
@@ -201,14 +202,16 @@ export default function ResumeEditorPage() {
               <Button variant="ghost" size="icon-sm" onClick={() => setTab(tab === 'content' ? 'design' : 'content')} aria-label="Swap content/design">
                 <ArrowLeftRight className="size-4" />
               </Button>
-              <LabeledInput
-                label="Title"
-                hideLabel
-                value={titleDraft}
-                onChange={(e) => setTitleDraft(e.target.value)}
-                className="h-8 text-sm font-medium"
-                placeholder="Resume title"
-              />
+              <div className="min-w-0 flex-1">
+                <LabeledInput
+                  label="Title"
+                  hideLabel
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                  className="h-8 text-sm font-medium"
+                  placeholder="Resume title"
+                />
+              </div>
               <Button size="sm" disabled={!titleDraft.trim() || titleDraft === (resume?.title || '')} onClick={() => { if (titleDraft.trim()) rename.mutate({ id, title: titleDraft.trim() }) }}>
                 Save
               </Button>

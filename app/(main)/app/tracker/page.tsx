@@ -8,7 +8,6 @@ import { getErrorMessage, uid } from '@/lib/utils'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import { useListResumes } from '@/features/resume/hooks/resume.hooks'
 import { useListLetters } from '@/features/letter/hooks/letter.hooks'
-import { PageLoader } from '@/components/common/page-loader'
 import type { TTrackerCard } from '@/drizzle/schema'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -19,6 +18,7 @@ import { LabeledInput, LabeledTextarea } from '@/components/ui/labeled'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Plus, Trash2, ExternalLink } from 'lucide-react'
 import { ColorPicker } from '@/components/ui/color-picker'
+import { CreateCard } from '@/components/common/create-card'
 
 function CardEditor({ card, colId, trackerId, open, onOpenChange, resumes, letters }: {
   card: Partial<TTrackerCard> | null
@@ -128,7 +128,6 @@ export default function TrackerPage() {
   const [cardOpen, setCardOpen] = useState(false)
   const [dragOver, setDragOver] = useState<string | null>(null)
   const [view, setView] = useState<'board' | 'table'>('board')
-  const [newColName, setNewColName] = useState('')
 
   const moveCard = useMutation({
     mutationFn: ({ trackerId, cardId, toColId, toIndex }: { trackerId: string; cardId: string; toColId: string; toIndex: number }) =>
@@ -147,11 +146,11 @@ export default function TrackerPage() {
   })
 
   const addColMutation = useMutation({
-    mutationFn: () => {
-      const cols = [...(tracker?.columns || []), { id: uid(), name: newColName || 'New Column', cardIds: [] as string[] }]
+    mutationFn: (name: string) => {
+      const cols = [...(tracker?.columns || []), { id: uid(), name: name || 'New Column', cardIds: [] as string[] }]
       return saveColumnsAction(tracker!.id, cols)
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.TRACKERS] }); setNewColName('') },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.TRACKERS] }),
   })
 
   function handleDragStart(e: React.DragEvent, cardId: string, _colId: string) {
@@ -178,8 +177,6 @@ export default function TrackerPage() {
   const allCards = tracker?.cards || []
   const columns = tracker?.columns || []
 
-  if (isLoading) return <PageLoader />
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -201,7 +198,9 @@ export default function TrackerPage() {
 
       {view === 'board' ? (
         <div className="flex gap-4 -mx-3 overflow-x-auto px-3 pb-4" style={{ minHeight: 'calc(100vh - 160px)' }}>
-          {columns.map((col) => (
+          {isLoading
+            ? Array.from({ length: 4 }, (_, i) => <div key={i} className="h-96 w-72 shrink-0 animate-pulse rounded-lg bg-muted" />)
+            : columns.map((col) => (
             <div
               key={col.id}
               className="flex w-72 shrink-0 flex-col rounded-lg bg-muted/50"
@@ -265,12 +264,7 @@ export default function TrackerPage() {
               </ScrollArea>
             </div>
           ))}
-          <div className="flex w-72 shrink-0 flex-col gap-2 rounded-lg border-2 border-dashed p-3">
-            <LabeledInput label="New column name" hideLabel placeholder="Column name" value={newColName} onChange={(e) => setNewColName(e.target.value)} className="h-8 text-sm" />
-            <Button variant="outline" size="sm" onClick={() => addColMutation.mutate()} disabled={addColMutation.isPending}>
-              <Plus className="mr-1 size-3" /> Add Column
-            </Button>
-          </div>
+          <CreateCard label="Column name" buttonLabel="Add Column" className="w-72 shrink-0 justify-center" pending={addColMutation.isPending} onCreate={(name) => addColMutation.mutate(name)} />
         </div>
       ) : (
         <div className="overflow-auto rounded-lg border">
