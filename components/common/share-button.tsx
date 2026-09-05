@@ -51,7 +51,7 @@ export function ShareButton({ live, kind, pending, onToggle }: {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setConfirmOpen(true)} disabled={pending}>
+      <Button variant="outline" onClick={() => setConfirmOpen(true)} disabled={pending}>
         <Link2 className="size-3.5" />
         Share
       </Button>

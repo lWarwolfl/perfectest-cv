@@ -56,7 +56,7 @@ export function ProfileCard({ name, image, email }: { name: string; image: strin
         <p className="truncate text-xs text-muted-foreground">{email}</p>
         <div className="flex items-center gap-2">
           <LabeledInput label="Display name" placeholder="Display name" value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 max-w-60" maxLength={80} />
-          <Button size="sm" disabled={!dirty || save.isPending} onClick={() => save.mutate(fileRef.current?.files?.[0])}>
+          <Button disabled={!dirty || save.isPending} onClick={() => save.mutate(fileRef.current?.files?.[0])}>
             Save
           </Button>
         </div>
