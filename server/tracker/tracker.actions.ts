@@ -10,6 +10,8 @@ import { uid } from '@/lib/utils'
 type TrackerColumn = { id: string; name: string; cardIds: string[]; color?: string }
 type TrackerCardRow = typeof TrackerCard.$inferSelect
 
+const COLUMN_COLORS = ['#6366f1', '#22c55e', '#f97316', '#06b6d4', '#ef4444', '#a855f7', '#eab308', '#14b8a6']
+
 export async function getTrackerAction() {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
@@ -27,11 +29,12 @@ export async function getTrackerAction() {
       .values({ userId: user.id, columns: defaultColumns })
       .returning()
   }
+  const columns = tracker.columns.map((c, i) => (c.color ? c : { ...c, color: COLUMN_COLORS[i % COLUMN_COLORS.length] }))
   const cards = await db.query.TrackerCard.findMany({
     where: eq(TrackerCard.trackerId, tracker.id),
     orderBy: (t, { desc }) => desc(t.createdAt),
   })
-  return { ...tracker, cards }
+  return { ...tracker, columns, cards }
 }
 
 export async function saveCardAction(card: Partial<TrackerCardRow>, colId: string, trackerId: string) {

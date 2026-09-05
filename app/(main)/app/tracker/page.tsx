@@ -213,7 +213,7 @@ export default function TrackerPage() {
               <div className="flex items-center justify-between px-3 py-2" style={col.color ? { borderBottom: `3px solid ${col.color}` } : undefined}>
                 <span className="text-sm font-medium">{col.name} <span className="text-muted-foreground">({col.cardIds?.length || 0})</span></span>
                 <div className="flex gap-1">
-                  <ColorPicker value={col.color || '#64748b'} onChange={(hex) => {
+                  <ColorPicker value={col.color || '#6366f1'} onChange={(hex) => {
                     const cols = columns.map((c) => (c.id === col.id ? { ...c, color: hex } : c))
                     saveColumnsAction(tracker!.id, cols).then(() => qc.invalidateQueries({ queryKey: [QUERY_KEYS.TRACKERS] }))
                   }} />
