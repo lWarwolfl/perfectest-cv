@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 import { ProfileCard } from '@/components/dashboard/profile-card'
 import Link from 'next/link'
+import { subDays, format } from 'date-fns'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -21,6 +22,16 @@ export default async function DashboardPage() {
     count: col.cardIds?.length ?? 0,
     color: col.color,
   }))
+
+  const docsByDay = Array.from({ length: 14 }, (_, i) => {
+    const d = subDays(new Date(), 13 - i)
+    const key = format(d, 'yyyy-MM-dd')
+    return {
+      day: format(d, 'd MMM'),
+      resumes: resumes.filter((r) => format(r.createdAt, 'yyyy-MM-dd') === key).length,
+      letters: letters.filter((l) => format(l.createdAt, 'yyyy-MM-dd') === key).length,
+    }
+  })
 
   return (
     <div className="space-y-6">
@@ -63,7 +74,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
       <DashboardCharts
-        docs={{ resumes: resumes.length, letters: letters.length }}
+        docsByDay={docsByDay}
         jobStatus={jobStatus}
       />
     </div>

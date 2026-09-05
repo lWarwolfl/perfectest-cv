@@ -25,20 +25,15 @@ const docConfig = {
 } satisfies ChartConfig
 
 export function DashboardCharts({
-  docs,
+  docsByDay,
   jobStatus,
 }: {
-  docs: { resumes: number; letters: number }
+  docsByDay: { day: string; resumes: number; letters: number }[]
   jobStatus: { name: string; count: number; color?: string }[]
 }) {
   const jobConfig = Object.fromEntries(
     jobStatus.map((s, i) => [s.name, { label: s.name, color: s.color || CHART_COLORS[i % CHART_COLORS.length] }])
   ) satisfies ChartConfig
-
-  const docData = [
-    { name: 'Resumes', total: docs.resumes, fill: 'var(--chart-1)' },
-    { name: 'Cover Letters', total: docs.letters, fill: 'var(--chart-3)' },
-  ]
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -64,19 +59,17 @@ export function DashboardCharts({
       <Card>
         <CardHeader>
           <CardTitle>Documents</CardTitle>
-          <CardDescription>Resumes vs cover letters in your account</CardDescription>
+          <CardDescription>Resumes and cover letters created per day, last 14 days</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={docConfig} className="h-[260px] w-full">
-            <BarChart accessibilityLayer data={docData}>
+            <BarChart accessibilityLayer data={docsByDay}>
               <CartesianGrid vertical={false} />
-              <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
+              <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} minTickGap={20} />
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Bar dataKey="total" radius={8}>
-                {docData.map((d) => (
-                  <Cell key={d.name} fill={d.fill} />
-                ))}
-              </Bar>
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar dataKey="resumes" stackId="docs" fill="var(--chart-1)" radius={4} />
+              <Bar dataKey="letters" stackId="docs" fill="var(--chart-3)" radius={4} />
             </BarChart>
           </ChartContainer>
         </CardContent>
