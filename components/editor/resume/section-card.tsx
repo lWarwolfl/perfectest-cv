@@ -90,6 +90,7 @@ export default function SectionCard({ section, onToggle, onDelete, onAddEntry, o
           <Input
             value={draft}
             autoFocus
+            aria-label="Section name"
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commitEdit}
             onKeyDown={(e) => {

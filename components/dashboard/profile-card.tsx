@@ -6,7 +6,7 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import { updateProfileAction } from '@/server/user/profile.actions'
 import { getErrorMessage } from '@/lib/utils'
 
@@ -55,7 +55,7 @@ export function ProfileCard({ name, image, email }: { name: string; image: strin
       <div className="min-w-0 flex-1 space-y-2">
         <p className="truncate text-xs text-muted-foreground">{email}</p>
         <div className="flex items-center gap-2">
-          <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 max-w-60" maxLength={80} />
+          <LabeledInput label="Display name" placeholder="Display name" value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 max-w-60" maxLength={80} />
           <Button size="sm" disabled={!dirty || save.isPending} onClick={() => save.mutate(fileRef.current?.files?.[0])}>
             Save
           </Button>

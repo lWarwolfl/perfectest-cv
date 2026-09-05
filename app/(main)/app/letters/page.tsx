@@ -6,7 +6,7 @@ import { Copy, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useListLetterPreviews, useCreateLetter, useDeleteLetter, useDuplicateLetter } from '@/features/letter/hooks/letter.hooks'
 import { useShareLetter } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import { PageLoader } from '@/components/common/page-loader'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
@@ -28,7 +28,7 @@ export default function LettersPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Cover Letters</h1>
         <div className="flex items-center gap-2">
-          <Input placeholder="Letter name" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-9 w-44" />
+          <LabeledInput label="New letter name" hideLabel placeholder="Letter name" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-9 w-44" />
           <Button onClick={() => { create.mutate(newName.trim() || undefined); setNewName('') }} disabled={create.isPending}>
             <Plus className="size-4" /> New Letter
           </Button>

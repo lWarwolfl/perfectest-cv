@@ -15,7 +15,7 @@ function Field({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function FieldLabel({ className, ...props }: React.ComponentProps<typeof Label>) {
-  return <Label className={cn("mb-1", className)} {...props} />
+  return <Label className={className} {...props} />
 }
 
 function FieldError({

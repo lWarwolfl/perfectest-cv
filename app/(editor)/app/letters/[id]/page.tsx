@@ -17,7 +17,7 @@ import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
 import LetterDesignSidebar from '@/components/cover-letter/letter-design-sidebar'
 import { PageLoader } from '@/components/common/page-loader'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import {
   SenderDetailsForm,
   DateForm,
@@ -129,7 +129,9 @@ export default function LetterEditorPage() {
             >
               <ArrowLeftRight className="size-4" />
             </Button>
-            <Input
+            <LabeledInput
+              label="Title"
+              hideLabel
               value={titleDraft}
               onChange={(e) => setTitleDraft(e.target.value)}
               className="h-8 text-sm font-medium"

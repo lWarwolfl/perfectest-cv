@@ -8,7 +8,7 @@ import { useCopyResumeDesign, useCopyResumeDetails } from '@/features/letter/hoo
 import { QUERY_KEYS } from '@/features/queries/keys'
 import type { LetterDesign } from '@/features/letter/types'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import HeaderControls from '@/components/editor/customize/header-controls'
@@ -110,7 +110,7 @@ export default function LetterDesignSidebar({ letterId, design, patchDesign, onC
             />
           ))}
         </div>
-        <Input value={design.colors?.basic?.single || ''} onChange={(e) => patchDesign({ colors: { ...design.colors, mode: 'basic', basic: { ...design.colors?.basic, single: e.target.value, selected: 'single' } } })} className="w-28 font-mono text-xs" />
+        <LabeledInput label="Custom accent hex" hideLabel value={design.colors?.basic?.single || ''} onChange={(e) => patchDesign({ colors: { ...design.colors, mode: 'basic', basic: { ...design.colors?.basic, single: e.target.value, selected: 'single' } } })} className="w-28 font-mono text-xs" />
       </div>
       <div className="space-y-1.5">
         <Label className="text-xs">Sender style</Label>
@@ -157,7 +157,7 @@ function Slider({ label, value, display, min, max, onChange }: {
         <Label className="text-xs">{label}</Label>
         <span className="text-sm font-semibold">{display}</span>
       </div>
-      <Input type="range" min={min} max={max} value={value} onChange={(e) => onChange(Number(e.target.value))} className="accent-primary" />
+      <LabeledInput label={`${label} slider`} hideLabel type="range" min={min} max={max} value={value} onChange={(e) => onChange(Number(e.target.value))} className="accent-primary" />
     </div>
   )
 }

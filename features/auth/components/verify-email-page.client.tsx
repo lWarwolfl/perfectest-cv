@@ -36,6 +36,7 @@ export function VerifyEmailPageClient() {
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="mt-0"
           />
           <Button
             className="w-full"

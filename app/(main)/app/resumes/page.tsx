@@ -6,7 +6,7 @@ import { Copy, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useListResumePreviews, useCreateResume, useDeleteResume, useDuplicateResume } from '@/features/resume/hooks/resume.hooks'
 import { useShareResume } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import { PageLoader } from '@/components/common/page-loader'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
@@ -28,7 +28,7 @@ export default function ResumesPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Resumes</h1>
         <div className="flex items-center gap-2">
-          <Input placeholder="Resume name" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-9 w-44" />
+          <LabeledInput label="New resume name" hideLabel placeholder="Resume name" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-9 w-44" />
           <Button onClick={() => { create.mutate(newName.trim() || undefined); setNewName('') }} disabled={create.isPending}>
             <Plus className="size-4" /> New Resume
           </Button>

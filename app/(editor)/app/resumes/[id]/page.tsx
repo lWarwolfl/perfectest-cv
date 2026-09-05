@@ -20,7 +20,7 @@ import {
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
 import { EMPTY_PERSONAL_DETAILS, DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
 import type { PersonalDetails, Customization, EntryData, HeadingStyle, SectionType } from '@/features/resume/types'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import { Button } from '@/components/ui/button'
 import { ArrowLeftRight } from 'lucide-react'
 import EditorHeader, { EditorShell } from '@/components/editor/editor-header'
@@ -201,7 +201,9 @@ export default function ResumeEditorPage() {
               <Button variant="ghost" size="icon-sm" onClick={() => setTab(tab === 'content' ? 'design' : 'content')} aria-label="Swap content/design">
                 <ArrowLeftRight className="size-4" />
               </Button>
-              <Input
+              <LabeledInput
+                label="Title"
+                hideLabel
                 value={titleDraft}
                 onChange={(e) => setTitleDraft(e.target.value)}
                 className="h-8 text-sm font-medium"

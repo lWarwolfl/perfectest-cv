@@ -11,12 +11,11 @@ import { useListLetters } from '@/features/letter/hooks/letter.hooks'
 import { PageLoader } from '@/components/common/page-loader'
 import type { TTrackerCard } from '@/drizzle/schema'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { LabeledInput, LabeledTextarea } from '@/components/ui/labeled'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Plus, Trash2, ExternalLink } from 'lucide-react'
 import { ColorPicker } from '@/components/ui/color-picker'
@@ -53,22 +52,22 @@ function CardEditor({ card, colId, trackerId, open, onOpenChange, resumes, lette
           <DialogTitle>{card?.id ? 'Edit Job' : 'Add Job'}</DialogTitle>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-3 overflow-y-auto -mr-4 pr-6">
-          <Input placeholder="Company" value={(form.company as string) || ''} onChange={(e) => setForm({ ...form, company: e.target.value })} />
-          <Input placeholder="Job Title" value={(form.jobTitle as string) || ''} onChange={(e) => setForm({ ...form, jobTitle: e.target.value })} />
+          <LabeledInput label="Company" placeholder="Company" value={(form.company as string) || ''} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+          <LabeledInput label="Job title" placeholder="Job Title" value={(form.jobTitle as string) || ''} onChange={(e) => setForm({ ...form, jobTitle: e.target.value })} />
           <div className="flex gap-2">
-            <Input placeholder="Location" value={(form.location as string) || ''} onChange={(e) => setForm({ ...form, location: e.target.value })} className="flex-1" />
-            <Input placeholder="Salary" value={(form.salary as string) || ''} onChange={(e) => setForm({ ...form, salary: e.target.value })} className="w-28" />
+            <LabeledInput label="Location" placeholder="Location" value={(form.location as string) || ''} onChange={(e) => setForm({ ...form, location: e.target.value })} className="flex-1" />
+            <LabeledInput label="Salary" placeholder="Salary" value={(form.salary as string) || ''} onChange={(e) => setForm({ ...form, salary: e.target.value })} className="w-28" />
           </div>
-          <Input placeholder="Job URL" value={(form.link as string) || ''} onChange={(e) => setForm({ ...form, link: e.target.value })} />
-          <Input placeholder="Tags (comma-separated)" value={((form.tags as string[]) || []).join(', ')} onChange={(e) => setForm({ ...form, tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })} />
-          <Textarea placeholder="Job Description" value={(form.jobDescription as string) || ''} onChange={(e) => setForm({ ...form, jobDescription: e.target.value })} className="min-h-[80px]" />
-          <Textarea placeholder="Notes" value={(form.notes as string) || ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="min-h-[60px]" />
+          <LabeledInput label="Job URL" type="url" placeholder="Job URL" value={(form.link as string) || ''} onChange={(e) => setForm({ ...form, link: e.target.value })} />
+          <LabeledInput label="Tags" placeholder="Tags (comma-separated)" value={((form.tags as string[]) || []).join(', ')} onChange={(e) => setForm({ ...form, tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })} />
+          <LabeledTextarea label="Job description" placeholder="Job Description" value={(form.jobDescription as string) || ''} onChange={(e) => setForm({ ...form, jobDescription: e.target.value })} className="min-h-[80px]" />
+          <LabeledTextarea label="Notes" placeholder="Notes" value={(form.notes as string) || ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="min-h-[60px]" />
           <div className="h-px bg-border" />
           <p className="text-xs font-medium text-muted-foreground">What I sent</p>
           <div>
-            <p className="text-xs mb-1">Resume version</p>
+            <p className="text-xs mb-1" id="card-resume-version">Resume version</p>
             <Select value={(form.resumeVersionId as string) || ''} onValueChange={(v) => setForm({ ...form, resumeVersionId: v || null })}>
-              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+              <SelectTrigger aria-labelledby="card-resume-version"><SelectValue placeholder="None" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">None</SelectItem>
                 {resumes.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
@@ -76,9 +75,9 @@ function CardEditor({ card, colId, trackerId, open, onOpenChange, resumes, lette
             </Select>
           </div>
           <div>
-            <p className="text-xs mb-1">Cover letter version</p>
+            <p className="text-xs mb-1" id="card-letter-version">Cover letter version</p>
             <Select value={(form.coverLetterVersionId as string) || ''} onValueChange={(v) => setForm({ ...form, coverLetterVersionId: v || null })}>
-              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+              <SelectTrigger aria-labelledby="card-letter-version"><SelectValue placeholder="None" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">None</SelectItem>
                 {letters.map((l) => <SelectItem key={l.id} value={l.id}>{l.title}</SelectItem>)}
@@ -93,13 +92,13 @@ function CardEditor({ card, colId, trackerId, open, onOpenChange, resumes, lette
                 const todos = [...(form.todos as { id: string; todo: string; done: boolean }[])]
                 todos[i] = { ...todo, done: !todo.done }
                 setForm({ ...form, todos })
-              }} />
-              <Input value={todo.todo} onChange={(e) => {
+              }} aria-label={`Todo ${i + 1} done`} />
+              <LabeledInput label={`Todo ${i + 1}`} hideLabel value={todo.todo} onChange={(e) => {
                 const todos = [...(form.todos as { id: string; todo: string; done: boolean }[])]
                 todos[i] = { ...todo, todo: e.target.value }
                 setForm({ ...form, todos })
               }} className="flex-1" />
-              <Button variant="ghost" size="icon-sm" onClick={() => setForm({ ...form, todos: (form.todos || []).filter((_, j) => j !== i) })}><Trash2 className="size-3" /></Button>
+              <Button variant="ghost" size="icon-sm" aria-label={`Delete todo ${i + 1}`} onClick={() => setForm({ ...form, todos: (form.todos || []).filter((_, j) => j !== i) })}><Trash2 className="size-3" /></Button>
             </div>
           ))}
           <Button variant="outline" size="sm" onClick={() => setForm({ ...form, todos: [...(form.todos || []), { id: uid(), todo: '', done: false }] })}>
@@ -267,7 +266,7 @@ export default function TrackerPage() {
             </div>
           ))}
           <div className="flex w-72 shrink-0 flex-col gap-2 rounded-lg border-2 border-dashed p-3">
-            <Input placeholder="Column name" value={newColName} onChange={(e) => setNewColName(e.target.value)} className="h-8 text-sm" />
+            <LabeledInput label="New column name" hideLabel placeholder="Column name" value={newColName} onChange={(e) => setNewColName(e.target.value)} className="h-8 text-sm" />
             <Button variant="outline" size="sm" onClick={() => addColMutation.mutate()} disabled={addColMutation.isPending}>
               <Plus className="mr-1 size-3" /> Add Column
             </Button>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import { Link as LinkIcon, Link2Off } from 'lucide-react'
 
 interface LinkDialogProps {
@@ -51,7 +51,7 @@ export default function LinkDialog({ value, onConfirm }: LinkDialogProps) {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-3">
-            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="e.g. github.com/user" autoFocus />
+            <LabeledInput label="Link URL" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="e.g. github.com/user" autoFocus />
             <DialogFooter>
               {value && (
                 <Button type="button" variant="ghost" className="text-destructive" onClick={() => confirm('')}>

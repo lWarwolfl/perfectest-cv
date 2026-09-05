@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Link2, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import {
   Dialog,
@@ -74,7 +74,7 @@ export function ShareButton({ live, kind, pending, onToggle }: {
             <DialogTitle>Share URL</DialogTitle>
             <DialogDescription>Anyone with this link can view your {label}.</DialogDescription>
           </DialogHeader>
-          <Input readOnly value={url || ''} onFocus={(e) => e.target.select()} className="font-mono text-xs" />
+          <LabeledInput label="Share URL" readOnly value={url || ''} onFocus={(e) => e.target.select()} className="font-mono text-xs" />
           <DialogFooter>
             <Button variant="outline" className="text-destructive" disabled={pending} onClick={() => toggle(false)}>
               Disable link

@@ -2,7 +2,7 @@
 
 import { HexColorPicker } from 'react-colorful'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Input } from '@/components/ui/input'
+import { LabeledInput } from '@/components/ui/labeled'
 import { cn } from '@/lib/utils'
 
 export function ColorPicker({ value, onChange, className }: {
@@ -20,7 +20,7 @@ export function ColorPicker({ value, onChange, className }: {
       />
       <PopoverContent className="w-auto p-3">
         <HexColorPicker color={safe} onChange={onChange} />
-        <Input value={value} onChange={(e) => onChange(e.target.value)} className="mt-2 w-full font-mono text-xs" />
+        <LabeledInput label="Hex value" hideLabel value={value} onChange={(e) => onChange(e.target.value)} className="mt-2 w-full font-mono text-xs" />
       </PopoverContent>
     </Popover>
   )
