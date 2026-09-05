@@ -143,6 +143,8 @@ export const Letter = pgTable(
     dateMode: text('date_mode').$type<'current' | 'custom'>().notNull().default('current'),
     dateCustom: text('date_custom').notNull().default(''),
     senderName: text('sender_name').notNull().default(''),
+    senderPhotoImageId: text('sender_photo_image_id').notNull().default(''),
+    senderPhotoFileId: text('sender_photo_file_id').notNull().default(''),
     senderJobTitle: text('sender_job_title').notNull().default(''),
     senderEmail: text('sender_email').notNull().default(''),
     senderPhone: text('sender_phone').notNull().default(''),

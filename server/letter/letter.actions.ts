@@ -6,9 +6,8 @@ import { requireUser } from '@/server/resume/resume.actions'
 import { desc, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
 import { EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
-import { EMPTY_LETTER_DESIGN } from '@/features/letter/types'
+import { mergeCustomization, normalizeLetterDesign } from '@/features/letter/types'
 import type { LetterDesign } from '@/features/letter/types'
 import type { LetterDateMode } from '@/features/resume/types'
 
@@ -18,6 +17,8 @@ export type LetterContentPatch = Partial<{
   dateMode: LetterDateMode
   dateCustom: string
   senderName: string
+  senderPhotoImageId: string
+  senderPhotoFileId: string
   senderJobTitle: string
   senderEmail: string
   senderPhone: string
@@ -157,6 +158,8 @@ export async function copyResumeDetailsAction(letterId: string, resumeId: string
     senderWebsite: p.website,
     senderLinkedIn: p.social.linkedIn.display || p.social.linkedIn.link,
     senderGitHub: p.social.github.display || p.social.github.link,
+    senderPhotoImageId: p.photo?.imageId || '',
+    senderPhotoFileId: p.photo?.fileId || '',
   }
   await db.update(Letter).set(patch).where(eq(Letter.id, letterId))
   return patch
@@ -168,26 +171,11 @@ export async function copyResumeDesignAction(letterId: string, resumeId: string)
   if (!resume) throw new Error('Resume not found')
   const letter = await db.query.Letter.findFirst({ where: eq(Letter.id, letterId) })
   if (!letter) throw new Error('Letter not found')
-  const c = { ...DEFAULT_CUSTOMIZATION, ...(resume.customization || {}) }
+  const prev = normalizeLetterDesign(letter.design)
+  const c = mergeCustomization(resume.customization)
   const design: LetterDesign = {
-    ...EMPTY_LETTER_DESIGN,
-    ...(letter.design || {}),
-    fontFamily: c.font.fontFamily,
-    fontSizePt: 10 + Number(c.spacing.fontSize),
-    lineHeightPct: 1.2 + Number(c.spacing.lineHeight) * 0.1,
-    nameFontSizePt: c.spacing.nameFontSizePt,
-    jobTitleFontSizePt: c.spacing.jobTitleFontSizePt,
-    colors: {
-      mode: 'basic',
-      basic: {
-        single: c.colors.basic.single,
-        multi: c.colors.basic.multi,
-        selected: 'single',
-      },
-    },
-    verticalMarginMm: 10 + Number(c.spacing.marginVertical),
-    horizontalMarginMm: 10 + Number(c.spacing.marginHorizontal),
-    headerSettings: c.header,
+    ...prev,
+    customization: c,
     syncedFromResume: true,
   }
   await db.update(Letter).set({ design }).where(eq(Letter.id, letterId))

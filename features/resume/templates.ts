@@ -1,5 +1,6 @@
 import type { Customization, PersonalDetails } from '@/features/resume/types'
 import type { LetterDesign } from '@/features/letter/types'
+import { mergeCustomization } from '@/features/letter/types'
 import { DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
 
 export interface TemplatePreset {
@@ -138,14 +139,11 @@ export const LETTER_TEMPLATES: {
     description: 'Traditional left-aligned sender block with modern accents',
     tags: ['simple', 'classic'],
     design: {
-      fontFamily: 'Source Sans Pro',
-      fontSizePt: 11,
-      lineHeightPct: 1.4,
-      colors: { mode: 'basic', basic: { single: '#044cb5', multi: { textColor: '#000', accentColor: '#002e71', backgroundColor: '#f3f3f3' }, selected: 'single' } },
-      senderDisplay: { style: 'classicSender', classic: { blockOrder: ['sender', 'date', 'recipient'], senderAlignment: 'left', recipientAlignment: 'left', dateAlignment: 'left', fullNameBold: false, showDivider: false } },
+      customization: mergeCustomization({
+        font: { selected: 'custom', fontFamily: 'Source Sans Pro' },
+        colors: { ...DEFAULT_CUSTOMIZATION.colors, mode: 'basic', basic: { ...DEFAULT_CUSTOMIZATION.colors.basic, single: '#044cb5' } },
+      }),
       letterDateDisplay: { position: 'left' },
-      declarationDisplay: { line: 'none', position: 'left', showHeading: true },
-      verticalMarginMm: 12, horizontalMarginMm: 10,
     },
   },
   {
@@ -154,16 +152,11 @@ export const LETTER_TEMPLATES: {
     description: 'Full-width header with photo and modern accent bar',
     tags: ['modern', 'creative'],
     design: {
-      fontFamily: 'Inter',
-      fontSizePt: 11,
-      lineHeightPct: 1.5,
-      nameFontSizePt: 25,
-      jobTitleFontSizePt: 19,
-      colors: { mode: 'basic', basic: { single: '#0891b2', multi: { textColor: '#0f172a', accentColor: '#0891b2', backgroundColor: '#f8fafc' }, selected: 'single' } },
-      senderDisplay: { style: 'modernHeader', header: { position: 'center', photo: { show: true, size: 'm', grayscale: false }, detailsArrangement: 'wrap', iconFrame: 'circle', iconFrameStyle: 'filled', accentuateName: true } },
+      customization: mergeCustomization({
+        colors: { ...DEFAULT_CUSTOMIZATION.colors, mode: 'basic', basic: { ...DEFAULT_CUSTOMIZATION.colors.basic, single: '#0891b2' } },
+        spacing: { fontSize: '1', lineHeight: '3', spacingFactor: '3', marginVertical: '3', marginHorizontal: '3', headingGap: '3', nameFontSizePt: 25, jobTitleFontSizePt: 19 },
+      }),
       letterDateDisplay: { position: 'right' },
-      declarationDisplay: { line: 'solid', position: 'left', showHeading: true },
-      verticalMarginMm: 12, horizontalMarginMm: 10,
     },
   },
   {
@@ -172,14 +165,12 @@ export const LETTER_TEMPLATES: {
     description: 'Clean, centered layout with minimal ornamentation',
     tags: ['simple', 'modern'],
     design: {
-      fontFamily: 'Nunito',
-      fontSizePt: 11,
-      lineHeightPct: 1.4,
-      colors: { mode: 'basic', basic: { single: '#475569', multi: { textColor: '#0f172a', accentColor: '#475569', backgroundColor: '#ffffff' }, selected: 'single' } },
-      senderDisplay: { style: 'classicSender', classic: { blockOrder: ['sender', 'date', 'recipient'], senderAlignment: 'center', recipientAlignment: 'left', dateAlignment: 'center', fullNameBold: false, showDivider: false } },
+      customization: mergeCustomization({
+        font: { selected: 'custom', fontFamily: 'Nunito' },
+        colors: { ...DEFAULT_CUSTOMIZATION.colors, mode: 'basic', basic: { ...DEFAULT_CUSTOMIZATION.colors.basic, single: '#475569' } },
+        spacing: { fontSize: '1', lineHeight: '2', spacingFactor: '3', marginVertical: '5', marginHorizontal: '4', headingGap: '3', nameFontSizePt: 24, jobTitleFontSizePt: 18 },
+      }),
       letterDateDisplay: { position: 'center' },
-      declarationDisplay: { line: 'none', position: 'left', showHeading: true },
-      verticalMarginMm: 15, horizontalMarginMm: 12,
     },
   },
 ]
