@@ -27,18 +27,15 @@ export default function LettersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Cover Letters</h1>
-        <div className="flex items-center gap-2">
-          <LabeledInput label="New letter name" hideLabel placeholder="Letter name" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-9 w-44" />
-          <Button onClick={() => { create.mutate(newName.trim() || undefined); setNewName('') }} disabled={create.isPending}>
+      </div>
+      {isLoading && <PageLoader />}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col justify-center gap-2 rounded-lg border-2 border-dashed p-3">
+          <LabeledInput label="New letter name" hideLabel placeholder="Letter name" value={newName} onChange={(e) => setNewName(e.target.value)} />
+          <Button variant="outline" onClick={() => { create.mutate(newName.trim() || undefined); setNewName('') }} disabled={create.isPending}>
             <Plus className="size-4" /> New Letter
           </Button>
         </div>
-      </div>
-      {isLoading && <PageLoader />}
-      {!isLoading && !letters?.length && (
-        <p className="text-muted-foreground">No cover letters yet. Create your first one.</p>
-      )}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {letters?.map((l) => (
           <div key={l.id} className="flex flex-col gap-3">
             <PreviewFrame>
