@@ -29,10 +29,10 @@ export function DashboardCharts({
   jobStatus,
 }: {
   docs: { resumes: number; letters: number }
-  jobStatus: { name: string; count: number }[]
+  jobStatus: { name: string; count: number; color?: string }[]
 }) {
   const jobConfig = Object.fromEntries(
-    jobStatus.map((s, i) => [s.name, { label: s.name, color: CHART_COLORS[i % CHART_COLORS.length] }])
+    jobStatus.map((s, i) => [s.name, { label: s.name, color: s.color || CHART_COLORS[i % CHART_COLORS.length] }])
   ) satisfies ChartConfig
 
   const docData = [
@@ -53,7 +53,7 @@ export function DashboardCharts({
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
               <Pie data={jobStatus} dataKey="count" nameKey="name" innerRadius={60} strokeWidth={4}>
                 {jobStatus.map((s, i) => (
-                  <Cell key={s.name} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  <Cell key={s.name} fill={s.color || CHART_COLORS[i % CHART_COLORS.length]} />
                 ))}
               </Pie>
               <ChartLegend content={<ChartLegendContent nameKey="name" />} />

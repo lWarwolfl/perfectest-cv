@@ -19,6 +19,7 @@ export default async function DashboardPage() {
   const jobStatus = (tracker?.columns ?? []).map((col) => ({
     name: col.name,
     count: col.cardIds?.length ?? 0,
+    color: col.color,
   }))
 
   return (
