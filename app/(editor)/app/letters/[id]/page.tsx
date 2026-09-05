@@ -10,7 +10,8 @@ import { useSaveLetterContent, useSaveLetterDesign, useRenameLetter } from '@/fe
 import { getLetterAction } from '@/server/letter/letter.actions'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
 import { QUERY_KEYS } from '@/features/queries/keys'
-import { EMPTY_LETTER_DESIGN, type LetterDesign } from '@/features/letter/types'
+import { normalizeLetterDesign, type LetterDesign } from '@/features/letter/types'
+import type { Customization } from '@/features/resume/types'
 import EditorHeader, { EditorShell } from '@/components/editor/editor-header'
 import { ScreenGate } from '@/components/editor/screen-gate'
 import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
@@ -29,6 +30,15 @@ import {
 
 type SectionKey = 'sender' | 'date' | 'recipient' | 'subject' | 'body' | 'signature'
 
+const SECTION_TITLES: Record<SectionKey, string> = {
+  sender: 'Sender details',
+  date: 'Date',
+  recipient: 'Recipient details',
+  subject: 'Subject',
+  body: 'Body',
+  signature: 'Signature',
+}
+
 export default function LetterEditorPage() {
   const params = useParams()
   const id = params.id as string
@@ -42,7 +52,7 @@ export default function LetterEditorPage() {
   const rename = useRenameLetter()
   const share = useShareLetter()
   const [form, setForm] = useState<LetterContentPatch>({})
-  const [design, setDesign] = useState<LetterDesign>(EMPTY_LETTER_DESIGN)
+  const [design, setDesign] = useState<LetterDesign | null>(null)
   const [tab, setTab] = useState<'content' | 'design'>('content')
   const [activeSection, setActiveSection] = useState<SectionKey | null>(null)
   const [titleDraft, setTitleDraft] = useState('')
@@ -51,13 +61,13 @@ export default function LetterEditorPage() {
   useEffect(() => {
     if (letter) {
       setForm({ ...letter })
-      setDesign({ ...EMPTY_LETTER_DESIGN, ...(letter.design || {}) })
+      setDesign(normalizeLetterDesign(letter.design))
       setTitleDraft(letter.title)
     }
   }, [letter])
 
   useEffect(() => {
-    if (!dirty.current) return
+    if (!dirty.current || !design) return
     const t = setTimeout(() => {
       saveContent.mutate(form)
       saveDesign.mutate(design)
@@ -72,23 +82,30 @@ export default function LetterEditorPage() {
     markDirty()
   }
 
-  function patchDesign(patch: Partial<LetterDesign>) {
-    setDesign((d) => ({ ...d, ...patch }))
+  function patchCustomization(patch: Partial<Customization>) {
+    setDesign((d) => normalizeLetterDesign({ ...(d || undefined), customization: { ...(d?.customization || ({} as Customization)), ...patch } }))
     markDirty()
+  }
+
+  function closeSection(save: boolean) {
+    if (!save && letter) {
+      setForm({ ...letter })
+    }
+    setActiveSection(null)
   }
 
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 
-  const sections: { key: SectionKey; title: string; badge?: string; preview: string; placeholder?: boolean }[] = [
-    { key: 'sender', title: 'Sender details', badge: design.senderDisplay?.style === 'classicSender' ? 'Classic' : 'Modern header', preview: [form.senderName, form.senderJobTitle].filter(Boolean).join(' • ') || 'Not added' },
-    { key: 'date', title: 'Date', preview: form.dateMode === 'custom' ? (form.dateCustom || 'Not added') : today },
-    { key: 'recipient', title: 'Recipient details', preview: [form.recipientName, form.recipientCompany].filter(Boolean).join(' • ') || 'Not added' },
-    { key: 'subject', title: 'Subject', preview: form.subject || 'Not added', placeholder: !form.subject },
-    { key: 'body', title: 'Body', badge: `${(form.body || '').split(/\s+/).filter(Boolean).length} words`, preview: (form.body || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 80) || 'Not added', placeholder: !form.body },
-    { key: 'signature', title: 'Signature', preview: form.signatureName || form.senderName || 'Not added' },
+  const sections: { key: SectionKey; badge?: string; preview: string; placeholder?: boolean }[] = [
+    { key: 'sender', badge: form.senderPhotoImageId ? 'With photo' : undefined, preview: [form.senderName, form.senderJobTitle].filter(Boolean).join(' • ') || 'Not added' },
+    { key: 'date', preview: form.dateMode === 'custom' ? (form.dateCustom || 'Not added') : today },
+    { key: 'recipient', preview: [form.recipientName, form.recipientCompany].filter(Boolean).join(' • ') || 'Not added' },
+    { key: 'subject', preview: form.subject || 'Not added', placeholder: !form.subject },
+    { key: 'body', badge: `${(form.body || '').split(/\s+/).filter(Boolean).length} words`, preview: (form.body || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 80) || 'Not added', placeholder: !form.body },
+    { key: 'signature', preview: form.signatureName || form.senderName || 'Not added' },
   ]
 
-  if (isLoading) {
+  if (isLoading || !design) {
     return (
       <EditorShell
         header={<EditorHeader overviewHref="/app/letters" activeTab={tab} onTabChange={setTab} onDownload={() => {}} />}
@@ -110,6 +127,7 @@ export default function LetterEditorPage() {
           onDownload={() => window.print()}
           share={
             <ShareButton
+              className="h-8 text-sm"
               live={letter?.webResumeLive ?? false}
               kind="letter"
               pending={share.isPending}
@@ -124,26 +142,44 @@ export default function LetterEditorPage() {
             <Button
               variant="ghost"
               size="icon-sm"
-              onClick={() => (activeSection ? setActiveSection(null) : setTab(tab === 'content' ? 'design' : 'content'))}
+              onClick={() => (activeSection ? closeSection(false) : setTab(tab === 'content' ? 'design' : 'content'))}
               aria-label="Swap content/design"
             >
               <ArrowLeftRight className="size-4" />
             </Button>
-            <LabeledInput
-              label="Title"
-              hideLabel
-              value={titleDraft}
-              onChange={(e) => setTitleDraft(e.target.value)}
-              className="h-8 text-sm font-medium"
-              placeholder="Letter title"
-            />
+            <div className="min-w-0 flex-1">
+              <LabeledInput
+                label="Title"
+                hideLabel
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                className="h-8 text-sm font-medium"
+                placeholder="Letter title"
+              />
+            </div>
             <Button size="sm" disabled={!titleDraft.trim() || titleDraft === (letter?.title || '')} onClick={() => { if (titleDraft.trim()) rename.mutate({ id, title: titleDraft.trim() }) }}>
               Save
             </Button>
           </div>
           {tab === 'content' ? (
-            <div className="min-h-0 flex-1 overflow-y-auto p-3">
-              {activeSection === null ? (
+            activeSection ? (
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex items-center gap-2 border-b p-3">
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold">{SECTION_TITLES[activeSection]}</span>
+                  <Button size="sm" onClick={() => closeSection(true)}>Save</Button>
+                  <Button variant="outline" size="sm" onClick={() => closeSection(false)}>Cancel</Button>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto p-3">
+                  {activeSection === 'sender' && <SenderDetailsForm value={form} onChange={patchForm} />}
+                  {activeSection === 'date' && <DateForm value={form} onChange={patchForm} />}
+                  {activeSection === 'recipient' && <RecipientDetailsForm value={form} onChange={patchForm} />}
+                  {activeSection === 'subject' && <SubjectForm value={form} onChange={patchForm} />}
+                  {activeSection === 'body' && <BodyForm value={form} onChange={patchForm} />}
+                  {activeSection === 'signature' && <SignatureForm value={form} onChange={patchForm} />}
+                </div>
+              </div>
+            ) : (
+              <div className="min-h-0 flex-1 overflow-y-auto p-3">
                 <div className="space-y-2">
                   {sections.map((s) => (
                     <button
@@ -154,7 +190,7 @@ export default function LetterEditorPage() {
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-foreground">{s.title}</span>
+                          <span className="text-sm font-semibold text-foreground">{SECTION_TITLES[s.key]}</span>
                           {s.badge && <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{s.badge}</span>}
                         </div>
                         <p className={`mt-0.5 line-clamp-1 pr-4 text-xs ${s.placeholder ? 'italic text-muted-foreground/60' : 'text-muted-foreground'}`}>{s.preview}</p>
@@ -163,22 +199,13 @@ export default function LetterEditorPage() {
                     </button>
                   ))}
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {activeSection === 'sender' && <SenderDetailsForm value={form} onChange={patchForm} />}
-                  {activeSection === 'date' && <DateForm value={form} onChange={patchForm} />}
-                  {activeSection === 'recipient' && <RecipientDetailsForm value={form} onChange={patchForm} />}
-                  {activeSection === 'subject' && <SubjectForm value={form} onChange={patchForm} />}
-                  {activeSection === 'body' && <BodyForm value={form} onChange={patchForm} />}
-                  {activeSection === 'signature' && <SignatureForm value={form} onChange={patchForm} />}
-                </div>
-              )}
-            </div>
+              </div>
+            )
           ) : (
             <LetterDesignSidebar
               letterId={id}
               design={design}
-              patchDesign={patchDesign}
+              patchCustomization={patchCustomization}
               onCopyDetails={patchForm}
             />
           )}

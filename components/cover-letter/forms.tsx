@@ -1,9 +1,12 @@
 'use client'
 
+import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import RichTextEditor from '@/components/editor/rich-text-editor'
+import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
 
 interface FormProps {
@@ -16,8 +19,59 @@ function fieldId(label: string) {
 }
 
 export function SenderDetailsForm({ value, onChange }: FormProps) {
+  const fileId = value.senderPhotoFileId || ''
+  const imageUrl = value.senderPhotoImageId || ''
+  const upload = useMutation({
+    mutationFn: (file: File) => replaceImageAction({ name: 'avatar', image: file, oldFileId: fileId || undefined }),
+    onSuccess: (data) => {
+      const [img] = data
+      if (!img) return
+      onChange({ senderPhotoImageId: img.url, senderPhotoFileId: img.fileId })
+      toast.success('Photo updated')
+    },
+    onError: () => toast.error('Failed to upload photo'),
+  })
+  const remove = useMutation({
+    mutationFn: () => deleteImageAction(fileId),
+    onSuccess: () => {
+      onChange({ senderPhotoImageId: '', senderPhotoFileId: '' })
+      toast.success('Photo removed')
+    },
+    onError: () => toast.error('Failed to remove photo'),
+  })
   return (
     <div className="space-y-3">
+      <Field>
+        <FieldLabel>Photo</FieldLabel>
+        <div className="flex items-center gap-3">
+          {imageUrl ? (
+            <img src={imageUrl} alt="profile" className="size-16 rounded-full border border-border object-cover" />
+          ) : (
+            <div className="flex size-16 items-center justify-center rounded-full border border-border text-sm text-muted-foreground">?</div>
+          )}
+          <div className="flex flex-col gap-1">
+            <label htmlFor="letter-photo-upload" className="cursor-pointer text-xs font-medium text-primary hover:underline">
+              {imageUrl ? 'Change photo' : 'Upload photo'}
+            </label>
+            <input
+              id="letter-photo-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) upload.mutate(file)
+                e.target.value = ''
+              }}
+            />
+            {imageUrl && (
+              <button type="button" onClick={() => remove.mutate()} disabled={remove.isPending} className="cursor-pointer text-xs text-destructive hover:underline">
+                Delete photo
+              </button>
+            )}
+          </div>
+        </div>
+      </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Full Name')}>Full Name</FieldLabel>
         <Input id={fieldId('Full Name')} value={value.senderName || ''} onChange={(e) => onChange({ senderName: e.target.value })} />
@@ -89,12 +143,8 @@ export function RecipientDetailsForm({ value, onChange }: FormProps) {
         <Input id={fieldId('Company Name')} value={value.recipientCompany || ''} onChange={(e) => onChange({ recipientCompany: e.target.value })} placeholder="Eversports" />
       </Field>
       <Field>
-        <FieldLabel htmlFor={fieldId('Department')}>Department</FieldLabel>
-        <Input id={fieldId('Department')} value={value.recipientPosition || ''} onChange={(e) => onChange({ recipientPosition: e.target.value })} placeholder="Engineering Team" />
-      </Field>
-      <Field>
-        <FieldLabel>Address & City</FieldLabel>
-        <RichTextEditor compact value={value.recipientAddress || ''} onUpdate={(content) => onChange({ recipientAddress: content })} />
+        <FieldLabel htmlFor={fieldId('Location')}>Location</FieldLabel>
+        <Input id={fieldId('Location')} value={value.recipientPosition || ''} onChange={(e) => onChange({ recipientPosition: e.target.value })} placeholder="Berlin, Germany" />
       </Field>
     </div>
   )
@@ -122,8 +172,8 @@ export function SignatureForm({ value, onChange }: FormProps) {
         <Input id={fieldId('Sign-off Name')} value={value.signatureName || ''} onChange={(e) => onChange({ signatureName: e.target.value })} placeholder={value.senderName || 'Your Name'} />
       </Field>
       <Field>
-        <FieldLabel htmlFor={fieldId('Place')}>Place</FieldLabel>
-        <Input id={fieldId('Place')} value={value.signaturePlace || ''} onChange={(e) => onChange({ signaturePlace: e.target.value })} />
+        <FieldLabel htmlFor={fieldId('Closing')}>Closing</FieldLabel>
+        <Input id={fieldId('Closing')} value={value.signaturePlace || ''} onChange={(e) => onChange({ signaturePlace: e.target.value })} placeholder="Kind regards" />
       </Field>
     </div>
   )
