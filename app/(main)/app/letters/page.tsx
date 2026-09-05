@@ -2,17 +2,16 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Copy, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Copy, Pencil, Trash2 } from 'lucide-react'
 import { useListLetterPreviews, useCreateLetter, useDeleteLetter, useDuplicateLetter } from '@/features/letter/hooks/letter.hooks'
 import { useShareLetter } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
-import { LabeledInput } from '@/components/ui/labeled'
-import { PageLoader } from '@/components/common/page-loader'
+import { CreateCard } from '@/components/common/create-card'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { ShareButton } from '@/components/common/share-button'
 import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
-import { EMPTY_LETTER_DESIGN } from '@/features/letter/types'
+import { normalizeLetterDesign } from '@/features/letter/types'
 
 export default function LettersPage() {
   const { data: letters, isLoading } = useListLetterPreviews()
@@ -20,7 +19,6 @@ export default function LettersPage() {
   const del = useDeleteLetter()
   const dup = useDuplicateLetter()
   const share = useShareLetter()
-  const [newName, setNewName] = useState('')
   const [confirm, setConfirm] = useState<{ kind: 'delete' | 'duplicate'; id: string; title: string } | null>(null)
 
   return (
@@ -28,18 +26,14 @@ export default function LettersPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Cover Letters</h1>
       </div>
-      {isLoading && <PageLoader />}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="flex aspect-[210/297] flex-col gap-2 rounded-lg border-2 border-dashed p-3">
-          <LabeledInput label="New letter name" hideLabel placeholder="Letter name" value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <Button variant="outline" onClick={() => { create.mutate(newName.trim() || undefined); setNewName('') }} disabled={create.isPending}>
-            <Plus className="size-4" /> New Letter
-          </Button>
-        </div>
-        {letters?.map((l) => (
+        <CreateCard label="Letter name" buttonLabel="New Letter" className="aspect-[210/297] justify-center" pending={create.isPending} onCreate={(name) => create.mutate(name || undefined)} />
+        {isLoading ? (
+          Array.from({ length: 2 }, (_, i) => <div key={i} className="aspect-[210/297] animate-pulse rounded-lg bg-muted" />)
+        ) : letters?.map((l) => (
           <div key={l.id} className="flex flex-col gap-3">
             <PreviewFrame>
-              <LetterRenderer form={l} design={{ ...EMPTY_LETTER_DESIGN, ...(l.design || {}) }} showPlaceholder />
+              <LetterRenderer form={l} design={normalizeLetterDesign(l.design)} showPlaceholder />
             </PreviewFrame>
             <div className="flex flex-col gap-2">
               <div className="min-w-0">

@@ -16,6 +16,7 @@ interface TemplateLayoutSettingsProps {
   onPatch: (patch: Partial<Customization['layout']>) => void
   onReorderSections: (sectionIds: string[]) => void
   onToggleSection: (sectionId: string, hidden: boolean) => void
+  showLayoutOptions?: boolean
 }
 
 const LAYOUT_OPTIONS = [
@@ -59,6 +60,7 @@ export default function TemplateLayoutSettings({
   onPatch,
   onReorderSections,
   onToggleSection,
+  showLayoutOptions = true,
 }: TemplateLayoutSettingsProps) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
@@ -74,26 +76,28 @@ export default function TemplateLayoutSettings({
   const two = customization.layout.two
 
   return (
-    <CustomizeCard title="Template & Layout" icon={Rows3} description="Choose the overall architecture of your resume.">
-      <div className="grid grid-cols-2 gap-3">
-        {LAYOUT_OPTIONS.map((option) => {
-          const active = customization.layout.selected === option.value
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onPatch({ selected: option.value })}
-              className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm font-medium transition-colors ${
-                active ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/50'
-              }`}
-            >
-              <option.icon className="size-8" />
-              {option.label}
-            </button>
-          )
-        })}
-      </div>
-      {customization.layout.selected === 'two' && (
+    <CustomizeCard title="Template & Layout" icon={Rows3} description={showLayoutOptions ? 'Choose the overall architecture of your resume.' : 'Layout of your cover letter.'}>
+      {showLayoutOptions && (
+        <div className="grid grid-cols-2 gap-3">
+          {LAYOUT_OPTIONS.map((option) => {
+            const active = customization.layout.selected === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => onPatch({ selected: option.value })}
+                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm font-medium transition-colors ${
+                  active ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/50'
+                }`}
+              >
+                <option.icon className="size-8" />
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {showLayoutOptions && customization.layout.selected === 'two' && (
         <div className="space-y-2">
           <Label className="text-xs text-muted-foreground">Column width ratio</Label>
           <div className="flex items-center gap-3">
@@ -111,18 +115,20 @@ export default function TemplateLayoutSettings({
           </div>
         </div>
       )}
-      <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">Section order & visibility</Label>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
-              {sections.map((section) => (
-                <SortableSectionRow key={section.id} section={section} onToggle={onToggleSection} />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      </div>
+      {sections.length > 0 && (
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Section order & visibility</Label>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {sections.map((section) => (
+                  <SortableSectionRow key={section.id} section={section} onToggle={onToggleSection} />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
+      )}
     </CustomizeCard>
   )
 }

@@ -19,6 +19,7 @@ interface HeaderControlsProps {
   customization: Customization
   onHeaderPatch: (patch: Partial<Customization['header']>) => void
   onPhotoPositionPatch: (patch: Partial<Customization['photoPosition']>) => void
+  showPhoto?: boolean
 }
 
 interface LinkStylingProps {
@@ -153,7 +154,7 @@ export function WorkExperienceSettings({ customization, onWorkDisplayPatch }: Wo
   )
 }
 
-export default function HeaderControls({ customization, onHeaderPatch, onPhotoPositionPatch }: HeaderControlsProps) {
+export default function HeaderControls({ customization, onHeaderPatch, onPhotoPositionPatch, showPhoto = true }: HeaderControlsProps) {
   const header = customization.header
   const photo = customization.photoPosition
 
@@ -273,8 +274,9 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Photo</Label>
+      {showPhoto && (
+        <div className="space-y-2">
+          <Label className="text-sm font-bold text-foreground">Photo</Label>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Checkbox id="hdr-photo-show" checked={photo.show} onCheckedChange={(v) => onPhotoPositionPatch({ show: v === true })} />
@@ -341,7 +343,8 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
             </div>
           </>
         )}
-      </div>
+        </div>
+      )}
     </CustomizeCard>
   )
 }
