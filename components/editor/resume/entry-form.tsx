@@ -190,11 +190,10 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     const nameValue = sectionType === 'skill' ? e.skill : (entry.data as LanguageEntry).language
     return (
       <div className="space-y-2 rounded-lg border p-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">{sectionType === 'skill' ? 'Skill' : 'Language'}</span>
+        <div className="flex items-center gap-2">
+          <Input aria-label={sectionType === 'skill' ? 'Skill name' : 'Language name'} placeholder={sectionType === 'skill' ? 'Skill name' : 'Language name'} value={nameValue} onChange={(v) => up({ [nameKey]: v.target.value } as Partial<EntryData>)} />
           <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
         </div>
-        <TitleInput label={sectionType === 'skill' ? 'Skill' : 'Language'} value={nameValue} onChange={(v) => up({ [nameKey]: v } as Partial<EntryData>)} />
         <RichTextEditor compact value={e.infoHtml} onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)} />
       </div>
     )
@@ -256,14 +255,7 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
   }
   if (sectionType === 'profile') {
     const e = entry.data as Extract<EntryData, { type: 'profile' }>
-    return (
-      <div className="space-y-2 rounded-lg border p-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Summary</span>
-        </div>
-        <RichTextEditor value={e.text} onUpdate={(html) => up({ text: html })} />
-      </div>
-    )
+    return <RichTextEditor value={e.text} onUpdate={(html) => up({ text: html })} />
   }
   const e = entry.data as Extract<EntryData, { type: 'custom' | 'publication' | 'organisation' | 'course' | 'award' | 'reference' | 'declaration' }>
   return (

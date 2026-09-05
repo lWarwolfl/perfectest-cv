@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 import { ProfileCard } from '@/components/dashboard/profile-card'
 import Link from 'next/link'
-import { subDays, format } from 'date-fns'
+import { format } from 'date-fns'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -23,15 +23,19 @@ export default async function DashboardPage() {
     color: col.color,
   }))
 
-  const docsByDay = Array.from({ length: 14 }, (_, i) => {
-    const d = subDays(new Date(), 13 - i)
-    const key = format(d, 'yyyy-MM-dd')
-    return {
-      day: format(d, 'd MMM'),
-      resumes: resumes.filter((r) => format(r.createdAt, 'yyyy-MM-dd') === key).length,
-      letters: letters.filter((l) => format(l.createdAt, 'yyyy-MM-dd') === key).length,
-    }
-  })
+  const docBuckets = new Map<string, { label: string; resumes: number; letters: number }>()
+  const bump = (createdAt: Date, kind: 'resumes' | 'letters') => {
+    const key = format(createdAt, 'yyyy-MM-dd')
+    const bucket = docBuckets.get(key) || { label: format(createdAt, 'd MMM'), resumes: 0, letters: 0 }
+    bucket[kind]++
+    docBuckets.set(key, bucket)
+  }
+  resumes.forEach((r) => bump(r.createdAt, 'resumes'))
+  letters.forEach((l) => bump(l.createdAt, 'letters'))
+  const docsByDay = [...docBuckets.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-7)
+    .map(([, v]) => ({ day: v.label, resumes: v.resumes, letters: v.letters }))
 
   return (
     <div className="space-y-6">

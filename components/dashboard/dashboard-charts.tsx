@@ -68,8 +68,8 @@ export function DashboardCharts({
               <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} minTickGap={20} />
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
               <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="resumes" stackId="docs" fill="var(--chart-1)" radius={4} />
-              <Bar dataKey="letters" stackId="docs" fill="var(--chart-3)" radius={4} />
+              <Bar dataKey="resumes" fill="var(--chart-1)" radius={4} barSize={14} />
+              <Bar dataKey="letters" fill="var(--chart-3)" radius={4} barSize={14} />
             </BarChart>
           </ChartContainer>
         </CardContent>
