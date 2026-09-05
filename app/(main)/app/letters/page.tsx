@@ -30,7 +30,7 @@ export default function LettersPage() {
       </div>
       {isLoading && <PageLoader />}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="flex flex-col justify-center gap-2 rounded-lg border-2 border-dashed p-3">
+        <div className="flex aspect-[210/297] flex-col gap-2 rounded-lg border-2 border-dashed p-3">
           <LabeledInput label="New letter name" hideLabel placeholder="Letter name" value={newName} onChange={(e) => setNewName(e.target.value)} />
           <Button variant="outline" onClick={() => { create.mutate(newName.trim() || undefined); setNewName('') }} disabled={create.isPending}>
             <Plus className="size-4" /> New Letter
