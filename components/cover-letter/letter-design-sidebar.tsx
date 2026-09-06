@@ -7,13 +7,21 @@ import { QUERY_KEYS } from '@/features/queries/keys'
 import type { LetterDesign } from '@/features/letter/types'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import TypographySettings from '@/components/editor/customize/typography-settings'
 import ColorThemeSettings from '@/components/editor/customize/color-theme-settings'
 import HeaderControls, { LinkStylingSettings } from '@/components/editor/customize/header-controls'
 import PageSpacingSettings from '@/components/editor/customize/page-spacing-settings'
-import CustomizeTabLayout, { CustomizeCard } from '@/components/editor/customize/customize-tab-layout'
+import CustomizeTabLayout, {
+  CustomizeCard,
+} from '@/components/editor/customize/customize-tab-layout'
 import type { Customization } from '@/features/resume/types'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
 import type { TListResumesAction } from '@/server/resume/resume.actions'
@@ -26,7 +34,12 @@ interface LetterDesignSidebarProps {
   onCopyDetails: (patch: Partial<LetterContentPatch>) => void
 }
 
-export default function LetterDesignSidebar({ letterId, design, patchCustomization, onCopyDetails }: LetterDesignSidebarProps) {
+export default function LetterDesignSidebar({
+  letterId,
+  design,
+  patchCustomization,
+  onCopyDetails,
+}: LetterDesignSidebarProps) {
   const qc = useQueryClient()
   const { data: resumes } = useQuery<TListResumesAction>({
     queryKey: [QUERY_KEYS.RESUMES],
@@ -42,14 +55,20 @@ export default function LetterDesignSidebar({ letterId, design, patchCustomizati
 
   function handleCopyResumeDesign() {
     const target = resumes?.find((r) => r.id === syncResumeId) || resumes?.[0]
-    if (!target) { toast.error('Create a resume first'); return }
+    if (!target) {
+      toast.error('Create a resume first')
+      return
+    }
     copyDesign.mutate({ letterId, resumeId: target.id })
     qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS, letterId] })
   }
 
   function handleCopyResumeDetails() {
     const target = resumes?.find((r) => r.id === syncResumeId) || resumes?.[0]
-    if (!target) { toast.error('Create a resume first'); return }
+    if (!target) {
+      toast.error('Create a resume first')
+      return
+    }
     copyDetails.mutate(target.id, {
       onSuccess: (patch) => onCopyDetails(patch),
     })
@@ -60,23 +79,41 @@ export default function LetterDesignSidebar({ letterId, design, patchCustomizati
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <CustomizeTabLayout>
-        <CustomizeCard title="Sync Styles" icon={Copy} description="Match your cover letter design to one of your resumes.">
+        <CustomizeCard
+          title="Sync Styles"
+          icon={Copy}
+          description="Match your cover letter design to one of your resumes."
+        >
           <div className="space-y-2">
             <Label>Resume</Label>
             <Select value={syncResumeId} onValueChange={(v) => setSyncResumeId(v || '')}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Pick a resume" /></SelectTrigger>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pick a resume" />
+              </SelectTrigger>
               <SelectContent>
                 {resumes?.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.title}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={handleCopyResumeDesign} disabled={!syncResumeId}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyResumeDesign}
+              disabled={!syncResumeId}
+            >
               <Copy className="size-3.5" /> Copy design
             </Button>
-            <Button variant="outline" size="sm" onClick={handleCopyResumeDetails} disabled={!syncResumeId}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyResumeDetails}
+              disabled={!syncResumeId}
+            >
               <Copy className="size-3.5" /> Copy sender details
             </Button>
           </div>
@@ -89,12 +126,16 @@ export default function LetterDesignSidebar({ letterId, design, patchCustomizati
         <ColorThemeSettings
           customization={c}
           onPatch={(patch) => patchCustomization({ colors: { ...c.colors, ...patch } })}
-          onApplyAccentPatch={(patch) => patchCustomization({ applyAccentColor: { ...c.applyAccentColor, ...patch } })}
+          onApplyAccentPatch={(patch) =>
+            patchCustomization({ applyAccentColor: { ...c.applyAccentColor, ...patch } })
+          }
         />
         <HeaderControls
           customization={c}
           onHeaderPatch={(patch) => patchCustomization({ header: { ...c.header, ...patch } })}
-          onPhotoPositionPatch={(patch) => patchCustomization({ photoPosition: { ...c.photoPosition, ...patch } })}
+          onPhotoPositionPatch={(patch) =>
+            patchCustomization({ photoPosition: { ...c.photoPosition, ...patch } })
+          }
         />
         <LinkStylingSettings
           customization={c}

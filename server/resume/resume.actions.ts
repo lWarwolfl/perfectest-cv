@@ -7,7 +7,14 @@ import { asc, desc, eq, inArray } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { SECTION_LABELS, SECTION_ICONS, defaultEntryData } from '@/features/resume/defaults'
-import type { TSection, TEntry, Customization, PersonalDetails, EntryData, SectionType } from '@/features/resume/types'
+import type {
+  TSection,
+  TEntry,
+  Customization,
+  PersonalDetails,
+  EntryData,
+  SectionType,
+} from '@/features/resume/types'
 
 export async function requireUser() {
   const user = await getCurrentUser()
@@ -56,7 +63,10 @@ async function seedDefaultSections(resumeId: string) {
 
 export async function createResumeAction(title?: string) {
   const user = await requireUser()
-  const [resume] = await db.insert(Resume).values({ userId: user.id, ...(title ? { title } : {}) }).returning()
+  const [resume] = await db
+    .insert(Resume)
+    .values({ userId: user.id, ...(title ? { title } : {}) })
+    .returning()
   await seedDefaultSections(resume.id)
   return resume
 }
@@ -146,7 +156,9 @@ export async function reorderSectionsAction(resumeId: string, sectionIds: string
 
 export async function addSectionAction(resumeId: string, sectionType: SectionType) {
   await requireUser()
-  const existing = await db.query.ResumeSection.findMany({ where: eq(ResumeSection.resumeId, resumeId) })
+  const existing = await db.query.ResumeSection.findMany({
+    where: eq(ResumeSection.resumeId, resumeId),
+  })
   const [section] = await db
     .insert(ResumeSection)
     .values({
@@ -173,7 +185,9 @@ export async function addEntryAction(sectionId: string) {
   await requireUser()
   const section = await db.query.ResumeSection.findFirst({ where: eq(ResumeSection.id, sectionId) })
   if (!section) throw new Error('Section not found')
-  const existing = await db.query.ResumeEntry.findMany({ where: eq(ResumeEntry.sectionId, sectionId) })
+  const existing = await db.query.ResumeEntry.findMany({
+    where: eq(ResumeEntry.sectionId, sectionId),
+  })
   const [entry] = await db
     .insert(ResumeEntry)
     .values({ sectionId, order: existing.length, data: defaultEntryData(section.sectionType) })
@@ -197,9 +211,7 @@ export async function updateEntryMetaAction(
 export async function reorderEntriesAction(sectionId: string, entryIds: string[]) {
   await requireUser()
   await Promise.all(
-    entryIds.map((id, i) =>
-      db.update(ResumeEntry).set({ order: i }).where(eq(ResumeEntry.id, id))
-    )
+    entryIds.map((id, i) => db.update(ResumeEntry).set({ order: i }).where(eq(ResumeEntry.id, id)))
   )
 }
 
@@ -215,7 +227,10 @@ export async function applyResumeTemplateAction(resumeId: string, templateId: st
   if (!template) throw new Error('Template not found')
   await db.delete(ResumeSection).where(eq(ResumeSection.resumeId, resumeId))
   await seedDefaultSections(resumeId)
-  await db.update(Resume).set({ customization: template.customization }).where(eq(Resume.id, resumeId))
+  await db
+    .update(Resume)
+    .set({ customization: template.customization })
+    .where(eq(Resume.id, resumeId))
   return template
 }
 
@@ -226,7 +241,10 @@ export async function setResumeShareAction(resumeId: string, live: boolean) {
   })
   if (!resume) throw new Error('Resume not found')
   const token = live ? crypto.randomUUID() : null
-  await db.update(Resume).set({ webResumeLive: live, webToken: token }).where(eq(Resume.id, resumeId))
+  await db
+    .update(Resume)
+    .set({ webResumeLive: live, webToken: token })
+    .where(eq(Resume.id, resumeId))
   if (resume.webToken) revalidatePath(`/share/resume/${resume.webToken}`)
   if (token) revalidatePath(`/share/resume/${token}`)
   return { live, token }
@@ -274,7 +292,11 @@ export async function listResumePreviewsAction() {
         title: r.title,
         updatedAt: r.updatedAt,
         webResumeLive: r.webResumeLive,
-        doc: { sections: doc?.sections ?? [], personalDetails: doc?.resume.personalDetails ?? null, customization: doc?.resume.customization ?? null },
+        doc: {
+          sections: doc?.sections ?? [],
+          personalDetails: doc?.resume.personalDetails ?? null,
+          customization: doc?.resume.customization ?? null,
+        },
       }
     })
   )

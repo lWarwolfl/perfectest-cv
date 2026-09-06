@@ -31,7 +31,10 @@ export function useCreateLetter() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (title?: string) => createLetterAction(title),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] }); toast.success('Letter created') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] })
+      toast.success('Letter created')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
@@ -40,7 +43,10 @@ export function useDuplicateLetter() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => duplicateLetterAction(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] }); toast.success('Duplicated') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] })
+      toast.success('Duplicated')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
@@ -49,7 +55,10 @@ export function useDeleteLetter() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => deleteLetterAction(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] }); toast.success('Deleted') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] })
+      toast.success('Deleted')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
@@ -58,7 +67,10 @@ export function useRenameLetter() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, title }: { id: string; title: string }) => renameLetterAction(id, title),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] }); toast.success('Renamed') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] })
+      toast.success('Renamed')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
@@ -82,7 +94,10 @@ export function useCopyResumeDesign() {
   return useMutation({
     mutationFn: ({ letterId, resumeId }: { letterId: string; resumeId: string }) =>
       copyResumeDesignAction(letterId, resumeId),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] }); toast.success('Design copied from resume!') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] })
+      toast.success('Design copied from resume!')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }

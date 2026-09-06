@@ -1,7 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { LabeledInput } from '@/components/ui/labeled'
 import { Link as LinkIcon, Link2Off } from 'lucide-react'
@@ -27,7 +34,9 @@ export default function LinkDialog({ value, onConfirm }: LinkDialogProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = url.trim()
-    confirm(trimmed && /^https?:\/\//i.test(trimmed) ? trimmed : trimmed ? `https://${trimmed}` : '')
+    confirm(
+      trimmed && /^https?:\/\//i.test(trimmed) ? trimmed : trimmed ? `https://${trimmed}` : ''
+    )
   }
 
   return (
@@ -51,10 +60,21 @@ export default function LinkDialog({ value, onConfirm }: LinkDialogProps) {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-3">
-            <LabeledInput label="Link URL" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="e.g. github.com/user" autoFocus />
+            <LabeledInput
+              label="Link URL"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="e.g. github.com/user"
+              autoFocus
+            />
             <DialogFooter>
               {value && (
-                <Button type="button" variant="ghost" className="text-destructive" onClick={() => confirm('')}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-destructive"
+                  onClick={() => confirm('')}
+                >
                   <Link2Off className="size-4" /> Remove
                 </Button>
               )}

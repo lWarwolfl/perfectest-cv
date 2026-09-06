@@ -1,13 +1,7 @@
 'use client'
 
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis } from 'recharts'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer,
   ChartLegend,
@@ -17,7 +11,13 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart'
 
-const CHART_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
+const CHART_COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+]
 
 const docConfig = {
   resumes: { label: 'Resumes', color: 'var(--chart-1)' },
@@ -32,7 +32,10 @@ export function DashboardCharts({
   jobStatus: { name: string; count: number; color?: string }[]
 }) {
   const jobConfig = Object.fromEntries(
-    jobStatus.map((s, i) => [s.name, { label: s.name, color: s.color || CHART_COLORS[i % CHART_COLORS.length] }])
+    jobStatus.map((s, i) => [
+      s.name,
+      { label: s.name, color: s.color || CHART_COLORS[i % CHART_COLORS.length] },
+    ])
   ) satisfies ChartConfig
 
   return (
@@ -65,7 +68,13 @@ export function DashboardCharts({
           <ChartContainer config={docConfig} className="h-[260px] w-full">
             <BarChart accessibilityLayer data={docsByDay}>
               <CartesianGrid vertical={false} />
-              <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} minTickGap={20} />
+              <XAxis
+                dataKey="day"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={20}
+              />
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
               <ChartLegend content={<ChartLegendContent />} />
               <Bar dataKey="resumes" fill="var(--chart-1)" radius={4} barSize={14} />

@@ -63,7 +63,10 @@ export function useSignOut() {
 export function useForgotPassword() {
   return useMutation({
     mutationFn: async (data: { email: string }) => {
-      const { error } = await authClient.requestPasswordReset({ email: data.email, redirectTo: '/auth/reset-password' })
+      const { error } = await authClient.requestPasswordReset({
+        email: data.email,
+        redirectTo: '/auth/reset-password',
+      })
       if (error) throw new Error(error.message || error.statusText)
     },
     onSuccess: () => toast.success("If that email exists, we've sent a reset link"),
@@ -89,7 +92,10 @@ export function useResetPassword() {
 export function useResendVerification() {
   return useMutation({
     mutationFn: async (data: { email: string }) => {
-      const { error } = await authClient.sendVerificationEmail({ email: data.email, callbackURL: '/auth/verified' })
+      const { error } = await authClient.sendVerificationEmail({
+        email: data.email,
+        callbackURL: '/auth/verified',
+      })
       if (error) throw new Error(error.message || error.statusText)
     },
     onSuccess: () => toast.success('Verification email sent'),

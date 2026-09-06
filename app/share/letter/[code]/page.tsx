@@ -25,12 +25,14 @@ export default async function SharedLetterPage({ params }: SharePageProps) {
   if (!letter) notFound()
 
   const design = normalizeLetterDesign(letter.design as LetterDesign | null)
-  const { widthMm, heightMm } = pageDims(design.customization.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4')
+  const { widthMm, heightMm } = pageDims(
+    design.customization.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4'
+  )
 
   return (
-    <div className="preview-light min-h-screen share-bg py-6 flex flex-col items-center gap-0 px-4">
+    <div className="preview-light share-bg flex min-h-screen flex-col items-center gap-0 px-4 py-6">
       <div
-        className="w-full bg-white border border-border shadow-sm"
+        className="border-border w-full border bg-white shadow-sm"
         style={{ maxWidth: widthMm * 3.78, aspectRatio: `${widthMm} / ${heightMm}` }}
       >
         <LetterRenderer form={letter} design={design} />

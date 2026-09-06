@@ -4,7 +4,13 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import RichTextEditor from '@/components/editor/rich-text-editor'
 import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
@@ -22,7 +28,8 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
   const fileId = value.senderPhotoFileId || ''
   const imageUrl = value.senderPhotoImageId || ''
   const upload = useMutation({
-    mutationFn: (file: File) => replaceImageAction({ name: 'avatar', image: file, oldFileId: fileId || undefined }),
+    mutationFn: (file: File) =>
+      replaceImageAction({ name: 'avatar', image: file, oldFileId: fileId || undefined }),
     onSuccess: (data) => {
       const [img] = data
       if (!img) return
@@ -45,12 +52,21 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
         <FieldLabel>Photo</FieldLabel>
         <div className="flex items-center gap-3">
           {imageUrl ? (
-            <img src={imageUrl} alt="profile" className="size-16 rounded-full border border-border object-cover" />
+            <img
+              src={imageUrl}
+              alt="profile"
+              className="border-border size-16 rounded-full border object-cover"
+            />
           ) : (
-            <div className="flex size-16 items-center justify-center rounded-full border border-border text-sm text-muted-foreground">?</div>
+            <div className="border-border text-muted-foreground flex size-16 items-center justify-center rounded-full border text-sm">
+              ?
+            </div>
           )}
           <div className="flex flex-col gap-1">
-            <label htmlFor="letter-photo-upload" className="cursor-pointer text-xs font-medium text-primary hover:underline">
+            <label
+              htmlFor="letter-photo-upload"
+              className="text-primary cursor-pointer text-xs font-medium hover:underline"
+            >
               {imageUrl ? 'Change photo' : 'Upload photo'}
             </label>
             <input
@@ -65,7 +81,12 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
               }}
             />
             {imageUrl && (
-              <button type="button" onClick={() => remove.mutate()} disabled={remove.isPending} className="cursor-pointer text-xs text-destructive hover:underline">
+              <button
+                type="button"
+                onClick={() => remove.mutate()}
+                disabled={remove.isPending}
+                className="text-destructive cursor-pointer text-xs hover:underline"
+              >
                 Delete photo
               </button>
             )}
@@ -74,35 +95,68 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Full Name')}>Full Name</FieldLabel>
-        <Input id={fieldId('Full Name')} value={value.senderName || ''} onChange={(e) => onChange({ senderName: e.target.value })} />
+        <Input
+          id={fieldId('Full Name')}
+          value={value.senderName || ''}
+          onChange={(e) => onChange({ senderName: e.target.value })}
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Professional Title')}>Professional Title</FieldLabel>
-        <Input id={fieldId('Professional Title')} value={value.senderJobTitle || ''} onChange={(e) => onChange({ senderJobTitle: e.target.value })} />
+        <Input
+          id={fieldId('Professional Title')}
+          value={value.senderJobTitle || ''}
+          onChange={(e) => onChange({ senderJobTitle: e.target.value })}
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Email')}>Email</FieldLabel>
-        <Input id={fieldId('Email')} type="email" value={value.senderEmail || ''} onChange={(e) => onChange({ senderEmail: e.target.value })} />
+        <Input
+          id={fieldId('Email')}
+          type="email"
+          value={value.senderEmail || ''}
+          onChange={(e) => onChange({ senderEmail: e.target.value })}
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Phone')}>Phone</FieldLabel>
-        <Input id={fieldId('Phone')} value={value.senderPhone || ''} onChange={(e) => onChange({ senderPhone: e.target.value })} />
+        <Input
+          id={fieldId('Phone')}
+          value={value.senderPhone || ''}
+          onChange={(e) => onChange({ senderPhone: e.target.value })}
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Address')}>Address</FieldLabel>
-        <Input id={fieldId('Address')} value={value.senderAddress || ''} onChange={(e) => onChange({ senderAddress: e.target.value })} />
+        <Input
+          id={fieldId('Address')}
+          value={value.senderAddress || ''}
+          onChange={(e) => onChange({ senderAddress: e.target.value })}
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Website')}>Website</FieldLabel>
-        <Input id={fieldId('Website')} value={value.senderWebsite || ''} onChange={(e) => onChange({ senderWebsite: e.target.value })} />
+        <Input
+          id={fieldId('Website')}
+          value={value.senderWebsite || ''}
+          onChange={(e) => onChange({ senderWebsite: e.target.value })}
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('LinkedIn')}>LinkedIn</FieldLabel>
-        <Input id={fieldId('LinkedIn')} value={value.senderLinkedIn || ''} onChange={(e) => onChange({ senderLinkedIn: e.target.value })} />
+        <Input
+          id={fieldId('LinkedIn')}
+          value={value.senderLinkedIn || ''}
+          onChange={(e) => onChange({ senderLinkedIn: e.target.value })}
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('GitHub')}>GitHub</FieldLabel>
-        <Input id={fieldId('GitHub')} value={value.senderGitHub || ''} onChange={(e) => onChange({ senderGitHub: e.target.value })} />
+        <Input
+          id={fieldId('GitHub')}
+          value={value.senderGitHub || ''}
+          onChange={(e) => onChange({ senderGitHub: e.target.value })}
+        />
       </Field>
     </div>
   )
@@ -113,8 +167,13 @@ export function DateForm({ value, onChange }: FormProps) {
     <div className="space-y-3">
       <Field>
         <FieldLabel htmlFor={fieldId('Date mode')}>Date mode</FieldLabel>
-        <Select value={value.dateMode || 'current'} onValueChange={(v) => onChange({ dateMode: v as LetterContentPatch['dateMode'] })}>
-          <SelectTrigger id={fieldId('Date mode')}><SelectValue /></SelectTrigger>
+        <Select
+          value={value.dateMode || 'current'}
+          onValueChange={(v) => onChange({ dateMode: v as LetterContentPatch['dateMode'] })}
+        >
+          <SelectTrigger id={fieldId('Date mode')}>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="current">Today</SelectItem>
             <SelectItem value="custom">Custom</SelectItem>
@@ -124,7 +183,12 @@ export function DateForm({ value, onChange }: FormProps) {
       {value.dateMode === 'custom' && (
         <Field>
           <FieldLabel htmlFor={fieldId('Custom date')}>Custom date</FieldLabel>
-          <Input id={fieldId('Custom date')} value={value.dateCustom || ''} onChange={(e) => onChange({ dateCustom: e.target.value })} placeholder="February 9, 2025" />
+          <Input
+            id={fieldId('Custom date')}
+            value={value.dateCustom || ''}
+            onChange={(e) => onChange({ dateCustom: e.target.value })}
+            placeholder="February 9, 2025"
+          />
         </Field>
       )}
     </div>
@@ -136,15 +200,30 @@ export function RecipientDetailsForm({ value, onChange }: FormProps) {
     <div className="space-y-3">
       <Field>
         <FieldLabel htmlFor={fieldId('Recipient Name / Role')}>Recipient Name / Role</FieldLabel>
-        <Input id={fieldId('Recipient Name / Role')} value={value.recipientName || ''} onChange={(e) => onChange({ recipientName: e.target.value })} placeholder="Hr Manager" />
+        <Input
+          id={fieldId('Recipient Name / Role')}
+          value={value.recipientName || ''}
+          onChange={(e) => onChange({ recipientName: e.target.value })}
+          placeholder="Hr Manager"
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Company Name')}>Company Name</FieldLabel>
-        <Input id={fieldId('Company Name')} value={value.recipientCompany || ''} onChange={(e) => onChange({ recipientCompany: e.target.value })} placeholder="Eversports" />
+        <Input
+          id={fieldId('Company Name')}
+          value={value.recipientCompany || ''}
+          onChange={(e) => onChange({ recipientCompany: e.target.value })}
+          placeholder="Eversports"
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Location')}>Location</FieldLabel>
-        <Input id={fieldId('Location')} value={value.recipientPosition || ''} onChange={(e) => onChange({ recipientPosition: e.target.value })} placeholder="Berlin, Germany" />
+        <Input
+          id={fieldId('Location')}
+          value={value.recipientPosition || ''}
+          onChange={(e) => onChange({ recipientPosition: e.target.value })}
+          placeholder="Berlin, Germany"
+        />
       </Field>
     </div>
   )
@@ -169,11 +248,21 @@ export function SignatureForm({ value, onChange }: FormProps) {
     <div className="space-y-3">
       <Field>
         <FieldLabel htmlFor={fieldId('Sign-off Name')}>Sign-off Name</FieldLabel>
-        <Input id={fieldId('Sign-off Name')} value={value.signatureName || ''} onChange={(e) => onChange({ signatureName: e.target.value })} placeholder={value.senderName || 'Your Name'} />
+        <Input
+          id={fieldId('Sign-off Name')}
+          value={value.signatureName || ''}
+          onChange={(e) => onChange({ signatureName: e.target.value })}
+          placeholder={value.senderName || 'Your Name'}
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Closing')}>Closing</FieldLabel>
-        <Input id={fieldId('Closing')} value={value.signaturePlace || ''} onChange={(e) => onChange({ signaturePlace: e.target.value })} placeholder="Kind regards" />
+        <Input
+          id={fieldId('Closing')}
+          value={value.signaturePlace || ''}
+          onChange={(e) => onChange({ signaturePlace: e.target.value })}
+          placeholder="Kind regards"
+        />
       </Field>
     </div>
   )
@@ -187,7 +276,9 @@ export function BodyForm({ value, onChange }: FormProps) {
       <Field>
         <div className="flex items-center justify-between">
           <FieldLabel>Body</FieldLabel>
-          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">{wordCount} words</span>
+          <span className="bg-muted text-muted-foreground rounded-full px-2.5 py-1 text-xs font-semibold">
+            {wordCount} words
+          </span>
         </div>
         <RichTextEditor value={body} onUpdate={(content) => onChange({ body: content })} />
       </Field>

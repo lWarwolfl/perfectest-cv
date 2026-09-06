@@ -31,7 +31,9 @@ export function LogoutButton() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Log out?</DialogTitle>
-            <DialogDescription>You will need to sign in again to access your account.</DialogDescription>
+            <DialogDescription>
+              You will need to sign in again to access your account.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>

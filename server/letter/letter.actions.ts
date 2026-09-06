@@ -60,13 +60,31 @@ export async function listLetterPreviewsAction() {
     where: eq(Letter.userId, user.id),
     orderBy: [desc(Letter.updatedAt)],
     columns: {
-      id: true, title: true, updatedAt: true, design: true,
+      id: true,
+      title: true,
+      updatedAt: true,
+      design: true,
       webResumeLive: true,
-      body: true, subject: true, dateMode: true, dateCustom: true,
-      senderName: true, senderJobTitle: true, senderEmail: true, senderPhone: true,
-      senderAddress: true, senderWebsite: true, senderLinkedIn: true, senderGitHub: true,
-      recipientName: true, recipientPosition: true, recipientCompany: true, recipientAddress: true,
-      signatureName: true, signaturePlace: true, signatureDate: true, signatureImageId: true,
+      body: true,
+      subject: true,
+      dateMode: true,
+      dateCustom: true,
+      senderName: true,
+      senderJobTitle: true,
+      senderEmail: true,
+      senderPhone: true,
+      senderAddress: true,
+      senderWebsite: true,
+      senderLinkedIn: true,
+      senderGitHub: true,
+      recipientName: true,
+      recipientPosition: true,
+      recipientCompany: true,
+      recipientAddress: true,
+      signatureName: true,
+      signaturePlace: true,
+      signatureDate: true,
+      signatureImageId: true,
     },
   })
 }
@@ -83,7 +101,10 @@ export async function getLetterAction(id: string) {
 
 export async function createLetterAction(title?: string) {
   const user = await requireUser()
-  const [letter] = await db.insert(Letter).values({ userId: user.id, ...(title ? { title } : {}) }).returning()
+  const [letter] = await db
+    .insert(Letter)
+    .values({ userId: user.id, ...(title ? { title } : {}) })
+    .returning()
   return letter
 }
 
@@ -132,7 +153,10 @@ export async function setLetterShareAction(letterId: string, live: boolean) {
   })
   if (!letter) throw new Error('Letter not found')
   const token = live ? crypto.randomUUID() : null
-  await db.update(Letter).set({ webResumeLive: live, webToken: token }).where(eq(Letter.id, letterId))
+  await db
+    .update(Letter)
+    .set({ webResumeLive: live, webToken: token })
+    .where(eq(Letter.id, letterId))
   if (letter.webToken) revalidatePath(`/share/letter/${letter.webToken}`)
   if (token) revalidatePath(`/share/letter/${token}`)
   return { live, token }

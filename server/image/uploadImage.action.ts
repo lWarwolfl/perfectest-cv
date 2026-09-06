@@ -41,7 +41,12 @@ export async function uploadImageAction(data: { name: string; image: Blob; folde
     .returning()
 }
 
-export async function replaceImageAction(data: { name: string; image: Blob; folder?: string; oldFileId?: string }) {
+export async function replaceImageAction(data: {
+  name: string
+  image: Blob
+  folder?: string
+  oldFileId?: string
+}) {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
   if (data.oldFileId) await deleteImageAction(data.oldFileId)

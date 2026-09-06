@@ -12,9 +12,23 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Trash2 } from 'lucide-react'
 import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
-import type { TSection, PersonalDetails, SectionType, EntryData, SkillEntry, LanguageEntry } from '@/features/resume/types'
+import type {
+  TSection,
+  PersonalDetails,
+  SectionType,
+  EntryData,
+  SkillEntry,
+  LanguageEntry,
+} from '@/features/resume/types'
 
-export function TitleInput({ label, value, link, placeholder, onChange, onLinkChange }: {
+export function TitleInput({
+  label,
+  value,
+  link,
+  placeholder,
+  onChange,
+  onLinkChange,
+}: {
   label: string
   value: string
   link?: string
@@ -26,20 +40,29 @@ export function TitleInput({ label, value, link, placeholder, onChange, onLinkCh
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Input id={id} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+      <Input
+        id={id}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+      />
       {onLinkChange && <LinkDialog value={link || ''} onConfirm={onLinkChange} />}
     </Field>
   )
 }
 
-function AvatarControls({ personal, onChange }: {
+function AvatarControls({
+  personal,
+  onChange,
+}: {
   personal: PersonalDetails
   onChange: (patch: Partial<PersonalDetails>) => void
 }) {
   const fileId = personal.photo?.fileId || ''
   const imageUrl = personal.photo?.imageId || ''
   const upload = useMutation({
-    mutationFn: (file: File) => replaceImageAction({ name: 'avatar', image: file, oldFileId: fileId || undefined }),
+    mutationFn: (file: File) =>
+      replaceImageAction({ name: 'avatar', image: file, oldFileId: fileId || undefined }),
     onSuccess: (data) => {
       const [img] = data
       if (!img) return
@@ -58,11 +81,18 @@ function AvatarControls({ personal, onChange }: {
   })
   return (
     <div className="flex items-center gap-3">
-      <Avatar className="size-16 overflow-hidden rounded-full border border-border">
-        {imageUrl ? <AvatarImage src={imageUrl} alt={personal.fullName} /> : <AvatarFallback>{personal.fullName.charAt(0) || '?'}</AvatarFallback>}
+      <Avatar className="border-border size-16 overflow-hidden rounded-full border">
+        {imageUrl ? (
+          <AvatarImage src={imageUrl} alt={personal.fullName} />
+        ) : (
+          <AvatarFallback>{personal.fullName.charAt(0) || '?'}</AvatarFallback>
+        )}
       </Avatar>
       <div className="flex flex-col gap-1">
-        <label htmlFor="avatar-upload" className="cursor-pointer text-xs font-medium text-primary hover:underline">
+        <label
+          htmlFor="avatar-upload"
+          className="text-primary cursor-pointer text-xs font-medium hover:underline"
+        >
           {imageUrl ? 'Change photo' : 'Upload photo'}
         </label>
         <input
@@ -81,13 +111,15 @@ function AvatarControls({ personal, onChange }: {
             type="button"
             onClick={() => remove.mutate()}
             disabled={remove.isPending}
-            className="cursor-pointer text-xs text-destructive hover:underline"
+            className="text-destructive cursor-pointer text-xs hover:underline"
           >
             Delete photo
           </button>
         )}
       </div>
-      {(upload.isPending || remove.isPending) && <Spinner className="size-4 text-muted-foreground" />}
+      {(upload.isPending || remove.isPending) && (
+        <Spinner className="text-muted-foreground size-4" />
+      )}
     </div>
   )
 }
@@ -101,7 +133,10 @@ const PERSONAL_FIELDS = [
   ['website', 'Website'],
 ] as const
 
-export function PersonalDetailsForm({ personal, onChange }: {
+export function PersonalDetailsForm({
+  personal,
+  onChange,
+}: {
   personal: PersonalDetails
   onChange: (patch: Partial<PersonalDetails>) => void
 }) {
@@ -113,7 +148,7 @@ export function PersonalDetailsForm({ personal, onChange }: {
           key={key}
           label={label}
           id={`pd-${key}`}
-          value={personal[key] as string || ''}
+          value={(personal[key] as string) || ''}
           onChange={(e) => onChange({ [key]: e.target.value } as Partial<PersonalDetails>)}
         />
       ))}
@@ -121,19 +156,42 @@ export function PersonalDetailsForm({ personal, onChange }: {
         label="LinkedIn"
         id="pd-linkedIn"
         value={personal.social?.linkedIn?.display || ''}
-        onChange={(e) => onChange({ social: { ...personal.social, linkedIn: { ...personal.social?.linkedIn, display: e.target.value, link: e.target.value } } })}
+        onChange={(e) =>
+          onChange({
+            social: {
+              ...personal.social,
+              linkedIn: {
+                ...personal.social?.linkedIn,
+                display: e.target.value,
+                link: e.target.value,
+              },
+            },
+          })
+        }
       />
       <LabeledInput
         label="GitHub"
         id="pd-github"
         value={personal.social?.github?.display || ''}
-        onChange={(e) => onChange({ social: { ...personal.social, github: { ...personal.social?.github, display: e.target.value, link: e.target.value } } })}
+        onChange={(e) =>
+          onChange({
+            social: {
+              ...personal.social,
+              github: { ...personal.social?.github, display: e.target.value, link: e.target.value },
+            },
+          })
+        }
       />
     </div>
   )
 }
 
-export function EntryForm({ entry, sectionType, onChange, onDelete }: {
+export function EntryForm({
+  entry,
+  sectionType,
+  onChange,
+  onDelete,
+}: {
   entry: TSection['entries'][number]
   sectionType: SectionType
   onChange: (updates: Partial<EntryData>) => void
@@ -145,23 +203,75 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     return (
       <div className="space-y-2 rounded-lg border p-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Role</span>
-          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
+          <span className="text-muted-foreground text-xs font-medium">Role</span>
+          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+            <Trash2 className="size-3" />
+          </Button>
         </div>
         <TitleInput label="Job title" value={e.jobTitle} onChange={(v) => up({ jobTitle: v })} />
-        <TitleInput label="Employer" value={e.employer} link={e.employerLink} placeholder="Employer" onChange={(v) => up({ employer: v })} onLinkChange={(url) => up({ employerLink: url })} />
-        <LabeledInput label="Location" placeholder="Location" value={e.location} onChange={(v) => up({ location: v.target.value })} />
+        <TitleInput
+          label="Employer"
+          value={e.employer}
+          link={e.employerLink}
+          placeholder="Employer"
+          onChange={(v) => up({ employer: v })}
+          onLinkChange={(url) => up({ employerLink: url })}
+        />
+        <LabeledInput
+          label="Location"
+          placeholder="Location"
+          value={e.location}
+          onChange={(v) => up({ location: v.target.value })}
+        />
         <div className="flex gap-2">
-          <LabeledInput label="Start" placeholder="MM/YYYY" value={e.startDate?.month && e.startDate?.year ? `${e.startDate.month}/${e.startDate.year}` : ''} onChange={(v) => {
-            const [m, y] = v.target.value.split('/')
-            up({ startDate: { hide: false, year: y || '', month: m || '', ongoing: false, onlyYear: false, customOngoingWord: 'present' } })
-          }} />
-          <LabeledInput label="End" placeholder="MM/YYYY" value={e.endDate?.month && e.endDate?.year ? `${e.endDate.month}/${e.endDate.year}` : ''} onChange={(v) => {
-            const [m, y] = v.target.value.split('/')
-            up({ endDate: { hide: false, year: y || '', month: m || '', ongoing: !y && !m, onlyYear: false, customOngoingWord: 'present' } })
-          }} />
+          <LabeledInput
+            label="Start"
+            placeholder="MM/YYYY"
+            value={
+              e.startDate?.month && e.startDate?.year
+                ? `${e.startDate.month}/${e.startDate.year}`
+                : ''
+            }
+            onChange={(v) => {
+              const [m, y] = v.target.value.split('/')
+              up({
+                startDate: {
+                  hide: false,
+                  year: y || '',
+                  month: m || '',
+                  ongoing: false,
+                  onlyYear: false,
+                  customOngoingWord: 'present',
+                },
+              })
+            }}
+          />
+          <LabeledInput
+            label="End"
+            placeholder="MM/YYYY"
+            value={
+              e.endDate?.month && e.endDate?.year ? `${e.endDate.month}/${e.endDate.year}` : ''
+            }
+            onChange={(v) => {
+              const [m, y] = v.target.value.split('/')
+              up({
+                endDate: {
+                  hide: false,
+                  year: y || '',
+                  month: m || '',
+                  ongoing: !y && !m,
+                  onlyYear: false,
+                  customOngoingWord: 'present',
+                },
+              })
+            }}
+          />
         </div>
-        <RichTextEditor compact value={e.description} onUpdate={(html) => up({ description: html })} />
+        <RichTextEditor
+          compact
+          value={e.description}
+          onUpdate={(html) => up({ description: html })}
+        />
       </div>
     )
   }
@@ -170,17 +280,67 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     return (
       <div className="space-y-2 rounded-lg border p-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Education</span>
-          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
+          <span className="text-muted-foreground text-xs font-medium">Education</span>
+          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+            <Trash2 className="size-3" />
+          </Button>
         </div>
         <TitleInput label="Degree" value={e.degree} onChange={(v) => up({ degree: v })} />
-        <TitleInput label="School" value={e.school} link={e.schoolLink} placeholder="e.g. University of Tehran" onChange={(v) => up({ school: v })} onLinkChange={(url) => up({ schoolLink: url })} />
-        <LabeledInput label="Location" placeholder="Location" value={e.location} onChange={(v) => up({ location: v.target.value })} />
+        <TitleInput
+          label="School"
+          value={e.school}
+          link={e.schoolLink}
+          placeholder="e.g. University of Tehran"
+          onChange={(v) => up({ school: v })}
+          onLinkChange={(url) => up({ schoolLink: url })}
+        />
+        <LabeledInput
+          label="Location"
+          placeholder="Location"
+          value={e.location}
+          onChange={(v) => up({ location: v.target.value })}
+        />
         <div className="flex gap-2">
-          <LabeledInput label="Start" placeholder="YYYY" value={e.startDate?.year || ''} onChange={(v) => up({ startDate: { hide: false, year: v.target.value, month: '', ongoing: false, onlyYear: true, customOngoingWord: 'present' } })} />
-          <LabeledInput label="End" placeholder="YYYY" value={e.endDate?.year || ''} onChange={(v) => up({ endDate: { hide: false, year: v.target.value, month: '', ongoing: !v.target.value, onlyYear: true, customOngoingWord: 'present' } })} />
+          <LabeledInput
+            label="Start"
+            placeholder="YYYY"
+            value={e.startDate?.year || ''}
+            onChange={(v) =>
+              up({
+                startDate: {
+                  hide: false,
+                  year: v.target.value,
+                  month: '',
+                  ongoing: false,
+                  onlyYear: true,
+                  customOngoingWord: 'present',
+                },
+              })
+            }
+          />
+          <LabeledInput
+            label="End"
+            placeholder="YYYY"
+            value={e.endDate?.year || ''}
+            onChange={(v) =>
+              up({
+                endDate: {
+                  hide: false,
+                  year: v.target.value,
+                  month: '',
+                  ongoing: !v.target.value,
+                  onlyYear: true,
+                  customOngoingWord: 'present',
+                },
+              })
+            }
+          />
         </div>
-        <RichTextEditor compact value={e.description} onUpdate={(html) => up({ description: html })} />
+        <RichTextEditor
+          compact
+          value={e.description}
+          onUpdate={(html) => up({ description: html })}
+        />
       </div>
     )
   }
@@ -191,10 +351,21 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     return (
       <div className="space-y-2 rounded-lg border p-3">
         <div className="flex items-center gap-2">
-          <Input aria-label={sectionType === 'skill' ? 'Skill name' : 'Language name'} placeholder={sectionType === 'skill' ? 'Skill name' : 'Language name'} value={nameValue} onChange={(v) => up({ [nameKey]: v.target.value } as Partial<EntryData>)} />
-          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
+          <Input
+            aria-label={sectionType === 'skill' ? 'Skill name' : 'Language name'}
+            placeholder={sectionType === 'skill' ? 'Skill name' : 'Language name'}
+            value={nameValue}
+            onChange={(v) => up({ [nameKey]: v.target.value } as Partial<EntryData>)}
+          />
+          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+            <Trash2 className="size-3" />
+          </Button>
         </div>
-        <RichTextEditor compact value={e.infoHtml} onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)} />
+        <RichTextEditor
+          compact
+          value={e.infoHtml}
+          onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)}
+        />
       </div>
     )
   }
@@ -203,11 +374,23 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     return (
       <div className="space-y-2 rounded-lg border p-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Interest</span>
-          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
+          <span className="text-muted-foreground text-xs font-medium">Interest</span>
+          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+            <Trash2 className="size-3" />
+          </Button>
         </div>
-        <TitleInput label="Interest" value={e.interest} link={e.interestLink} onChange={(v) => up({ interest: v })} onLinkChange={(url) => up({ interestLink: url })} />
-        <RichTextEditor compact value={e.infoHtml} onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)} />
+        <TitleInput
+          label="Interest"
+          value={e.interest}
+          link={e.interestLink}
+          onChange={(v) => up({ interest: v })}
+          onLinkChange={(url) => up({ interestLink: url })}
+        />
+        <RichTextEditor
+          compact
+          value={e.infoHtml}
+          onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)}
+        />
       </div>
     )
   }
@@ -216,26 +399,85 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     return (
       <div className="space-y-2 rounded-lg border p-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Project</span>
-          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
+          <span className="text-muted-foreground text-xs font-medium">Project</span>
+          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+            <Trash2 className="size-3" />
+          </Button>
         </div>
-        <TitleInput label="Title" value={e.projectTitle} link={e.projectTitleLink} placeholder="e.g. Perfectest CV" onChange={(v) => up({ projectTitle: v })} onLinkChange={(url) => up({ projectTitleLink: url })} />
-        <LabeledInput label="Subtitle" placeholder="Subtitle" value={e.subTitle} onChange={(v) => up({ subTitle: v.target.value })} />
+        <TitleInput
+          label="Title"
+          value={e.projectTitle}
+          link={e.projectTitleLink}
+          placeholder="e.g. Perfectest CV"
+          onChange={(v) => up({ projectTitle: v })}
+          onLinkChange={(url) => up({ projectTitleLink: url })}
+        />
+        <LabeledInput
+          label="Subtitle"
+          placeholder="Subtitle"
+          value={e.subTitle}
+          onChange={(v) => up({ subTitle: v.target.value })}
+        />
         <div className="flex gap-2">
-          <LabeledInput label="Start" placeholder="MM/YYYY" value={`${e.startDate.month}/${e.startDate.year}`.replace(/^\/|\/$/g, '')} onChange={(v) => {
-            const [m, y] = v.target.value.split('/')
-            up({ startDate: { hide: false, year: y || '', month: m || '', ongoing: false, onlyYear: false, customOngoingWord: 'present' } })
-          }} />
-          <LabeledInput label="End" placeholder="MM/YYYY or Present" value={e.endDate.ongoing ? 'Present' : `${e.endDate.month}/${e.endDate.year}`.replace(/^\/|\/$/g, '')} onChange={(v) => {
-            if (v.target.value.toLowerCase() === 'present') {
-              up({ endDate: { hide: false, year: '', month: '', ongoing: true, onlyYear: false, customOngoingWord: 'present' } })
-              return
+          <LabeledInput
+            label="Start"
+            placeholder="MM/YYYY"
+            value={`${e.startDate.month}/${e.startDate.year}`.replace(/^\/|\/$/g, '')}
+            onChange={(v) => {
+              const [m, y] = v.target.value.split('/')
+              up({
+                startDate: {
+                  hide: false,
+                  year: y || '',
+                  month: m || '',
+                  ongoing: false,
+                  onlyYear: false,
+                  customOngoingWord: 'present',
+                },
+              })
+            }}
+          />
+          <LabeledInput
+            label="End"
+            placeholder="MM/YYYY or Present"
+            value={
+              e.endDate.ongoing
+                ? 'Present'
+                : `${e.endDate.month}/${e.endDate.year}`.replace(/^\/|\/$/g, '')
             }
-            const [m, y] = v.target.value.split('/')
-            up({ endDate: { hide: false, year: y || '', month: m || '', ongoing: false, onlyYear: false, customOngoingWord: 'present' } })
-          }} />
+            onChange={(v) => {
+              if (v.target.value.toLowerCase() === 'present') {
+                up({
+                  endDate: {
+                    hide: false,
+                    year: '',
+                    month: '',
+                    ongoing: true,
+                    onlyYear: false,
+                    customOngoingWord: 'present',
+                  },
+                })
+                return
+              }
+              const [m, y] = v.target.value.split('/')
+              up({
+                endDate: {
+                  hide: false,
+                  year: y || '',
+                  month: m || '',
+                  ongoing: false,
+                  onlyYear: false,
+                  customOngoingWord: 'present',
+                },
+              })
+            }}
+          />
         </div>
-        <RichTextEditor compact value={e.description} onUpdate={(html) => up({ description: html })} />
+        <RichTextEditor
+          compact
+          value={e.description}
+          onUpdate={(html) => up({ description: html })}
+        />
       </div>
     )
   }
@@ -244,12 +486,31 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     return (
       <div className="space-y-2 rounded-lg border p-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Certificate</span>
-          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
+          <span className="text-muted-foreground text-xs font-medium">Certificate</span>
+          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+            <Trash2 className="size-3" />
+          </Button>
         </div>
-        <TitleInput label="Title" value={e.title} link={e.link} placeholder="Title" onChange={(v) => up({ title: v })} onLinkChange={(url) => up({ link: url })} />
-        <LabeledInput label="Issuer" placeholder="Issuer" value={e.issuer} onChange={(v) => up({ issuer: v.target.value })} />
-        <LabeledInput label="Date" placeholder="Date" value={e.date} onChange={(v) => up({ date: v.target.value })} />
+        <TitleInput
+          label="Title"
+          value={e.title}
+          link={e.link}
+          placeholder="Title"
+          onChange={(v) => up({ title: v })}
+          onLinkChange={(url) => up({ link: url })}
+        />
+        <LabeledInput
+          label="Issuer"
+          placeholder="Issuer"
+          value={e.issuer}
+          onChange={(v) => up({ issuer: v.target.value })}
+        />
+        <LabeledInput
+          label="Date"
+          placeholder="Date"
+          value={e.date}
+          onChange={(v) => up({ date: v.target.value })}
+        />
       </div>
     )
   }
@@ -257,21 +518,85 @@ export function EntryForm({ entry, sectionType, onChange, onDelete }: {
     const e = entry.data as Extract<EntryData, { type: 'profile' }>
     return <RichTextEditor value={e.text} onUpdate={(html) => up({ text: html })} />
   }
-  const e = entry.data as Extract<EntryData, { type: 'custom' | 'publication' | 'organisation' | 'course' | 'award' | 'reference' | 'declaration' }>
+  const e = entry.data as Extract<
+    EntryData,
+    {
+      type:
+        'custom' | 'publication' | 'organisation' | 'course' | 'award' | 'reference' | 'declaration'
+    }
+  >
   return (
     <div className="space-y-2 rounded-lg border p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">Entry</span>
-        <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}><Trash2 className="size-3" /></Button>
+        <span className="text-muted-foreground text-xs font-medium">Entry</span>
+        <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+          <Trash2 className="size-3" />
+        </Button>
       </div>
-      {'title' in e && <TitleInput label="Title" value={e.title} link={'link' in e ? e.link : undefined} placeholder="Title" onChange={(v) => up({ title: v })} onLinkChange={'link' in e ? (url) => up({ link: url } as Partial<EntryData>) : undefined} />}
-      {'subTitle' in e && <LabeledInput label="Subtitle" placeholder="Subtitle" value={e.subTitle} onChange={(v) => up({ subTitle: v.target.value })} />}
-      {'issuer' in e && <LabeledInput label="Issuer" placeholder="Issuer" value={e.issuer} onChange={(v) => up({ issuer: v.target.value })} />}
-      {'date' in e && <LabeledInput label="Date" placeholder="Date" value={e.date} onChange={(v) => up({ date: v.target.value })} />}
-      {'contact' in e && <LabeledInput label="Contact" placeholder="Contact" value={e.contact} onChange={(v) => up({ contact: v.target.value })} />}
-      {'name' in e && <LabeledInput label="Name" placeholder="Name" value={e.name} onChange={(v) => up({ name: v.target.value })} />}
-      {'text' in e && <RichTextEditor compact value={e.text} onUpdate={(html) => up({ text: html } as Partial<EntryData>)} />}
-      {'description' in e && <RichTextEditor compact value={e.description} onUpdate={(html) => up({ description: html } as Partial<EntryData>)} />}
+      {'title' in e && (
+        <TitleInput
+          label="Title"
+          value={e.title}
+          link={'link' in e ? e.link : undefined}
+          placeholder="Title"
+          onChange={(v) => up({ title: v })}
+          onLinkChange={'link' in e ? (url) => up({ link: url } as Partial<EntryData>) : undefined}
+        />
+      )}
+      {'subTitle' in e && (
+        <LabeledInput
+          label="Subtitle"
+          placeholder="Subtitle"
+          value={e.subTitle}
+          onChange={(v) => up({ subTitle: v.target.value })}
+        />
+      )}
+      {'issuer' in e && (
+        <LabeledInput
+          label="Issuer"
+          placeholder="Issuer"
+          value={e.issuer}
+          onChange={(v) => up({ issuer: v.target.value })}
+        />
+      )}
+      {'date' in e && (
+        <LabeledInput
+          label="Date"
+          placeholder="Date"
+          value={e.date}
+          onChange={(v) => up({ date: v.target.value })}
+        />
+      )}
+      {'contact' in e && (
+        <LabeledInput
+          label="Contact"
+          placeholder="Contact"
+          value={e.contact}
+          onChange={(v) => up({ contact: v.target.value })}
+        />
+      )}
+      {'name' in e && (
+        <LabeledInput
+          label="Name"
+          placeholder="Name"
+          value={e.name}
+          onChange={(v) => up({ name: v.target.value })}
+        />
+      )}
+      {'text' in e && (
+        <RichTextEditor
+          compact
+          value={e.text}
+          onUpdate={(html) => up({ text: html } as Partial<EntryData>)}
+        />
+      )}
+      {'description' in e && (
+        <RichTextEditor
+          compact
+          value={e.description}
+          onUpdate={(html) => up({ description: html } as Partial<EntryData>)}
+        />
+      )}
     </div>
   )
 }

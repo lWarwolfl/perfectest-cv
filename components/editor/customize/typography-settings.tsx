@@ -1,6 +1,14 @@
 'use client'
 
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Type } from 'lucide-react'
@@ -30,13 +38,24 @@ const LINE_HEIGHTS = [
   { value: '5', label: 'Relaxed (1.7)' },
 ] as const
 
-export default function TypographySettings({ customization, onPatch, onFontChange }: TypographySettingsProps) {
+export default function TypographySettings({
+  customization,
+  onPatch,
+  onFontChange,
+}: TypographySettingsProps) {
   const spacing = customization.spacing
   return (
-    <CustomizeCard title="Typography & Spacing" icon={Type} description="Fonts, sizes and vertical rhythm.">
+    <CustomizeCard
+      title="Typography & Spacing"
+      icon={Type}
+      description="Fonts, sizes and vertical rhythm."
+    >
       <div className="space-y-2">
         <Label>Font family</Label>
-        <Select value={customization.font.fontFamily} onValueChange={(v) => onFontChange({ fontFamily: v || 'Inter', selected: 'custom' })}>
+        <Select
+          value={customization.font.fontFamily}
+          onValueChange={(v) => onFontChange({ fontFamily: v || 'Inter', selected: 'custom' })}
+        >
           <SelectTrigger className="w-full" style={{ fontFamily: customization.font.fontFamily }}>
             <SelectValue />
           </SelectTrigger>
@@ -57,7 +76,9 @@ export default function TypographySettings({ customization, onPatch, onFontChang
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Overall font size</Label>
-          <span className="text-sm font-semibold text-foreground">{10 + Number(spacing.fontSize)}pt</span>
+          <span className="text-foreground text-sm font-semibold">
+            {10 + Number(spacing.fontSize)}pt
+          </span>
         </div>
         <Input
           type="range"
@@ -71,7 +92,7 @@ export default function TypographySettings({ customization, onPatch, onFontChang
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Name size</Label>
-          <span className="text-sm font-semibold text-foreground">{spacing.nameFontSizePt}pt</span>
+          <span className="text-foreground text-sm font-semibold">{spacing.nameFontSizePt}pt</span>
         </div>
         <Input
           type="range"
@@ -85,7 +106,9 @@ export default function TypographySettings({ customization, onPatch, onFontChang
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Job title size</Label>
-          <span className="text-sm font-semibold text-foreground">{spacing.jobTitleFontSizePt}pt</span>
+          <span className="text-foreground text-sm font-semibold">
+            {spacing.jobTitleFontSizePt}pt
+          </span>
         </div>
         <Input
           type="range"

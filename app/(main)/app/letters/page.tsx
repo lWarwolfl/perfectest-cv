@@ -90,11 +90,7 @@ export default function LettersPage() {
                   >
                     <DropdownMenuTrigger
                       render={
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Card menu"
-                        >
+                        <Button variant="ghost" size="icon" aria-label="Card menu">
                           <MoreHorizontal className="size-4" />
                         </Button>
                       }

@@ -77,15 +77,42 @@ export const SECTION_ICONS: Record<SectionType, string> = {
 }
 
 function emptyDate() {
-  return { hide: false, year: '', month: '', ongoing: false, onlyYear: false, customOngoingWord: 'present' }
+  return {
+    hide: false,
+    year: '',
+    month: '',
+    ongoing: false,
+    onlyYear: false,
+    customOngoingWord: 'present',
+  }
 }
 
 export function defaultEntryData(sectionType: SectionType): EntryData {
   switch (sectionType) {
     case 'work':
-      return { type: 'work', jobTitle: '', employer: '', employerLink: '', location: '', city: '', country: '', startDate: emptyDate(), endDate: emptyDate(), description: '' }
+      return {
+        type: 'work',
+        jobTitle: '',
+        employer: '',
+        employerLink: '',
+        location: '',
+        city: '',
+        country: '',
+        startDate: emptyDate(),
+        endDate: emptyDate(),
+        description: '',
+      }
     case 'education':
-      return { type: 'education', degree: '', school: '', schoolLink: '', location: '', startDate: emptyDate(), endDate: emptyDate(), description: '' }
+      return {
+        type: 'education',
+        degree: '',
+        school: '',
+        schoolLink: '',
+        location: '',
+        startDate: emptyDate(),
+        endDate: emptyDate(),
+        description: '',
+      }
     case 'skill':
       return { type: 'skill', skill: '', level: '', infoHtml: '' }
     case 'language':
@@ -95,14 +122,30 @@ export function defaultEntryData(sectionType: SectionType): EntryData {
     case 'profile':
       return { type: 'profile', text: '' }
     case 'project':
-      return { type: 'project', projectTitle: '', projectTitleLink: '', subTitle: '', startDate: emptyDate(), endDate: emptyDate(), description: '' }
+      return {
+        type: 'project',
+        projectTitle: '',
+        projectTitleLink: '',
+        subTitle: '',
+        startDate: emptyDate(),
+        endDate: emptyDate(),
+        description: '',
+      }
     case 'certificate':
       return { type: 'certificate', title: '', link: '', issuer: '', location: '', date: '' }
     case 'publication':
     case 'organisation':
     case 'course':
     case 'award':
-      return { type: sectionType, title: '', link: '', issuer: '', location: '', date: '', description: '' }
+      return {
+        type: sectionType,
+        title: '',
+        link: '',
+        issuer: '',
+        location: '',
+        date: '',
+        description: '',
+      }
     case 'reference':
       return { type: 'reference', name: '', contact: '' }
     case 'declaration':
@@ -174,7 +217,16 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
     },
   },
   heading: { style: 'line', icons: 'none', capitalization: 'uppercase' },
-  spacing: { fontSize: '3', lineHeight: '3', spacingFactor: '3', marginVertical: '3', marginHorizontal: '3', headingGap: '3', nameFontSizePt: 24, jobTitleFontSizePt: 18 },
+  spacing: {
+    fontSize: '3',
+    lineHeight: '3',
+    spacingFactor: '3',
+    marginVertical: '3',
+    marginHorizontal: '3',
+    headingGap: '3',
+    nameFontSizePt: 24,
+    jobTitleFontSizePt: 18,
+  },
   skill: {
     selected: 'rows',
     grid: { columns: 2, splitCommasIntoBullets: false },

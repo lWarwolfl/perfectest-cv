@@ -105,7 +105,9 @@ export default function StyleSettings({
         customization={store.customization}
         onSectionDisplayPatch={(section, patch) => {
           store.patchSectionDisplay(section, patch)
-          emit({ [section]: { ...store.customization[section], ...patch } } as Partial<Customization>)
+          emit({
+            [section]: { ...store.customization[section], ...patch },
+          } as Partial<Customization>)
         }}
       />
       {(['certificate', 'interest', 'language'] as const).map((section) => (

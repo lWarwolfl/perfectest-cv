@@ -208,7 +208,12 @@ export interface BorderCustomization {
 export interface HeaderCustomization {
   position: 'top' | 'left' | 'right' | 'center'
   alignText: 'start' | 'center'
-  photo: { show: boolean; size: string; grayscale: boolean; shape: 'round' | 'square' | 'squareRounded' | 'portrait' }
+  photo: {
+    show: boolean
+    size: string
+    grayscale: boolean
+    shape: 'round' | 'square' | 'squareRounded' | 'portrait'
+  }
   photoPositionHeaderOnTop: 'right' | 'center' | 'left'
   photoPositionHeaderInColumn: 'below' | 'top'
   detailsArrangement: 'wrap' | 'grid' | 'column'

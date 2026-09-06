@@ -17,7 +17,14 @@ import {
 
 type ShareResult = { live: boolean; token: string | null } | undefined
 
-export function ShareButton({ live, kind, pending, onToggle, className, onOpen }: {
+export function ShareButton({
+  live,
+  kind,
+  pending,
+  onToggle,
+  className,
+  onOpen,
+}: {
   live: boolean
   kind: 'resume' | 'letter'
   pending: boolean
@@ -45,15 +52,27 @@ export function ShareButton({ live, kind, pending, onToggle, className, onOpen }
 
   function copy() {
     if (!url) return
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true)
-      toast.success('Link copied to clipboard')
-    }).catch(() => toast.error(url))
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopied(true)
+        toast.success('Link copied to clipboard')
+      })
+      .catch(() => toast.error(url))
   }
 
   return (
     <>
-      <Button variant="outline" size="sm" className={className} onClick={() => { setConfirmOpen(true); onOpen?.() }} disabled={pending}>
+      <Button
+        variant="outline"
+        size="sm"
+        className={className}
+        onClick={() => {
+          setConfirmOpen(true)
+          onOpen?.()
+        }}
+        disabled={pending}
+      >
         <Link2 className="size-3.5" />
         Share
       </Button>
@@ -76,9 +95,20 @@ export function ShareButton({ live, kind, pending, onToggle, className, onOpen }
             <DialogTitle>Share URL</DialogTitle>
             <DialogDescription>Anyone with this link can view your {label}.</DialogDescription>
           </DialogHeader>
-          <LabeledInput label="Share URL" readOnly value={url || ''} onFocus={(e) => e.target.select()} className="font-mono text-xs" />
+          <LabeledInput
+            label="Share URL"
+            readOnly
+            value={url || ''}
+            onFocus={(e) => e.target.select()}
+            className="font-mono text-xs"
+          />
           <DialogFooter>
-            <Button variant="outline" className="text-destructive" disabled={pending} onClick={() => toggle(false)}>
+            <Button
+              variant="outline"
+              className="text-destructive"
+              disabled={pending}
+              onClick={() => toggle(false)}
+            >
               Disable link
             </Button>
             <Button onClick={copy}>

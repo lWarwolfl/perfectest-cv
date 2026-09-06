@@ -3,12 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import {
-  LayoutDashboard,
-  FileText,
-  Mail,
-  KanbanSquare,
-} from 'lucide-react'
+import { LayoutDashboard, FileText, Mail, KanbanSquare } from 'lucide-react'
 import logo from '@public/logo.svg'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { LogoutButton } from '@/features/auth/components/sign-out-button'
@@ -30,7 +25,7 @@ function useActive() {
 export default function Sidebar({ email }: { email?: string | null }) {
   const isActive = useActive()
   return (
-    <aside className="m-4 hidden w-60 shrink-0 flex-col rounded-2xl border border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground md:flex">
+    <aside className="border-sidebar-border bg-sidebar text-sidebar-foreground m-4 hidden w-60 shrink-0 flex-col rounded-2xl border px-3 py-4 md:flex">
       <Link href="/app/dashboard" className="mb-6 flex items-center gap-2 px-2">
         <Image alt="Perfectest CV logo" src={logo} className="size-9" />
         <span className="text-lg font-semibold">Perfectest CV</span>
@@ -56,7 +51,7 @@ export default function Sidebar({ email }: { email?: string | null }) {
         })}
       </nav>
       <div className="mt-auto flex items-center gap-2">
-        <div className="min-w-0 flex-1 truncate px-1 text-xs text-muted-foreground">{email}</div>
+        <div className="text-muted-foreground min-w-0 flex-1 truncate px-1 text-xs">{email}</div>
         <ThemeToggle />
         <LogoutButton />
       </div>
@@ -67,7 +62,7 @@ export default function Sidebar({ email }: { email?: string | null }) {
 export function MobileNav() {
   const isActive = useActive()
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-background/95 backdrop-blur md:hidden">
+    <nav className="border-border bg-background/95 fixed inset-x-0 bottom-0 z-40 flex border-t backdrop-blur md:hidden">
       {NAV.map((item) => {
         const active = isActive(item.href)
         return (
@@ -88,20 +83,24 @@ export function MobileNav() {
   )
 }
 
-export function SidebarPage({ children, email }: { children: React.ReactNode; email?: string | null }) {
+export function SidebarPage({
+  children,
+  email,
+}: {
+  children: React.ReactNode
+  email?: string | null
+}) {
   return (
     <div className="flex min-h-screen">
       <Sidebar email={email} />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3 pb-20 pr-4 md:p-4 md:pr-6 md:pb-4">{children}</main>
+      <main className="min-w-0 flex-1 overflow-x-hidden p-3 pr-4 pb-20 md:p-4 md:pr-6 md:pb-4">
+        {children}
+      </main>
       <MobileNav />
     </div>
   )
 }
 
 export function SidebarNavButton({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Button render={<Link href={href} />}>
-      {children}
-    </Button>
-  )
+  return <Button render={<Link href={href} />}>{children}</Button>
 }

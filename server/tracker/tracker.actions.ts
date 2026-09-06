@@ -10,7 +10,16 @@ import { uid } from '@/lib/utils'
 type TrackerColumn = { id: string; name: string; cardIds: string[]; color?: string }
 type TrackerCardRow = typeof TrackerCard.$inferSelect
 
-const COLUMN_COLORS = ['#6366f1', '#22c55e', '#f97316', '#06b6d4', '#ef4444', '#a855f7', '#eab308', '#14b8a6']
+const COLUMN_COLORS = [
+  '#6366f1',
+  '#22c55e',
+  '#f97316',
+  '#06b6d4',
+  '#ef4444',
+  '#a855f7',
+  '#eab308',
+  '#14b8a6',
+]
 
 export async function getTrackerAction() {
   const user = await getCurrentUser()
@@ -29,7 +38,9 @@ export async function getTrackerAction() {
       .values({ userId: user.id, columns: defaultColumns })
       .returning()
   }
-  const columns = tracker.columns.map((c, i) => (c.color ? c : { ...c, color: COLUMN_COLORS[i % COLUMN_COLORS.length] }))
+  const columns = tracker.columns.map((c, i) =>
+    c.color ? c : { ...c, color: COLUMN_COLORS[i % COLUMN_COLORS.length] }
+  )
   const cards = await db.query.TrackerCard.findMany({
     where: eq(TrackerCard.trackerId, tracker.id),
     orderBy: (t, { desc }) => desc(t.createdAt),
@@ -37,7 +48,11 @@ export async function getTrackerAction() {
   return { ...tracker, columns, cards }
 }
 
-export async function saveCardAction(card: Partial<TrackerCardRow>, colId: string, trackerId: string) {
+export async function saveCardAction(
+  card: Partial<TrackerCardRow>,
+  colId: string,
+  trackerId: string
+) {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
   const { id: cardId, ...rest } = card
@@ -60,7 +75,10 @@ export async function saveCardAction(card: Partial<TrackerCardRow>, colId: strin
   if (cardId) {
     await db.update(TrackerCard).set(fields).where(eq(TrackerCard.id, cardId))
   } else {
-    const [created] = await db.insert(TrackerCard).values({ trackerId, ...fields }).returning()
+    const [created] = await db
+      .insert(TrackerCard)
+      .values({ trackerId, ...fields })
+      .returning()
     const tracker = await db.query.Tracker.findFirst({ where: eq(Tracker.id, trackerId) })
     if (tracker) {
       const cols = tracker.columns.map((c) =>
@@ -71,7 +89,12 @@ export async function saveCardAction(card: Partial<TrackerCardRow>, colId: strin
   }
 }
 
-export async function moveCardAction(trackerId: string, cardId: string, toColId: string, toIndex: number) {
+export async function moveCardAction(
+  trackerId: string,
+  cardId: string,
+  toColId: string,
+  toIndex: number
+) {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
   const tracker = await db.query.Tracker.findFirst({ where: eq(Tracker.id, trackerId) })
@@ -79,7 +102,8 @@ export async function moveCardAction(trackerId: string, cardId: string, toColId:
   const fromCol = tracker.columns.find((c) => c.cardIds.includes(cardId))
   const toCol = tracker.columns.find((c) => c.id === toColId)
   const cols = tracker.columns.map((c) => {
-    if (c.id === fromCol?.id) return { ...c, cardIds: c.cardIds.filter((id: string) => id !== cardId) }
+    if (c.id === fromCol?.id)
+      return { ...c, cardIds: c.cardIds.filter((id: string) => id !== cardId) }
     if (c.id === toColId) {
       const ids = [...c.cardIds]
       ids.splice(toIndex, 0, cardId)
@@ -113,7 +137,10 @@ export async function deleteCardAction(cardId: string, trackerId: string) {
   await db.delete(TrackerCard).where(eq(TrackerCard.id, cardId))
   const tracker = await db.query.Tracker.findFirst({ where: eq(Tracker.id, trackerId) })
   if (tracker) {
-    const cols = tracker.columns.map((c) => ({ ...c, cardIds: c.cardIds.filter((id: string) => id !== cardId) }))
+    const cols = tracker.columns.map((c) => ({
+      ...c,
+      cardIds: c.cardIds.filter((id: string) => id !== cardId),
+    }))
     await db.update(Tracker).set({ columns: cols }).where(eq(Tracker.id, trackerId))
   }
 }

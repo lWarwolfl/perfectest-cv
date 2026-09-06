@@ -1,7 +1,19 @@
 'use client'
 
-import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
-import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Columns2, GripVertical, RectangleHorizontal, Rows3 } from 'lucide-react'
 import { CustomizeCard } from './customize-tab-layout'
@@ -31,18 +43,25 @@ function SortableSectionRow({
   section: TSection
   onToggle: (sectionId: string, hidden: boolean) => void
 }) {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
-    useSortable({ id: section.id })
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.id })
   return (
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 ${isDragging ? 'opacity-50' : ''}`}
+      className={`border-border bg-card flex items-center gap-2 rounded-lg border px-3 py-2 ${isDragging ? 'opacity-50' : ''}`}
     >
       <button
         ref={setActivatorNodeRef}
         type="button"
-        className="cursor-grab touch-none text-muted-foreground/60 active:cursor-grabbing"
+        className="text-muted-foreground/60 cursor-grab touch-none active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >
@@ -76,7 +95,15 @@ export default function TemplateLayoutSettings({
   const two = customization.layout.two
 
   return (
-    <CustomizeCard title="Template & Layout" icon={Rows3} description={showLayoutOptions ? 'Choose the overall architecture of your resume.' : 'Layout of your cover letter.'}>
+    <CustomizeCard
+      title="Template & Layout"
+      icon={Rows3}
+      description={
+        showLayoutOptions
+          ? 'Choose the overall architecture of your resume.'
+          : 'Layout of your cover letter.'
+      }
+    >
       {showLayoutOptions && (
         <div className="grid grid-cols-2 gap-3">
           {LAYOUT_OPTIONS.map((option) => {
@@ -87,7 +114,9 @@ export default function TemplateLayoutSettings({
                 type="button"
                 onClick={() => onPatch({ selected: option.value })}
                 className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-sm font-medium transition-colors ${
-                  active ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/50'
+                  active
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border-border text-muted-foreground hover:bg-muted/50'
                 }`}
               >
                 <option.icon className="size-8" />
@@ -99,17 +128,25 @@ export default function TemplateLayoutSettings({
       )}
       {showLayoutOptions && customization.layout.selected === 'two' && (
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Column width ratio</Label>
+          <Label className="text-muted-foreground text-xs">Column width ratio</Label>
           <div className="flex items-center gap-3">
             <Input
               type="range"
               min={20}
               max={80}
               value={two.leftWidth}
-              onChange={(e) => onPatch({ two: { ...two, leftWidth: Number(e.target.value), rightWidth: 100 - Number(e.target.value) } })}
-              className="flex-1 accent-primary"
+              onChange={(e) =>
+                onPatch({
+                  two: {
+                    ...two,
+                    leftWidth: Number(e.target.value),
+                    rightWidth: 100 - Number(e.target.value),
+                  },
+                })
+              }
+              className="accent-primary flex-1"
             />
-            <span className="w-16 text-right text-sm font-semibold text-foreground">
+            <span className="text-foreground w-16 text-right text-sm font-semibold">
               {two.leftWidth}/{two.rightWidth}
             </span>
           </div>
@@ -117,12 +154,23 @@ export default function TemplateLayoutSettings({
       )}
       {sections.length > 0 && (
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Section order & visibility</Label>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+          <Label className="text-muted-foreground text-xs">Section order & visibility</Label>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={sections.map((s) => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
               <div className="space-y-2">
                 {sections.map((section) => (
-                  <SortableSectionRow key={section.id} section={section} onToggle={onToggleSection} />
+                  <SortableSectionRow
+                    key={section.id}
+                    section={section}
+                    onToggle={onToggleSection}
+                  />
                 ))}
               </div>
             </SortableContext>

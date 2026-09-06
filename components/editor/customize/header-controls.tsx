@@ -50,7 +50,7 @@ function OptionButton({
       className={cn(
         'rounded-xl border px-2 py-2 text-xs transition-colors',
         active
-          ? 'border-primary bg-primary/10 font-semibold text-primary'
+          ? 'border-primary bg-primary/10 text-primary font-semibold'
           : 'border-border bg-card text-foreground hover:bg-muted',
         className
       )}
@@ -60,7 +60,13 @@ function OptionButton({
   )
 }
 
-const ICON_STYLES = ['outline', 'filled-circle', 'soft-badge', 'neutral-gray', 'primary-accent'] as const
+const ICON_STYLES = [
+  'outline',
+  'filled-circle',
+  'soft-badge',
+  'neutral-gray',
+  'primary-accent',
+] as const
 
 function iconFrameCls(style: Customization['header']['iconStyle']) {
   switch (style) {
@@ -96,30 +102,61 @@ const SHAPE_CLS = {
 export function LinkStylingSettings({ customization, onLinksPatch }: LinkStylingProps) {
   const links = customization.links
   return (
-    <CustomizeCard title="Links" icon={Link2} description="Underline, color and icons for all links, including header contact details.">
+    <CustomizeCard
+      title="Links"
+      icon={Link2}
+      description="Underline, color and icons for all links, including header contact details."
+    >
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
-          <Checkbox id="link-underline" checked={links.underline} onCheckedChange={(v) => onLinksPatch({ underline: v === true })} />
-          <Label htmlFor="link-underline" className="cursor-pointer text-sm">Underline</Label>
+          <Checkbox
+            id="link-underline"
+            checked={links.underline}
+            onCheckedChange={(v) => onLinksPatch({ underline: v === true })}
+          />
+          <Label htmlFor="link-underline" className="cursor-pointer text-sm">
+            Underline
+          </Label>
         </div>
         <div className="flex items-center gap-2">
-          <Checkbox id="link-accent" checked={links.useAccent} onCheckedChange={(v) => onLinksPatch({ useAccent: v === true })} />
-          <Label htmlFor="link-accent" className="cursor-pointer text-sm">Accent color</Label>
+          <Checkbox
+            id="link-accent"
+            checked={links.useAccent}
+            onCheckedChange={(v) => onLinksPatch({ useAccent: v === true })}
+          />
+          <Label htmlFor="link-accent" className="cursor-pointer text-sm">
+            Accent color
+          </Label>
         </div>
         <div className="flex items-center gap-2">
-          <Checkbox id="link-icon" checked={links.icon} onCheckedChange={(v) => onLinksPatch({ icon: v === true })} />
-          <Label htmlFor="link-icon" className="cursor-pointer text-sm">Link icon</Label>
+          <Checkbox
+            id="link-icon"
+            checked={links.icon}
+            onCheckedChange={(v) => onLinksPatch({ icon: v === true })}
+          />
+          <Label htmlFor="link-icon" className="cursor-pointer text-sm">
+            Link icon
+          </Label>
         </div>
       </div>
       {links.icon && (
         <div className="grid grid-cols-3 gap-2">
-          <OptionButton active={links.iconType === 'link'} onClick={() => onLinksPatch({ iconType: 'link' })}>
+          <OptionButton
+            active={links.iconType === 'link'}
+            onClick={() => onLinksPatch({ iconType: 'link' })}
+          >
             <Link2 className="mx-auto block size-4" />
           </OptionButton>
-          <OptionButton active={links.iconType === 'external'} onClick={() => onLinksPatch({ iconType: 'external' })}>
+          <OptionButton
+            active={links.iconType === 'external'}
+            onClick={() => onLinksPatch({ iconType: 'external' })}
+          >
             <ExternalLink className="mx-auto block size-4" />
           </OptionButton>
-          <OptionButton active={links.iconType === 'mail'} onClick={() => onLinksPatch({ iconType: 'mail' })}>
+          <OptionButton
+            active={links.iconType === 'mail'}
+            onClick={() => onLinksPatch({ iconType: 'mail' })}
+          >
             <Mail className="mx-auto block size-4" />
           </OptionButton>
         </div>
@@ -128,16 +165,29 @@ export function LinkStylingSettings({ customization, onLinksPatch }: LinkStyling
   )
 }
 
-export function WorkExperienceSettings({ customization, onWorkDisplayPatch }: WorkExperienceSettingsProps) {
+export function WorkExperienceSettings({
+  customization,
+  onWorkDisplayPatch,
+}: WorkExperienceSettingsProps) {
   return (
-    <CustomizeCard title="Work Experience" icon={BriefcaseBusiness} description="How job entries are displayed.">
+    <CustomizeCard
+      title="Work Experience"
+      icon={BriefcaseBusiness}
+      description="How job entries are displayed."
+    >
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Title / subtitle order</Label>
+        <Label className="text-foreground text-sm font-bold">Title / subtitle order</Label>
         <div className="grid grid-cols-2 gap-2">
-          <OptionButton active={customization.workDisplay.jobTitleBeforeEmployer} onClick={() => onWorkDisplayPatch({ jobTitleBeforeEmployer: true })}>
+          <OptionButton
+            active={customization.workDisplay.jobTitleBeforeEmployer}
+            onClick={() => onWorkDisplayPatch({ jobTitleBeforeEmployer: true })}
+          >
             <span className="block text-center">Job Title - Employer</span>
           </OptionButton>
-          <OptionButton active={!customization.workDisplay.jobTitleBeforeEmployer} onClick={() => onWorkDisplayPatch({ jobTitleBeforeEmployer: false })}>
+          <OptionButton
+            active={!customization.workDisplay.jobTitleBeforeEmployer}
+            onClick={() => onWorkDisplayPatch({ jobTitleBeforeEmployer: false })}
+          >
             <span className="block text-center">Employer - Job Title</span>
           </OptionButton>
         </div>
@@ -148,26 +198,43 @@ export function WorkExperienceSettings({ customization, onWorkDisplayPatch }: Wo
           checked={customization.workDisplay.groupPromotions}
           onCheckedChange={(v) => onWorkDisplayPatch({ groupPromotions: v === true })}
         />
-        <Label htmlFor="work-group-promotions" className="cursor-pointer text-sm">Group promotions</Label>
+        <Label htmlFor="work-group-promotions" className="cursor-pointer text-sm">
+          Group promotions
+        </Label>
       </div>
     </CustomizeCard>
   )
 }
 
-export default function HeaderControls({ customization, onHeaderPatch, onPhotoPositionPatch, showPhoto = true }: HeaderControlsProps) {
+export default function HeaderControls({
+  customization,
+  onHeaderPatch,
+  onPhotoPositionPatch,
+  showPhoto = true,
+}: HeaderControlsProps) {
   const header = customization.header
   const photo = customization.photoPosition
 
   return (
-    <CustomizeCard title="Header" icon={UserRound} description="Name, contact details, icons and photo.">
+    <CustomizeCard
+      title="Header"
+      icon={UserRound}
+      description="Name, contact details, icons and photo."
+    >
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Text alignment</Label>
+        <Label className="text-foreground text-sm font-bold">Text alignment</Label>
         <div className="grid grid-cols-2 gap-2">
-          <OptionButton active={header.alignText === 'start'} onClick={() => onHeaderPatch({ alignText: 'start' })}>
+          <OptionButton
+            active={header.alignText === 'start'}
+            onClick={() => onHeaderPatch({ alignText: 'start' })}
+          >
             <AlignLeft className="mx-auto block size-4" />
             <span className="block text-center">Left</span>
           </OptionButton>
-          <OptionButton active={header.alignText === 'center'} onClick={() => onHeaderPatch({ alignText: 'center' })}>
+          <OptionButton
+            active={header.alignText === 'center'}
+            onClick={() => onHeaderPatch({ alignText: 'center' })}
+          >
             <AlignCenter className="mx-auto block size-4" />
             <span className="block text-center">Center</span>
           </OptionButton>
@@ -175,9 +242,12 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Details arrangement</Label>
+        <Label className="text-foreground text-sm font-bold">Details arrangement</Label>
         <div className="grid grid-cols-3 gap-2">
-          <OptionButton active={header.detailsArrangement === 'column'} onClick={() => onHeaderPatch({ detailsArrangement: 'column' })}>
+          <OptionButton
+            active={header.detailsArrangement === 'column'}
+            onClick={() => onHeaderPatch({ detailsArrangement: 'column' })}
+          >
             <span className="mx-auto mb-1 flex flex-col items-center gap-0.5">
               <span className="h-0.5 w-8 bg-current" />
               <span className="h-0.5 w-8 bg-current" />
@@ -185,7 +255,10 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
             </span>
             <span className="block text-center">Stacked</span>
           </OptionButton>
-          <OptionButton active={header.detailsArrangement === 'grid'} onClick={() => onHeaderPatch({ detailsArrangement: 'grid' })}>
+          <OptionButton
+            active={header.detailsArrangement === 'grid'}
+            onClick={() => onHeaderPatch({ detailsArrangement: 'grid' })}
+          >
             <span className="mx-auto mb-1 grid w-fit grid-cols-2 gap-0.5">
               <span className="h-0.5 w-4 bg-current" />
               <span className="h-0.5 w-4 bg-current" />
@@ -194,7 +267,10 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
             </span>
             <span className="block text-center">Grid</span>
           </OptionButton>
-          <OptionButton active={header.detailsArrangement === 'wrap'} onClick={() => onHeaderPatch({ detailsArrangement: 'wrap' })}>
+          <OptionButton
+            active={header.detailsArrangement === 'wrap'}
+            onClick={() => onHeaderPatch({ detailsArrangement: 'wrap' })}
+          >
             <span className="mx-auto mb-1 flex gap-2">
               <span className="flex flex-col gap-0.5">
                 <span className="h-0.5 w-3 bg-current" />
@@ -210,7 +286,11 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
         </div>
         <div className="grid grid-cols-3 gap-2">
           {(['icon', 'bullet', 'bar'] as const).map((s) => (
-            <OptionButton key={s} active={header.detailsSeparator === s} onClick={() => onHeaderPatch({ detailsSeparator: s })}>
+            <OptionButton
+              key={s}
+              active={header.detailsSeparator === s}
+              onClick={() => onHeaderPatch({ detailsSeparator: s })}
+            >
               <span className="block text-center capitalize">
                 {s === 'icon' ? 'Icon' : s === 'bullet' ? '• Bullet' : '| Bar'}
               </span>
@@ -220,7 +300,7 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Icon style</Label>
+        <Label className="text-foreground text-sm font-bold">Icon style</Label>
         <div className="flex gap-2">
           {ICON_STYLES.map((s) => (
             <button
@@ -229,7 +309,9 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
               onClick={() => onHeaderPatch({ iconStyle: s })}
               className={cn(
                 'flex h-11 flex-1 items-center justify-center rounded-xl border transition-colors',
-                header.iconStyle === s ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-muted'
+                header.iconStyle === s
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border bg-card hover:bg-muted'
               )}
             >
               <IconSwatch style={s} />
@@ -239,36 +321,54 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Name style</Label>
+        <Label className="text-foreground text-sm font-bold">Name style</Label>
         <div className="grid grid-cols-2 gap-2">
-          <OptionButton active={header.nameStyle === 'regular'} onClick={() => onHeaderPatch({ nameStyle: 'regular' })}>
+          <OptionButton
+            active={header.nameStyle === 'regular'}
+            onClick={() => onHeaderPatch({ nameStyle: 'regular' })}
+          >
             <span className="block text-center font-normal">Aa</span>
           </OptionButton>
-          <OptionButton active={header.nameStyle === 'bold'} onClick={() => onHeaderPatch({ nameStyle: 'bold' })}>
+          <OptionButton
+            active={header.nameStyle === 'bold'}
+            onClick={() => onHeaderPatch({ nameStyle: 'bold' })}
+          >
             <span className="block text-center font-bold">Aa</span>
           </OptionButton>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Professional title style</Label>
+        <Label className="text-foreground text-sm font-bold">Professional title style</Label>
         <div className="grid grid-cols-2 gap-2">
-          <OptionButton active={header.jobTitleStyle === 'normal'} onClick={() => onHeaderPatch({ jobTitleStyle: 'normal' })}>
+          <OptionButton
+            active={header.jobTitleStyle === 'normal'}
+            onClick={() => onHeaderPatch({ jobTitleStyle: 'normal' })}
+          >
             <span className="block text-center">Aa</span>
           </OptionButton>
-          <OptionButton active={header.jobTitleStyle === 'italic'} onClick={() => onHeaderPatch({ jobTitleStyle: 'italic' })}>
+          <OptionButton
+            active={header.jobTitleStyle === 'italic'}
+            onClick={() => onHeaderPatch({ jobTitleStyle: 'italic' })}
+          >
             <span className="block text-center italic">Aa</span>
           </OptionButton>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Professional title position</Label>
+        <Label className="text-foreground text-sm font-bold">Professional title position</Label>
         <div className="grid grid-cols-2 gap-2">
-          <OptionButton active={header.jobTitlePosition === 'sameLine'} onClick={() => onHeaderPatch({ jobTitlePosition: 'sameLine' })}>
+          <OptionButton
+            active={header.jobTitlePosition === 'sameLine'}
+            onClick={() => onHeaderPatch({ jobTitlePosition: 'sameLine' })}
+          >
             <span className="block text-center">Try Same Line</span>
           </OptionButton>
-          <OptionButton active={header.jobTitlePosition === 'below'} onClick={() => onHeaderPatch({ jobTitlePosition: 'below' })}>
+          <OptionButton
+            active={header.jobTitlePosition === 'below'}
+            onClick={() => onHeaderPatch({ jobTitlePosition: 'below' })}
+          >
             <span className="block text-center">Below</span>
           </OptionButton>
         </div>
@@ -276,73 +376,102 @@ export default function HeaderControls({ customization, onHeaderPatch, onPhotoPo
 
       {showPhoto && (
         <div className="space-y-2">
-          <Label className="text-sm font-bold text-foreground">Photo</Label>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Checkbox id="hdr-photo-show" checked={photo.show} onCheckedChange={(v) => onPhotoPositionPatch({ show: v === true })} />
-            <Label htmlFor="hdr-photo-show" className="cursor-pointer text-sm">Show</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox id="hdr-photo-gray" checked={photo.grayscale} onCheckedChange={(v) => onPhotoPositionPatch({ grayscale: v === true })} />
-            <Label htmlFor="hdr-photo-gray" className="cursor-pointer text-sm">Grayscale</Label>
-          </div>
-        </div>
-        {photo.show && (
-          <>
-            <div className="grid grid-cols-3 gap-2">
-              <OptionButton active={photo.position === 'left'} onClick={() => onPhotoPositionPatch({ position: 'left' })}>
-                <span className="mx-auto mb-1 flex items-center gap-1">
-                  <span className="size-3 rounded-full bg-current" />
-                  <span className="flex flex-col gap-0.5">
-                    <span className="h-0.5 w-5 bg-current" />
-                    <span className="h-0.5 w-5 bg-current" />
-                  </span>
-                </span>
-                <span className="block text-center">Left</span>
-              </OptionButton>
-              <OptionButton active={photo.position === 'top'} onClick={() => onPhotoPositionPatch({ position: 'top' })}>
-                <span className="mx-auto mb-1 flex flex-col items-center gap-0.5">
-                  <span className="size-3 rounded-full bg-current" />
-                  <span className="h-0.5 w-8 bg-current" />
-                  <span className="h-0.5 w-8 bg-current" />
-                </span>
-                <span className="block text-center">Top</span>
-              </OptionButton>
-              <OptionButton active={photo.position === 'right'} onClick={() => onPhotoPositionPatch({ position: 'right' })}>
-                <span className="mx-auto mb-1 flex items-center gap-1">
-                  <span className="flex flex-col gap-0.5">
-                    <span className="h-0.5 w-5 bg-current" />
-                    <span className="h-0.5 w-5 bg-current" />
-                  </span>
-                  <span className="size-3 rounded-full bg-current" />
-                </span>
-                <span className="block text-center">Right</span>
-              </OptionButton>
+          <Label className="text-foreground text-sm font-bold">Photo</Label>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="hdr-photo-show"
+                checked={photo.show}
+                onCheckedChange={(v) => onPhotoPositionPatch({ show: v === true })}
+              />
+              <Label htmlFor="hdr-photo-show" className="cursor-pointer text-sm">
+                Show
+              </Label>
             </div>
-            <div className="grid grid-cols-5 gap-2">
-              {(['xs', 's', 'm', 'l', 'xl'] as const).map((s) => (
-                <OptionButton key={s} active={photo.size === s} onClick={() => onPhotoPositionPatch({ size: s })}>
-                  <span className="block text-center uppercase">{s}</span>
-                </OptionButton>
-              ))}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="hdr-photo-gray"
+                checked={photo.grayscale}
+                onCheckedChange={(v) => onPhotoPositionPatch({ grayscale: v === true })}
+              />
+              <Label htmlFor="hdr-photo-gray" className="cursor-pointer text-sm">
+                Grayscale
+              </Label>
             </div>
-            <div className="grid grid-cols-5 gap-2">
-              {(['circle', 'square', 'rounded-sm', 'rounded-md', 'rounded-lg'] as const).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => onPhotoPositionPatch({ shape: s })}
-                  className={cn(
-                    'flex h-11 items-center justify-center rounded-xl border transition-colors',
-                    photo.shape === s ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-muted'
-                  )}
+          </div>
+          {photo.show && (
+            <>
+              <div className="grid grid-cols-3 gap-2">
+                <OptionButton
+                  active={photo.position === 'left'}
+                  onClick={() => onPhotoPositionPatch({ position: 'left' })}
                 >
-                  <span className={cn('size-6 bg-current', SHAPE_CLS[s])} />
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+                  <span className="mx-auto mb-1 flex items-center gap-1">
+                    <span className="size-3 rounded-full bg-current" />
+                    <span className="flex flex-col gap-0.5">
+                      <span className="h-0.5 w-5 bg-current" />
+                      <span className="h-0.5 w-5 bg-current" />
+                    </span>
+                  </span>
+                  <span className="block text-center">Left</span>
+                </OptionButton>
+                <OptionButton
+                  active={photo.position === 'top'}
+                  onClick={() => onPhotoPositionPatch({ position: 'top' })}
+                >
+                  <span className="mx-auto mb-1 flex flex-col items-center gap-0.5">
+                    <span className="size-3 rounded-full bg-current" />
+                    <span className="h-0.5 w-8 bg-current" />
+                    <span className="h-0.5 w-8 bg-current" />
+                  </span>
+                  <span className="block text-center">Top</span>
+                </OptionButton>
+                <OptionButton
+                  active={photo.position === 'right'}
+                  onClick={() => onPhotoPositionPatch({ position: 'right' })}
+                >
+                  <span className="mx-auto mb-1 flex items-center gap-1">
+                    <span className="flex flex-col gap-0.5">
+                      <span className="h-0.5 w-5 bg-current" />
+                      <span className="h-0.5 w-5 bg-current" />
+                    </span>
+                    <span className="size-3 rounded-full bg-current" />
+                  </span>
+                  <span className="block text-center">Right</span>
+                </OptionButton>
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {(['xs', 's', 'm', 'l', 'xl'] as const).map((s) => (
+                  <OptionButton
+                    key={s}
+                    active={photo.size === s}
+                    onClick={() => onPhotoPositionPatch({ size: s })}
+                  >
+                    <span className="block text-center uppercase">{s}</span>
+                  </OptionButton>
+                ))}
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {(['circle', 'square', 'rounded-sm', 'rounded-md', 'rounded-lg'] as const).map(
+                  (s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => onPhotoPositionPatch({ shape: s })}
+                      className={cn(
+                        'flex h-11 items-center justify-center rounded-xl border transition-colors',
+                        photo.shape === s
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-card hover:bg-muted'
+                      )}
+                    >
+                      <span className={cn('size-6 bg-current', SHAPE_CLS[s])} />
+                    </button>
+                  )
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </CustomizeCard>

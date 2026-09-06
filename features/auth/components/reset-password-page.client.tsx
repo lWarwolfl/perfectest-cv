@@ -6,13 +6,7 @@ import { Controller, useForm } from 'react-hook-form'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { AuthBrand } from '@/features/auth/components/auth-brand'
@@ -29,7 +23,8 @@ export function ResetPasswordPageClient() {
   })
 
   useEffect(() => {
-    if (!params.get('token')) setTokenError('This reset link is missing its token. Request a new one.')
+    if (!params.get('token'))
+      setTokenError('This reset link is missing its token. Request a new one.')
   }, [params])
 
   return (
@@ -43,12 +38,14 @@ export function ResetPasswordPageClient() {
         <CardContent>
           {tokenError ? (
             <div className="space-y-4">
-              <p className="text-sm text-destructive">{tokenError}</p>
+              <p className="text-destructive text-sm">{tokenError}</p>
               <Button render={<Link href="/auth/forgot-password" />}>Request new link</Button>
             </div>
           ) : (
             <form
-              onSubmit={form.handleSubmit((data) => reset.mutate({ newPassword: data.newPassword }))}
+              onSubmit={form.handleSubmit((data) =>
+                reset.mutate({ newPassword: data.newPassword })
+              )}
               className="flex flex-col gap-4"
             >
               <Controller
@@ -57,7 +54,12 @@ export function ResetPasswordPageClient() {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="newPassword">New password</FieldLabel>
-                    <Input {...field} id="newPassword" type="password" autoComplete="new-password" />
+                    <Input
+                      {...field}
+                      id="newPassword"
+                      type="password"
+                      autoComplete="new-password"
+                    />
                     {fieldState.invalid && <FieldError errors={[fieldState.error?.message]} />}
                   </Field>
                 )}
@@ -68,7 +70,12 @@ export function ResetPasswordPageClient() {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
-                    <Input {...field} id="confirmPassword" type="password" autoComplete="new-password" />
+                    <Input
+                      {...field}
+                      id="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                    />
                     {fieldState.invalid && <FieldError errors={[fieldState.error?.message]} />}
                   </Field>
                 )}

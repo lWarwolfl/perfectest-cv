@@ -3,7 +3,13 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ChevronDown, Eye, EyeOff, Pencil, GripVertical, Trash2, Plus } from 'lucide-react'
 import type { TSection, HeadingStyle } from '@/features/resume/types'
 import { SECTION_LABELS } from '@/features/resume/defaults'
@@ -22,10 +28,16 @@ const HEADING_STYLE_OPTIONS: { value: HeadingStyle; label: string }[] = [
 ]
 
 export function stripHtml(s?: string) {
-  return (s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return (s || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
-export function entryTitleAndPreview(data: TSection['entries'][number]['data']): { title: string; preview: string } {
+export function entryTitleAndPreview(data: TSection['entries'][number]['data']): {
+  title: string
+  preview: string
+} {
   switch (data.type) {
     case 'work':
       return { title: data.jobTitle || data.employer, preview: stripHtml(data.description) }
@@ -46,7 +58,10 @@ export function entryTitleAndPreview(data: TSection['entries'][number]['data']):
     case 'organisation':
     case 'course':
     case 'award':
-      return { title: data.title, preview: stripHtml('description' in data ? data.description : data.issuer) }
+      return {
+        title: data.title,
+        preview: stripHtml('description' in data ? data.description : data.issuer),
+      }
     case 'reference':
       return { title: data.name, preview: data.contact }
     case 'declaration':
@@ -56,14 +71,28 @@ export function entryTitleAndPreview(data: TSection['entries'][number]['data']):
   }
 }
 
-export default function SectionCard({ section, onToggle, onDelete, onAddEntry, onEntryClick, saveMeta, onSectionHeadingPatch, headingStyle, showTitle, canDelete }: {
+export default function SectionCard({
+  section,
+  onToggle,
+  onDelete,
+  onAddEntry,
+  onEntryClick,
+  saveMeta,
+  onSectionHeadingPatch,
+  headingStyle,
+  showTitle,
+  canDelete,
+}: {
   section: TSection
   onToggle: (hidden: boolean) => void
   onDelete: () => void
   onAddEntry: () => void
   onEntryClick: (entryId: string) => void
   saveMeta: (sectionId: string, patch: { hidden?: boolean; displayName?: string }) => void
-  onSectionHeadingPatch: (sectionId: string, patch: { style?: HeadingStyle; showTitle?: boolean }) => void
+  onSectionHeadingPatch: (
+    sectionId: string,
+    patch: { style?: HeadingStyle; showTitle?: boolean }
+  ) => void
   headingStyle: HeadingStyle
   showTitle: boolean
   canDelete: boolean
@@ -83,9 +112,9 @@ export default function SectionCard({ section, onToggle, onDelete, onAddEntry, o
   const isProfile = section.sectionType === 'profile'
 
   return (
-    <div className="rounded-xl border border-border bg-card">
+    <div className="border-border bg-card rounded-xl border">
       <div className="flex items-center gap-2 p-3">
-        <GripVertical className="size-4 shrink-0 text-muted-foreground/40" />
+        <GripVertical className="text-muted-foreground/40 size-4 shrink-0" />
         {editing ? (
           <Input
             value={draft}
@@ -100,35 +129,68 @@ export default function SectionCard({ section, onToggle, onDelete, onAddEntry, o
             className="h-7"
           />
         ) : (
-          <span className="min-w-0 flex-1 truncate text-sm font-semibold">{section.displayName}</span>
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+            {section.displayName}
+          </span>
         )}
-        <Button variant="ghost" size="icon-sm" aria-label="Rename section" onClick={() => { setDraft(section.displayName); setEditing(true) }}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Rename section"
+          onClick={() => {
+            setDraft(section.displayName)
+            setEditing(true)
+          }}
+        >
           <Pencil className="size-3" />
         </Button>
-        <Button variant="ghost" size="icon-sm" aria-label={section.hidden ? 'Show section' : 'Hide section'} onClick={() => onToggle(!section.hidden)}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={section.hidden ? 'Show section' : 'Hide section'}
+          onClick={() => onToggle(!section.hidden)}
+        >
           {section.hidden ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
         </Button>
         {canDelete && (
-          <Button variant="ghost" size="icon-sm" className="text-destructive" aria-label="Delete section" onClick={onDelete}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="text-destructive"
+            aria-label="Delete section"
+            onClick={onDelete}
+          >
             <Trash2 className="size-3" />
           </Button>
         )}
-        <Button variant="ghost" size="icon-sm" aria-label="Toggle section" onClick={() => setOpen((o) => !o)}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Toggle section"
+          onClick={() => setOpen((o) => !o)}
+        >
           <ChevronDown className={`size-4 transition-transform ${open ? 'rotate-180' : ''}`} />
         </Button>
       </div>
       {open && (
-        <div className="space-y-2 border-t border-border/60 p-3">
+        <div className="border-border/60 space-y-2 border-t p-3">
           {!isProfile && (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/40 p-2">
-              <span className="text-xs font-medium text-muted-foreground">Title style</span>
-              <Select value={headingStyle} onValueChange={(v) => onSectionHeadingPatch(section.id, { style: v as HeadingStyle })}>
+            <div className="bg-muted/40 flex flex-wrap items-center gap-2 rounded-lg p-2">
+              <span className="text-muted-foreground text-xs font-medium">Title style</span>
+              <Select
+                value={headingStyle}
+                onValueChange={(v) =>
+                  onSectionHeadingPatch(section.id, { style: v as HeadingStyle })
+                }
+              >
                 <SelectTrigger className="h-7 w-[130px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {HEADING_STYLE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -150,10 +212,14 @@ export default function SectionCard({ section, onToggle, onDelete, onAddEntry, o
                   key={entry.id}
                   type="button"
                   onClick={() => onEntryClick(entry.id)}
-                  className="w-full rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
+                  className="hover:bg-muted/50 w-full rounded-lg border p-3 text-left transition-colors"
                 >
                   <span className="block truncate text-sm font-medium">{title || 'Summary'}</span>
-                  {preview && <span className="mt-0.5 line-clamp-2 block text-xs text-muted-foreground">{preview}</span>}
+                  {preview && (
+                    <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">
+                      {preview}
+                    </span>
+                  )}
                 </button>
               )
             })
@@ -166,10 +232,16 @@ export default function SectionCard({ section, onToggle, onDelete, onAddEntry, o
                     key={entry.id}
                     type="button"
                     onClick={() => onEntryClick(entry.id)}
-                    className="w-full rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
+                    className="hover:bg-muted/50 w-full rounded-lg border p-3 text-left transition-colors"
                   >
-                    <span className="block truncate text-sm font-medium">{title || SECTION_LABELS[section.sectionType]}</span>
-                    {preview && <span className="mt-0.5 line-clamp-2 block text-xs text-muted-foreground">{preview}</span>}
+                    <span className="block truncate text-sm font-medium">
+                      {title || SECTION_LABELS[section.sectionType]}
+                    </span>
+                    {preview && (
+                      <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">
+                        {preview}
+                      </span>
+                    )}
                   </button>
                 )
               })}

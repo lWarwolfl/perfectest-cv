@@ -23,7 +23,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!letter) return new Response('Letter not found', { status: 404 })
 
   const c = normalizeLetterDesign(letter.design).customization
-  const fileName = ((c.fileName || letter.title || 'cover-letter').replace(/\.pdf$/i, '').trim() || 'cover-letter').replace(/[^\w\-. ]+/g, '_')
+  const fileName = (
+    (c.fileName || letter.title || 'cover-letter').replace(/\.pdf$/i, '').trim() || 'cover-letter'
+  ).replace(/[^\w\-. ]+/g, '_')
 
   const buffer = await renderToBuffer(buildDoc(letter as LetterContentPatch, c))
 
@@ -39,7 +41,12 @@ function getColors(c: Customization) {
   const basic = c.colors.basic
   const multi = c.colors.mode === 'advanced' ? c.colors.advanced.multi.light : basic.multi
   return {
-    accent: c.colors.mode === 'advanced' ? c.colors.advanced.single : basic.selected === 'multi' ? multi.accentColor : basic.single,
+    accent:
+      c.colors.mode === 'advanced'
+        ? c.colors.advanced.single
+        : basic.selected === 'multi'
+          ? multi.accentColor
+          : basic.single,
     text: '#000000',
     bg: '#ffffff',
   }
@@ -53,36 +60,90 @@ function buildDoc(form: LetterContentPatch, c: Customization) {
   const mv = 14 + Number(spacing.marginVertical) * 3
   const mh = 16 + Number(spacing.marginHorizontal) * 3
   const pageFormat = c.regional?.pageFormat === 'US Letter' ? 'LETTER' : 'A4'
-  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  const today = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
   const dateStr = form.dateMode === 'custom' ? form.dateCustom : today
 
   const styles = StyleSheet.create({
-    page: { paddingTop: mv, paddingBottom: mv, paddingHorizontal: mh, fontFamily: 'Helvetica', fontSize: base, lineHeight: lh, color: col.text },
-    name: { fontSize: spacing.nameFontSizePt || 24, fontWeight: 'bold', color: c.applyAccentColor.name ? col.accent : col.text },
-    jobTitle: { fontSize: spacing.jobTitleFontSizePt || 18, color: c.applyAccentColor.jobTitle ? col.accent : col.text },
+    page: {
+      paddingTop: mv,
+      paddingBottom: mv,
+      paddingHorizontal: mh,
+      fontFamily: 'Helvetica',
+      fontSize: base,
+      lineHeight: lh,
+      color: col.text,
+    },
+    name: {
+      fontSize: spacing.nameFontSizePt || 24,
+      fontWeight: 'bold',
+      color: c.applyAccentColor.name ? col.accent : col.text,
+    },
+    jobTitle: {
+      fontSize: spacing.jobTitleFontSizePt || 18,
+      color: c.applyAccentColor.jobTitle ? col.accent : col.text,
+    },
     block: { marginBottom: 12 },
     subject: { fontWeight: 'bold' },
   })
 
-  const senderLines = [form.senderEmail, form.senderPhone, form.senderAddress, form.senderWebsite, form.senderLinkedIn, form.senderGitHub].filter(Boolean)
+  const senderLines = [
+    form.senderEmail,
+    form.senderPhone,
+    form.senderAddress,
+    form.senderWebsite,
+    form.senderLinkedIn,
+    form.senderGitHub,
+  ].filter(Boolean)
 
-  return h(Document, {},
-    h(Page, { size: pageFormat, style: styles.page },
-      form.senderName ? h(View, { style: styles.block },
-        h(Text, { style: styles.name }, form.senderName),
-        form.senderJobTitle ? h(Text, { style: styles.jobTitle }, form.senderJobTitle) : null,
-        senderLines.length ? h(Text, { style: { fontSize: base * 0.85, marginTop: 2 } }, senderLines.join('  |  ')) : null
-      ) : null,
+  return h(
+    Document,
+    {},
+    h(
+      Page,
+      { size: pageFormat, style: styles.page },
+      form.senderName
+        ? h(
+            View,
+            { style: styles.block },
+            h(Text, { style: styles.name }, form.senderName),
+            form.senderJobTitle ? h(Text, { style: styles.jobTitle }, form.senderJobTitle) : null,
+            senderLines.length
+              ? h(
+                  Text,
+                  { style: { fontSize: base * 0.85, marginTop: 2 } },
+                  senderLines.join('  |  ')
+                )
+              : null
+          )
+        : null,
       h(View, { style: styles.block }, h(Text, {}, dateStr)),
-      (form.recipientName || form.recipientCompany) ? h(View, { style: styles.block },
-        form.recipientName ? h(Text, {}, form.recipientName) : null,
-        form.recipientPosition ? h(Text, {}, form.recipientPosition) : null,
-        form.recipientCompany ? h(Text, {}, form.recipientCompany) : null,
-        form.recipientAddress ? h(Text, {}, form.recipientAddress) : null
-      ) : null,
-      form.subject ? h(View, { style: styles.block }, h(Text, { style: styles.subject }, `Subject: ${form.subject}`)) : null,
-      form.body ? h(View, { style: styles.block }, h(Text, {}, form.body.replace(/<[^>]*>/g, ' '))) : null,
-      h(View, { style: { marginTop: 24 } },
+      form.recipientName || form.recipientCompany
+        ? h(
+            View,
+            { style: styles.block },
+            form.recipientName ? h(Text, {}, form.recipientName) : null,
+            form.recipientPosition ? h(Text, {}, form.recipientPosition) : null,
+            form.recipientCompany ? h(Text, {}, form.recipientCompany) : null,
+            form.recipientAddress ? h(Text, {}, form.recipientAddress) : null
+          )
+        : null,
+      form.subject
+        ? h(
+            View,
+            { style: styles.block },
+            h(Text, { style: styles.subject }, `Subject: ${form.subject}`)
+          )
+        : null,
+      form.body
+        ? h(View, { style: styles.block }, h(Text, {}, form.body.replace(/<[^>]*>/g, ' ')))
+        : null,
+      h(
+        View,
+        { style: { marginTop: 24 } },
         h(Text, {}, form.signatureName || form.senderName || ''),
         form.signaturePlace ? h(Text, {}, form.signaturePlace) : null,
         form.signatureDate ? h(Text, {}, form.signatureDate) : null

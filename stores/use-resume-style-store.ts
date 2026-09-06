@@ -61,12 +61,18 @@ export const useResumeStyleStore = create<ResumeStyleState>((set) => ({
     })),
   patchPhotoPosition: (patch) =>
     set((s) => ({
-      customization: { ...s.customization, photoPosition: { ...s.customization.photoPosition, ...patch } },
+      customization: {
+        ...s.customization,
+        photoPosition: { ...s.customization.photoPosition, ...patch },
+      },
       revision: s.revision + 1,
     })),
   patchWorkDisplay: (patch) =>
     set((s) => ({
-      customization: { ...s.customization, workDisplay: { ...s.customization.workDisplay, ...patch } },
+      customization: {
+        ...s.customization,
+        workDisplay: { ...s.customization.workDisplay, ...patch },
+      },
       revision: s.revision + 1,
     })),
   patchLayout: (patch) =>
@@ -94,7 +100,10 @@ export const useResumeStyleStore = create<ResumeStyleState>((set) => ({
     })),
   patchEntryLayout: (patch) =>
     set((s) => ({
-      customization: { ...s.customization, entryLayout: { ...s.customization.entryLayout, ...patch } },
+      customization: {
+        ...s.customization,
+        entryLayout: { ...s.customization.entryLayout, ...patch },
+      },
       revision: s.revision + 1,
     })),
   patchRegional: (patch) =>

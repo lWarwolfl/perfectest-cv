@@ -3,7 +3,13 @@
 import { List, FileText } from 'lucide-react'
 import { CustomizeCard } from './customize-tab-layout'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import type { Customization } from '@/features/resume/types'
@@ -24,10 +30,17 @@ export default function EntryFormattingSettings({
   onReset,
 }: EntryFormattingSettingsProps) {
   return (
-    <CustomizeCard title="Dates & Download" icon={List} description="Date formats, positions and download file name.">
+    <CustomizeCard
+      title="Dates & Download"
+      icon={List}
+      description="Date formats, positions and download file name."
+    >
       <div className="space-y-2">
         <Label>Date format</Label>
-        <Select value={customization.regional.dateDisplay} onValueChange={(v) => onRegionalPatch({ dateDisplay: v || 'MM/YYYY' })}>
+        <Select
+          value={customization.regional.dateDisplay}
+          onValueChange={(v) => onRegionalPatch({ dateDisplay: v || 'MM/YYYY' })}
+        >
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
@@ -42,7 +55,9 @@ export default function EntryFormattingSettings({
         <Label>Date position</Label>
         <Select
           value={customization.entryLayout.displayMode}
-          onValueChange={(v) => onEntryLayoutPatch({ displayMode: v as Customization['entryLayout']['displayMode'] })}
+          onValueChange={(v) =>
+            onEntryLayoutPatch({ displayMode: v as Customization['entryLayout']['displayMode'] })
+          }
         >
           <SelectTrigger className="w-full">
             <SelectValue />
@@ -65,8 +80,13 @@ export default function EntryFormattingSettings({
           placeholder="Resume.pdf"
         />
       </div>
-      <div className="mt-2 flex items-center justify-between rounded-xl bg-muted/40 p-4">
-        <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={onReset}>
+      <div className="bg-muted/40 mt-2 flex items-center justify-between rounded-xl p-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:bg-destructive/10"
+          onClick={onReset}
+        >
           Reset Customizations
         </Button>
       </div>

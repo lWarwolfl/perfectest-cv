@@ -4,13 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { AuthBrand } from '@/features/auth/components/auth-brand'
@@ -43,7 +37,13 @@ export function ForgotPasswordPageClient() {
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input {...field} id="email" type="email" placeholder="you@example.com" autoComplete="email" />
+                  <Input
+                    {...field}
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
                   {fieldState.invalid && <FieldError errors={[fieldState.error?.message]} />}
                 </Field>
               )}
@@ -52,9 +52,9 @@ export function ForgotPasswordPageClient() {
               {forgot.isPending ? 'Sending…' : 'Send reset link'}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-4 text-center text-sm">
             Remembered it?{' '}
-            <Link href="/auth/signin" className="font-medium text-primary hover:underline">
+            <Link href="/auth/signin" className="text-primary font-medium hover:underline">
               Sign in
             </Link>
           </p>

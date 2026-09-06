@@ -32,7 +32,7 @@ export function PreviewFrame({
   return (
     <div
       ref={ref}
-      className="preview-light relative w-full overflow-hidden rounded-lg border border-border bg-white"
+      className="preview-light border-border relative w-full overflow-hidden rounded-lg border bg-white"
       style={{ aspectRatio: `${widthMm} / ${heightMm}` }}
     >
       {scale > 0 && (
@@ -43,7 +43,7 @@ export function PreviewFrame({
             transformOrigin: 'top left',
             pointerEvents: 'none',
           }}
-          className="absolute left-0 top-0"
+          className="absolute top-0 left-0"
         >
           {children}
         </div>

@@ -3,7 +3,13 @@
 import { FileText } from 'lucide-react'
 import { CustomizeCard } from './customize-tab-layout'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import type { Customization } from '@/features/resume/types'
 
@@ -21,10 +27,19 @@ export default function PageSpacingSettings({
   const spacing = customization.spacing
   const regional = customization.regional
   return (
-    <CustomizeCard title="Page Setup" icon={FileText} description="Paper size, margins and density.">
+    <CustomizeCard
+      title="Page Setup"
+      icon={FileText}
+      description="Paper size, margins and density."
+    >
       <div className="space-y-2">
         <Label>Paper size</Label>
-        <Select value={regional.pageFormat} onValueChange={(v) => onRegionalPatch({ pageFormat: v === 'US Letter' ? 'US Letter' : 'A4' })}>
+        <Select
+          value={regional.pageFormat}
+          onValueChange={(v) =>
+            onRegionalPatch({ pageFormat: v === 'US Letter' ? 'US Letter' : 'A4' })
+          }
+        >
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
@@ -37,7 +52,9 @@ export default function PageSpacingSettings({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Top / bottom margin</Label>
-          <span className="text-sm font-semibold text-foreground">{14 + Number(spacing.marginVertical) * 3}px</span>
+          <span className="text-foreground text-sm font-semibold">
+            {14 + Number(spacing.marginVertical) * 3}px
+          </span>
         </div>
         <Input
           type="range"
@@ -51,7 +68,9 @@ export default function PageSpacingSettings({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Left / right margin</Label>
-          <span className="text-sm font-semibold text-foreground">{16 + Number(spacing.marginHorizontal) * 3}px</span>
+          <span className="text-foreground text-sm font-semibold">
+            {16 + Number(spacing.marginHorizontal) * 3}px
+          </span>
         </div>
         <Input
           type="range"
@@ -65,7 +84,9 @@ export default function PageSpacingSettings({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Section gap</Label>
-          <span className="text-sm font-semibold text-foreground">{Number(spacing.spacingFactor) * 2}px</span>
+          <span className="text-foreground text-sm font-semibold">
+            {Number(spacing.spacingFactor) * 2}px
+          </span>
         </div>
         <Input
           type="range"
@@ -79,7 +100,9 @@ export default function PageSpacingSettings({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Heading gap</Label>
-          <span className="text-sm font-semibold text-foreground">{Number(spacing.headingGap ?? 3) * 2}px</span>
+          <span className="text-foreground text-sm font-semibold">
+            {Number(spacing.headingGap ?? 3) * 2}px
+          </span>
         </div>
         <Input
           type="range"

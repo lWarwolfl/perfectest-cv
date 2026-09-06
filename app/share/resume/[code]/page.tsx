@@ -34,7 +34,10 @@ export default async function SharedResumePage({ params }: SharePageProps) {
   })
   const entries = sections.length
     ? await db.query.ResumeEntry.findMany({
-        where: inArray(ResumeEntry.sectionId, sections.map((s) => s.id)),
+        where: inArray(
+          ResumeEntry.sectionId,
+          sections.map((s) => s.id)
+        ),
         orderBy: [asc(ResumeEntry.order), asc(ResumeEntry.createdAt)],
       })
     : []
@@ -50,9 +53,9 @@ export default async function SharedResumePage({ params }: SharePageProps) {
   const { widthMm, heightMm } = pageDims(c.regional?.pageFormat)
 
   return (
-    <div className="preview-light min-h-screen share-bg py-6 flex flex-col items-center gap-0 px-4">
+    <div className="preview-light share-bg flex min-h-screen flex-col items-center gap-0 px-4 py-6">
       <div
-        className="w-full bg-white border border-border shadow-sm"
+        className="border-border w-full border bg-white shadow-sm"
         style={{ maxWidth: widthMm * 3.78, aspectRatio: `${widthMm} / ${heightMm}` }}
       >
         <ResumeRenderer

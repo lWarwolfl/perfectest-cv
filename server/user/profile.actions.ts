@@ -26,6 +26,10 @@ export async function updateProfileAction(data: { name: string; image?: Blob }) 
     if (uploaded) image = uploaded.url
   }
 
-  const [updated] = await db.update(User).set({ name, image }).where(eq(User.id, user.id)).returning()
+  const [updated] = await db
+    .update(User)
+    .set({ name, image })
+    .where(eq(User.id, user.id))
+    .returning()
   return { name: updated.name, image: updated.image }
 }

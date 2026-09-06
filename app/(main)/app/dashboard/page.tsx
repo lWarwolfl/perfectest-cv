@@ -26,7 +26,11 @@ export default async function DashboardPage() {
   const docBuckets = new Map<string, { label: string; resumes: number; letters: number }>()
   const bump = (createdAt: Date, kind: 'resumes' | 'letters') => {
     const key = format(createdAt, 'yyyy-MM-dd')
-    const bucket = docBuckets.get(key) || { label: format(createdAt, 'd MMM'), resumes: 0, letters: 0 }
+    const bucket = docBuckets.get(key) || {
+      label: format(createdAt, 'd MMM'),
+      resumes: 0,
+      letters: 0,
+    }
     bucket[kind]++
     docBuckets.set(key, bucket)
   }
@@ -41,7 +45,11 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <Card>
         <CardContent>
-          <ProfileCard name={user?.name ?? ''} image={user?.image ?? null} email={user?.email ?? ''} />
+          <ProfileCard
+            name={user?.name ?? ''}
+            image={user?.image ?? null}
+            email={user?.email ?? ''}
+          />
         </CardContent>
       </Card>
       <h1 className="text-2xl font-semibold">Welcome back{user?.name ? `, ${user.name}` : ''}</h1>
@@ -77,10 +85,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <DashboardCharts
-        docsByDay={docsByDay}
-        jobStatus={jobStatus}
-      />
+      <DashboardCharts docsByDay={docsByDay} jobStatus={jobStatus} />
     </div>
   )
 }

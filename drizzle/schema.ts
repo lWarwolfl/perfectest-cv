@@ -1,14 +1,5 @@
 import { relations } from 'drizzle-orm'
-import {
-  boolean,
-  index,
-  integer,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import type {
   Customization,
   EntryData,
@@ -25,7 +16,10 @@ export const User = pgTable('user', {
   image: text('image'),
   role: text('role').notNull().default('user'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 })
 
 export const Session = pgTable('session', {
@@ -34,16 +28,23 @@ export const Session = pgTable('session', {
   token: text('token').notNull().unique(),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
-  userId: text('user_id').notNull().references(() => User.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => User.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 })
 
 export const Account = pgTable('account', {
   id: text('id').primaryKey(),
   accountId: text('account_id').notNull(),
   providerId: text('provider_id').notNull(),
-  userId: text('user_id').notNull().references(() => User.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => User.id, { onDelete: 'cascade' }),
   accessToken: text('access_token'),
   refreshToken: text('refresh_token'),
   idToken: text('id_token'),
@@ -53,7 +54,10 @@ export const Account = pgTable('account', {
   password: text('password'),
   issuer: text('issuer'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 })
 
 export const Verification = pgTable('verification', {
@@ -62,7 +66,10 @@ export const Verification = pgTable('verification', {
   value: text('value').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 })
 
 export const Resume = pgTable(
@@ -70,7 +77,10 @@ export const Resume = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     userId: text('user_id')
       .notNull()
       .references(() => User.id, { onDelete: 'cascade' }),
@@ -82,7 +92,10 @@ export const Resume = pgTable(
       .$type<PersonalDetails>()
       .notNull()
       .default({} as PersonalDetails),
-    customization: jsonb('customization').$type<Customization>().notNull().default({} as Customization),
+    customization: jsonb('customization')
+      .$type<Customization>()
+      .notNull()
+      .default({} as Customization),
     webResumeLive: boolean('web_resume_live').notNull().default(false),
     webToken: text('web_token'),
     feedbackEnabled: boolean('feedback_enabled').notNull().default(true),
@@ -96,7 +109,10 @@ export const ResumeSection = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     resumeId: uuid('resume_id')
       .notNull()
       .references(() => Resume.id, { onDelete: 'cascade' }),
@@ -114,7 +130,10 @@ export const ResumeEntry = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     sectionId: uuid('section_id')
       .notNull()
       .references(() => ResumeSection.id, { onDelete: 'cascade' }),
@@ -130,7 +149,10 @@ export const Letter = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     userId: text('user_id')
       .notNull()
       .references(() => User.id, { onDelete: 'cascade' }),
@@ -160,7 +182,10 @@ export const Letter = pgTable(
     signaturePlace: text('signature_place').notNull().default(''),
     signatureDate: text('signature_date').notNull().default(''),
     signatureImageId: text('signature_image_id').notNull().default(''),
-    design: jsonb('design').$type<LetterDesign>().notNull().default({} as LetterDesign),
+    design: jsonb('design')
+      .$type<LetterDesign>()
+      .notNull()
+      .default({} as LetterDesign),
     webResumeLive: boolean('web_resume_live').notNull().default(false),
     webToken: text('web_token'),
     syncWithResumeId: uuid('sync_with_resume_id').references(() => Resume.id, {
@@ -176,7 +201,10 @@ export const Tracker = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     userId: text('user_id')
       .notNull()
       .references(() => User.id, { onDelete: 'cascade' }),
@@ -194,7 +222,10 @@ export const TrackerCard = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     trackerId: uuid('tracker_id')
       .notNull()
       .references(() => Tracker.id, { onDelete: 'cascade' }),
@@ -245,7 +276,10 @@ export const Image = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     userId: text('user_id')
       .notNull()
       .references(() => User.id, { onDelete: 'cascade' }),

@@ -25,7 +25,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn('h-full antialiased font-sans', geist.variable)} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn('h-full font-sans antialiased', geist.variable)}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-full flex-col">
         <WrappedProviders>{children}</WrappedProviders>
       </body>

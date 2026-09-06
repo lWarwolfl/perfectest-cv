@@ -18,7 +18,13 @@ const LAYOUT_MODES: { value: SectionDisplay['selected']; label: string }[] = [
   { value: 'bubble', label: 'Bubble' },
 ]
 
-function SubinfoSelector({ value, onChange }: { value: SectionDisplay['subinfo']; onChange: (v: SectionDisplay['subinfo']) => void }) {
+function SubinfoSelector({
+  value,
+  onChange,
+}: {
+  value: SectionDisplay['subinfo']
+  onChange: (v: SectionDisplay['subinfo']) => void
+}) {
   const options: { value: SectionDisplay['subinfo']; label: string }[] = [
     { value: 'colon', label: ': Colon' },
     { value: 'dash', label: '- Dash' },
@@ -26,7 +32,7 @@ function SubinfoSelector({ value, onChange }: { value: SectionDisplay['subinfo']
   ]
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-bold text-foreground">Subinfo Style</Label>
+      <Label className="text-foreground text-sm font-bold">Subinfo Style</Label>
       <div className="grid grid-cols-3 gap-3">
         {options.map((o) => (
           <button
@@ -35,7 +41,7 @@ function SubinfoSelector({ value, onChange }: { value: SectionDisplay['subinfo']
             onClick={() => onChange(o.value)}
             className={`rounded-xl border px-2 py-2 text-sm transition-colors ${
               value === o.value
-                ? 'border-primary bg-primary/10 font-semibold text-primary'
+                ? 'border-primary bg-primary/10 text-primary font-semibold'
                 : 'border-border bg-card text-foreground hover:bg-muted'
             }`}
           >
@@ -47,7 +53,10 @@ function SubinfoSelector({ value, onChange }: { value: SectionDisplay['subinfo']
   )
 }
 
-export default function SkillsStyleSettings({ customization, onSectionDisplayPatch }: SkillsStyleSettingsProps) {
+export default function SkillsStyleSettings({
+  customization,
+  onSectionDisplayPatch,
+}: SkillsStyleSettingsProps) {
   const display = customization.skill
 
   function patch(p: Partial<SectionDisplay>) {
@@ -57,7 +66,7 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
   return (
     <CustomizeCard title="Skills" icon={LayoutGrid} description="Skill list layout and formatting.">
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-foreground">Layout</Label>
+        <Label className="text-foreground text-sm font-bold">Layout</Label>
         <div className="grid grid-cols-5 gap-2">
           {LAYOUT_MODES.map((m) => (
             <button
@@ -66,7 +75,7 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
               onClick={() => patch({ selected: m.value })}
               className={`rounded-xl border px-1 py-2 text-xs transition-colors ${
                 display.selected === m.value
-                  ? 'border-primary bg-primary/10 font-semibold text-primary'
+                  ? 'border-primary bg-primary/10 text-primary font-semibold'
                   : 'border-border bg-card text-foreground hover:bg-muted'
               }`}
             >
@@ -78,14 +87,14 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
 
       {display.selected === 'grid' && (
         <div className="space-y-2">
-          <Label className="text-sm font-bold text-foreground">Columns</Label>
+          <Label className="text-foreground text-sm font-bold">Columns</Label>
           <div className="grid grid-cols-4 gap-2">
             {([1, 2, 3, 4] as const).map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => patch({ grid: { ...display.grid, columns: n } })}
-                className={`h-11 flex items-center justify-center gap-0.5 rounded-xl border transition-all ${
+                className={`flex h-11 items-center justify-center gap-0.5 rounded-xl border transition-all ${
                   display.grid.columns === n
                     ? 'border-primary bg-primary/10'
                     : 'border-border bg-card hover:bg-muted'
@@ -101,9 +110,11 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
             <Checkbox
               id="skills-split-commas"
               checked={display.grid.splitCommasIntoBullets}
-              onCheckedChange={(v) => patch({ grid: { ...display.grid, splitCommasIntoBullets: v === true } })}
+              onCheckedChange={(v) =>
+                patch({ grid: { ...display.grid, splitCommasIntoBullets: v === true } })
+              }
             />
-            <Label htmlFor="skills-split-commas" className="cursor-pointer text-sm text-foreground">
+            <Label htmlFor="skills-split-commas" className="text-foreground cursor-pointer text-sm">
               Split commas into bullets
             </Label>
           </div>
@@ -113,7 +124,7 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
       {display.selected === 'rows' && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-sm font-bold text-foreground">Row Spacing</Label>
+            <Label className="text-foreground text-sm font-bold">Row Spacing</Label>
             <div className="grid w-3/4 grid-cols-2 gap-3">
               {(['tight', 'spacious'] as const).map((v) => (
                 <button
@@ -122,7 +133,7 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
                   onClick={() => patch({ rows: { ...display.rows, spacing: v } })}
                   className={`rounded-xl border px-2 py-2 text-sm capitalize transition-colors ${
                     display.rows.spacing === v
-                      ? 'border-primary bg-primary/10 font-semibold text-primary'
+                      ? 'border-primary bg-primary/10 text-primary font-semibold'
                       : 'border-border bg-card text-foreground hover:bg-muted'
                   }`}
                 >
@@ -137,7 +148,7 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
               checked={display.rows.bullets}
               onCheckedChange={(v) => patch({ rows: { ...display.rows, bullets: v === true } })}
             />
-            <Label htmlFor="skills-row-bullets" className="cursor-pointer text-sm text-foreground">
+            <Label htmlFor="skills-row-bullets" className="text-foreground cursor-pointer text-sm">
               Start rows with bullets
             </Label>
           </div>
@@ -148,20 +159,22 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
       {display.selected === 'compact' && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-sm font-bold text-foreground">Separator</Label>
+            <Label className="text-foreground text-sm font-bold">Separator</Label>
             <div className="grid grid-cols-3 gap-3">
-              {([
-                { value: 'bullet', label: 'Bullet ( • )' },
-                { value: 'pipe', label: 'Pipe ( | )' },
-                { value: 'comma', label: 'Comma ( , )' },
-              ] as const).map((o) => (
+              {(
+                [
+                  { value: 'bullet', label: 'Bullet ( • )' },
+                  { value: 'pipe', label: 'Pipe ( | )' },
+                  { value: 'comma', label: 'Comma ( , )' },
+                ] as const
+              ).map((o) => (
                 <button
                   key={o.value}
                   type="button"
                   onClick={() => patch({ text: o.value })}
                   className={`rounded-xl border px-2 py-2 text-sm transition-colors ${
                     display.text === o.value
-                      ? 'border-primary bg-primary/10 font-semibold text-primary'
+                      ? 'border-primary bg-primary/10 text-primary font-semibold'
                       : 'border-border bg-card text-foreground hover:bg-muted'
                   }`}
                 >
@@ -174,7 +187,9 @@ export default function SkillsStyleSettings({ customization, onSectionDisplayPat
         </div>
       )}
 
-      {display.selected === 'bubble' && <SubinfoSelector value={display.subinfo} onChange={(v) => patch({ subinfo: v })} />}
+      {display.selected === 'bubble' && (
+        <SubinfoSelector value={display.subinfo} onChange={(v) => patch({ subinfo: v })} />
+      )}
     </CustomizeCard>
   )
 }

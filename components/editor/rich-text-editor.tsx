@@ -69,15 +69,30 @@ export default function RichTextEditor({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
-      <div className="flex min-h-12 flex-wrap items-center gap-1 border-b border-border/60 bg-muted/50 px-3 py-1.5">
-        <Button variant="outline" size="icon-sm" onClick={toggleBold} className={boldActive ? ACTIVE_CLASSES : ''}>
+    <div className="border-input focus-within:border-ring focus-within:ring-ring/50 overflow-hidden rounded-lg border bg-transparent transition-colors focus-within:ring-3">
+      <div className="border-border/60 bg-muted/50 flex min-h-12 flex-wrap items-center gap-1 border-b px-3 py-1.5">
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={toggleBold}
+          className={boldActive ? ACTIVE_CLASSES : ''}
+        >
           <Bold className="size-4" />
         </Button>
-        <Button variant="outline" size="icon-sm" onClick={toggleItalic} className={italicActive ? ACTIVE_CLASSES : ''}>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={toggleItalic}
+          className={italicActive ? ACTIVE_CLASSES : ''}
+        >
           <Italic className="size-4" />
         </Button>
-        <Button variant="outline" size="icon-sm" onClick={toggleUnderline} className={underlineActive ? ACTIVE_CLASSES : ''}>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={toggleUnderline}
+          className={underlineActive ? ACTIVE_CLASSES : ''}
+        >
           <UnderlineIcon className="size-4" />
         </Button>
         <Button
@@ -88,7 +103,12 @@ export default function RichTextEditor({
         >
           <List className="size-4" />
         </Button>
-        <Button variant="outline" size="icon-sm" onClick={toggleLink} className={linkActive ? ACTIVE_CLASSES : ''}>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={toggleLink}
+          className={linkActive ? ACTIVE_CLASSES : ''}
+        >
           <LinkIcon className="size-4" />
         </Button>
         <div className="flex items-center gap-1">
@@ -127,7 +147,7 @@ export default function RichTextEditor({
         </div>
       </div>
       <div
-        className={`min-h-[140px] bg-transparent p-3 text-sm text-foreground focus:outline-none [&_.ProseMirror]:outline-none ${compact ? '[&_.ProseMirror]:min-h-[64px]' : ''}`}
+        className={`text-foreground min-h-[140px] bg-transparent p-3 text-sm focus:outline-none [&_.ProseMirror]:outline-none ${compact ? '[&_.ProseMirror]:min-h-[64px]' : ''}`}
       >
         <EditorContent editor={editor} />
       </div>

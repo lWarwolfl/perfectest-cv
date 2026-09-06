@@ -19,7 +19,13 @@ import {
 } from '@/features/resume/hooks/resume.hooks'
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
 import { EMPTY_PERSONAL_DETAILS, DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
-import type { PersonalDetails, Customization, EntryData, HeadingStyle, SectionType } from '@/features/resume/types'
+import type {
+  PersonalDetails,
+  Customization,
+  EntryData,
+  HeadingStyle,
+  SectionType,
+} from '@/features/resume/types'
 import { LabeledInput } from '@/components/ui/labeled'
 import { Button } from '@/components/ui/button'
 import { ArrowLeftRight } from 'lucide-react'
@@ -37,12 +43,22 @@ function printWithFileName(name: string) {
   document.title = prev
 }
 
-function mergeCustomization(base: Customization, saved: Customization | null | undefined): Customization {
+function mergeCustomization(
+  base: Customization,
+  saved: Customization | null | undefined
+): Customization {
   const out = { ...base } as unknown as Record<string, unknown>
   for (const key of Object.keys(base) as (keyof Customization)[]) {
     const value = saved?.[key] as unknown
     const b = base[key] as unknown
-    if (b && typeof b === 'object' && !Array.isArray(b) && value && typeof value === 'object' && !Array.isArray(value)) {
+    if (
+      b &&
+      typeof b === 'object' &&
+      !Array.isArray(b) &&
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value)
+    ) {
       out[key] = { ...(b as Record<string, unknown>), ...(value as Record<string, unknown>) }
     } else if (value !== undefined && value !== null) {
       out[key] = value
@@ -114,16 +130,23 @@ export default function ResumeEditorPage() {
     return () => clearTimeout(t)
   }, [sections, editing])
 
-  function markDirty() { dirty.current = true }
+  function markDirty() {
+    dirty.current = true
+  }
 
   function mutateData(sectionId: string, entryId: string, patch: Partial<EntryData>) {
-    setSections((prev) => prev.map((s) => {
-      if (s.id !== sectionId) return s
-      return { ...s, entries: s.entries.map((e) => {
-        if (e.id !== entryId) return e
-        return { ...e, _dirty: true, data: { ...e.data, ...patch } as EntryData }
-      }) }
-    }))
+    setSections((prev) =>
+      prev.map((s) => {
+        if (s.id !== sectionId) return s
+        return {
+          ...s,
+          entries: s.entries.map((e) => {
+            if (e.id !== entryId) return e
+            return { ...e, _dirty: true, data: { ...e.data, ...patch } as EntryData }
+          }),
+        }
+      })
+    )
     markDirty()
   }
 
@@ -132,8 +155,17 @@ export default function ResumeEditorPage() {
     markDirty()
   }
 
-  function patchSectionHeading(sectionId: string, patch: { style?: HeadingStyle; showTitle?: boolean }) {
-    setCustom((c) => ({ ...c, sectionHeadings: { ...c.sectionHeadings, [sectionId]: { ...c.sectionHeadings?.[sectionId], ...patch } } }))
+  function patchSectionHeading(
+    sectionId: string,
+    patch: { style?: HeadingStyle; showTitle?: boolean }
+  ) {
+    setCustom((c) => ({
+      ...c,
+      sectionHeadings: {
+        ...c.sectionHeadings,
+        [sectionId]: { ...c.sectionHeadings?.[sectionId], ...patch },
+      },
+    }))
     markDirty()
   }
 
@@ -159,7 +191,8 @@ export default function ResumeEditorPage() {
   }
 
   async function handlePrint() {
-    const name = (custom.fileName || doc?.resume.title || 'resume').replace(/\.pdf$/i, '').trim() || 'resume'
+    const name =
+      (custom.fileName || doc?.resume.title || 'resume').replace(/\.pdf$/i, '').trim() || 'resume'
     window.open(`/api/resumes/${id}/pdf`, '_blank')
   }
 
@@ -168,7 +201,14 @@ export default function ResumeEditorPage() {
   if (isLoading) {
     return (
       <EditorShell
-        header={<EditorHeader overviewHref="/app/resumes" activeTab={tab} onTabChange={setTab} onDownload={() => {}} />}
+        header={
+          <EditorHeader
+            overviewHref="/app/resumes"
+            activeTab={tab}
+            onTabChange={setTab}
+            onDownload={() => {}}
+          />
+        }
         sidebar={<div />}
         preview={<PageLoader />}
       />
@@ -198,8 +238,13 @@ export default function ResumeEditorPage() {
         }
         sidebar={
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background p-3">
-              <Button variant="ghost" size="icon-sm" onClick={() => setTab(tab === 'content' ? 'design' : 'content')} aria-label="Swap content/design">
+            <div className="bg-background sticky top-0 z-10 flex items-center gap-2 border-b p-3">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setTab(tab === 'content' ? 'design' : 'content')}
+                aria-label="Swap content/design"
+              >
                 <ArrowLeftRight className="size-4" />
               </Button>
               <div className="min-w-0 flex-1">
@@ -212,7 +257,13 @@ export default function ResumeEditorPage() {
                   placeholder="Resume title"
                 />
               </div>
-              <Button size="sm" disabled={!titleDraft.trim() || titleDraft === (resume?.title || '')} onClick={() => { if (titleDraft.trim()) rename.mutate({ id, title: titleDraft.trim() }) }}>
+              <Button
+                size="sm"
+                disabled={!titleDraft.trim() || titleDraft === (resume?.title || '')}
+                onClick={() => {
+                  if (titleDraft.trim()) rename.mutate({ id, title: titleDraft.trim() })
+                }}
+              >
                 Save
               </Button>
             </div>
@@ -227,7 +278,9 @@ export default function ResumeEditorPage() {
                 onPatchPersonal={patchPersonal}
                 onToggleSection={(sectionId, hidden) => {
                   saveSectionMeta.mutate({ sectionId, hidden })
-                  setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, hidden } : s)))
+                  setSections((prev) =>
+                    prev.map((s) => (s.id === sectionId ? { ...s, hidden } : s))
+                  )
                 }}
                 onDeleteSection={(sectionId) => deleteSection.mutate(sectionId)}
                 onAddEntry={(sectionId) => addEntry.mutate(sectionId)}
@@ -250,16 +303,20 @@ export default function ResumeEditorPage() {
                   }}
                   onReorderSections={(ids) => {
                     const byId = new Map(sections.map((s) => [s.id, s]))
-                    const next = ids.map((sid, i) => {
-                      const s = byId.get(sid)
-                      return s ? { ...s, order: i } : null
-                    }).filter(Boolean) as import('@/features/resume/types').TSection[]
+                    const next = ids
+                      .map((sid, i) => {
+                        const s = byId.get(sid)
+                        return s ? { ...s, order: i } : null
+                      })
+                      .filter(Boolean) as import('@/features/resume/types').TSection[]
                     setSections(next)
                     reorderSections.mutate(ids)
                   }}
                   onToggleSection={(sectionId, hidden) => {
                     saveSectionMeta.mutate({ sectionId, hidden })
-                    setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, hidden } : s)))
+                    setSections((prev) =>
+                      prev.map((s) => (s.id === sectionId ? { ...s, hidden } : s))
+                    )
                   }}
                 />
               </div>
@@ -268,11 +325,7 @@ export default function ResumeEditorPage() {
         }
         preview={
           <div className="preview-light">
-            <ResumeRenderer
-              personalDetails={personal}
-              sections={sections}
-              customization={custom}
-            />
+            <ResumeRenderer personalDetails={personal} sections={sections} customization={custom} />
           </div>
         }
       />

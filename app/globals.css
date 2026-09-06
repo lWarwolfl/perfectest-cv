@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import "shadcn/tailwind.css";
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -159,7 +159,10 @@
 
 .share-bg {
   background-color: var(--background);
-  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 20%, transparent) 1.5px, transparent 1.5px);
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--foreground) 20%, transparent) 1.5px,
+    transparent 1.5px
+  );
   background-size: 22px 22px;
 }
 
@@ -168,7 +171,8 @@
     size: A4;
     margin: 0;
   }
-  html, body {
+  html,
+  body {
     background: white !important;
     overflow: visible !important;
   }
@@ -178,7 +182,8 @@
   .editor-body {
     display: flex !important;
   }
-  .print-area, .print-area * {
+  .print-area,
+  .print-area * {
     visibility: visible !important;
   }
   .print-area {

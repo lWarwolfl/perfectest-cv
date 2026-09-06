@@ -26,7 +26,12 @@ import {
   applyResumeTemplateAction,
 } from '@/server/resume/resume.actions'
 import { getErrorMessage } from '@/lib/utils'
-import type { Customization, PersonalDetails, EntryData, SectionType } from '@/features/resume/types'
+import type {
+  Customization,
+  PersonalDetails,
+  EntryData,
+  SectionType,
+} from '@/features/resume/types'
 
 export function useListResumes() {
   return useQuery({ queryKey: [QUERY_KEYS.RESUMES], queryFn: listResumesAction })
@@ -56,7 +61,10 @@ export function useCreateResume() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (title?: string) => createResumeAction(title),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }); toast.success('Resume created') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] })
+      toast.success('Resume created')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
@@ -65,7 +73,10 @@ export function useDuplicateResume() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => duplicateResumeAction(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }); toast.success('Duplicated') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] })
+      toast.success('Duplicated')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
@@ -74,7 +85,10 @@ export function useDeleteResume() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => deleteResumeAction(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }); toast.success('Deleted') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] })
+      toast.success('Deleted')
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
@@ -83,7 +97,9 @@ export function useRenameResume() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, title }: { id: string; title: string }) => renameResumeAction(id, title),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] }) },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] })
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
@@ -125,7 +141,10 @@ export function useDeleteSection(id: string) {
 export function useSaveSectionMeta(id: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ sectionId, ...patch }: { sectionId: string } & Parameters<typeof saveSectionMetaAction>[1]) =>
+    mutationFn: ({
+      sectionId,
+      ...patch
+    }: { sectionId: string } & Parameters<typeof saveSectionMetaAction>[1]) =>
       saveSectionMetaAction(sectionId, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
     onError: (e) => toast.error(getErrorMessage(e)),
@@ -163,7 +182,10 @@ export function useUpdateEntryData(id: string) {
 export function useUpdateEntryMeta(id: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ entryId, ...patch }: { entryId: string } & Parameters<typeof updateEntryMetaAction>[1]) =>
+    mutationFn: ({
+      entryId,
+      ...patch
+    }: { entryId: string } & Parameters<typeof updateEntryMetaAction>[1]) =>
       updateEntryMetaAction(entryId, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
     onError: (e) => toast.error(getErrorMessage(e)),

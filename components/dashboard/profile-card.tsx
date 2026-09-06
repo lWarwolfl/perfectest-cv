@@ -10,13 +10,22 @@ import { Input } from '@/components/ui/input'
 import { updateProfileAction } from '@/server/user/profile.actions'
 import { getErrorMessage } from '@/lib/utils'
 
-export function ProfileCard({ name, image, email }: { name: string; image: string | null; email: string }) {
+export function ProfileCard({
+  name,
+  image,
+  email,
+}: {
+  name: string
+  image: string | null
+  email: string
+}) {
   const [editName, setEditName] = useState(name)
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
 
   const save = useMutation({
-    mutationFn: async (img: Blob | undefined) => updateProfileAction({ name: editName, ...(img ? { image: img } : {}) }),
+    mutationFn: async (img: Blob | undefined) =>
+      updateProfileAction({ name: editName, ...(img ? { image: img } : {}) }),
     onSuccess: () => {
       toast.success('Profile updated')
       setPreview(null)
@@ -31,12 +40,16 @@ export function ProfileCard({ name, image, email }: { name: string; image: strin
     <div className="flex flex-wrap items-center gap-4">
       <div className="relative">
         <Avatar className="size-16">
-          {preview || image ? <AvatarImage src={preview || image!} alt={name} /> : <AvatarFallback>{name.charAt(0) || '?'}</AvatarFallback>}
+          {preview || image ? (
+            <AvatarImage src={preview || image!} alt={name} />
+          ) : (
+            <AvatarFallback>{name.charAt(0) || '?'}</AvatarFallback>
+          )}
         </Avatar>
         <button
           type="button"
           aria-label="Change photo"
-          className="absolute -right-1 -bottom-1 rounded-full border border-border bg-background p-1.5 text-muted-foreground hover:text-foreground"
+          className="border-border bg-background text-muted-foreground hover:text-foreground absolute -right-1 -bottom-1 rounded-full border p-1.5"
           onClick={() => fileRef.current?.click()}
         >
           <Camera className="size-3.5" />
@@ -53,10 +66,19 @@ export function ProfileCard({ name, image, email }: { name: string; image: strin
         />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
-        <p className="truncate text-xs text-muted-foreground">{email}</p>
+        <p className="text-muted-foreground truncate text-xs">{email}</p>
         <div className="flex items-center gap-2">
-          <Input aria-label="Display name" value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 max-w-60" maxLength={80} />
-          <Button disabled={!dirty || save.isPending} onClick={() => save.mutate(fileRef.current?.files?.[0])}>
+          <Input
+            aria-label="Display name"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            className="h-9 max-w-60"
+            maxLength={80}
+          />
+          <Button
+            disabled={!dirty || save.isPending}
+            onClick={() => save.mutate(fileRef.current?.files?.[0])}
+          >
             Save
           </Button>
         </div>

@@ -14,13 +14,13 @@ export function CustomizeCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="border-border bg-card space-y-4 rounded-2xl border p-5 shadow-sm">
       <div>
-        <div className="flex items-center gap-2.5 text-lg font-bold text-foreground">
-          <Icon className="size-5 text-muted-foreground" />
+        <div className="text-foreground flex items-center gap-2.5 text-lg font-bold">
+          <Icon className="text-muted-foreground size-5" />
           {title}
         </div>
-        {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
+        {description && <p className="text-muted-foreground mt-1 text-xs">{description}</p>}
       </div>
       {children}
     </div>

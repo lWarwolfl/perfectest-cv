@@ -1,12 +1,7 @@
 'use client'
 
 import { getErrorMessage } from '@/lib/utils'
-import {
-  MutationCache,
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, type PropsWithChildren } from 'react'
 import { toast } from 'sonner'
 
