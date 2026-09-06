@@ -25,7 +25,7 @@ function useActive() {
 export default function Sidebar({ email }: { email?: string | null }) {
   const isActive = useActive()
   return (
-    <aside className="border-sidebar-border bg-sidebar text-sidebar-foreground m-4 hidden w-60 shrink-0 flex-col rounded-2xl border px-3 py-4 md:flex">
+    <aside className="border-sidebar-border bg-sidebar text-sidebar-foreground m-4 hidden w-60 shrink-0 flex-col self-start rounded-2xl border px-3 py-4 md:sticky md:top-4 md:h-[calc(100vh-2rem)] md:flex">
       <Link href="/app/dashboard" className="mb-6 flex items-center gap-2 px-2">
         <Image alt="Perfectest CV logo" src={logo} className="size-9" />
         <span className="text-lg font-semibold">Perfectest CV</span>

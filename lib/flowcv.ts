@@ -36,6 +36,8 @@ export interface FlowcvData {
   phone: string
   website: string
   websiteDisplay: string
+  emailLink: string
+  phoneLink: string
   linkedIn: string
   github: string
   work: FlowcvEntry[]
@@ -67,6 +69,15 @@ function cfDecode(hex: string) {
     return out
   } catch {
     return ''
+  }
+}
+
+/** URL-decode that never throws; decodeURIComponent rejects malformed escapes. */
+function safeDecode(s: string) {
+  try {
+    return decodeURIComponent(s)
+  } catch {
+    return s
   }
 }
 
@@ -274,7 +285,9 @@ export function parseFlowcvHtml(raw: string): FlowcvData {
     jobTitle,
     summaryHtml,
     email: details.displayEmail?.href.replace(/^mailto:/, '') || details.displayEmail?.text || '',
+    emailLink: details.displayEmail?.href || '',
     phone: details.phone?.text || '',
+    phoneLink: details.phone?.href || '',
     website: details.website?.href || '',
     websiteDisplay: details.website?.text || '',
     linkedIn: details.linkedIn?.href || '',
@@ -314,12 +327,28 @@ export function flowcvToPersonalDetails(
     fullName: data.name || prev.fullName,
     jobTitle: data.jobTitle || prev.jobTitle,
     displayEmail: data.email || prev.displayEmail,
+    emailLink: data.emailLink || prev.emailLink,
     phone: data.phone || prev.phone,
+    phoneLink: data.phoneLink || prev.phoneLink,
     website: data.websiteDisplay || prev.website,
     websiteLink: data.website || prev.websiteLink,
     social: {
-      linkedIn: { link: data.linkedIn || prev.social.linkedIn.link, display: prev.social.linkedIn.display },
-      github: { link: data.github || prev.social.github.link, display: prev.social.github.display },
+      linkedIn: {
+        link: data.linkedIn || prev.social.linkedIn.link,
+        display: data.linkedIn
+          ? safeDecode(data.linkedIn)
+              .replace(/^https?:\/\/(www\.)?linkedin\.com\/(in\/)?/, '')
+              .replace(/\/$/, '')
+          : prev.social.linkedIn.display,
+      },
+      github: {
+        link: data.github || prev.social.github.link,
+        display: data.github
+          ? safeDecode(data.github)
+              .replace(/^https?:\/\/(www\.)?github\.com\//, '')
+              .replace(/\/$/, '')
+          : prev.social.github.display,
+      },
     },
   }
 }

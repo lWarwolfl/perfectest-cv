@@ -16,6 +16,8 @@ interface SharePageProps {
 
 export const revalidate = 86400
 
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
   const { code } = await params
   const resume = await getPublicResumeAction(code)
@@ -50,15 +52,16 @@ export default async function SharedResumePage({ params }: SharePageProps) {
   const doc: TSection[] = sections.map((s) => ({ ...s, entries: entriesBySection.get(s.id) || [] }))
 
   const c = { ...DEFAULT_CUSTOMIZATION, ...(resume.customization || {}) }
-  const { widthMm, heightMm } = pageDims(c.regional?.pageFormat)
+  const { widthMm } = pageDims(c.regional?.pageFormat)
 
   return (
     <div className="preview-light share-bg flex min-h-screen flex-col items-center gap-0 px-4 py-6">
       <div
         className="border-border w-full border bg-white shadow-sm"
-        style={{ maxWidth: widthMm * 3.78, aspectRatio: `${widthMm} / ${heightMm}` }}
+        style={{ maxWidth: widthMm * 3.78 }}
       >
         <ResumeRenderer
+          fit
           personalDetails={{ ...EMPTY_PERSONAL_DETAILS, ...(resume.personalDetails || {}) }}
           sections={doc}
           customization={c}

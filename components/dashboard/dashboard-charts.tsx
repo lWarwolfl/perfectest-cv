@@ -62,7 +62,9 @@ export function DashboardCharts({
       <Card>
         <CardHeader>
           <CardTitle>Documents</CardTitle>
-          <CardDescription>Resumes and cover letters created per day, last 14 days</CardDescription>
+          <CardDescription>
+            Resumes and cover letters created per day, last 7 active days
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={docConfig} className="h-[260px] w-full">

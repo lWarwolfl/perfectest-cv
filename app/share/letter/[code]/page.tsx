@@ -13,6 +13,8 @@ interface SharePageProps {
 
 export const revalidate = 86400
 
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
   const { code } = await params
   const letter = await getPublicLetterAction(code)
@@ -25,7 +27,7 @@ export default async function SharedLetterPage({ params }: SharePageProps) {
   if (!letter) notFound()
 
   const design = normalizeLetterDesign(letter.design as LetterDesign | null)
-  const { widthMm, heightMm } = pageDims(
+  const { widthMm } = pageDims(
     design.customization.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4'
   )
 
@@ -33,9 +35,9 @@ export default async function SharedLetterPage({ params }: SharePageProps) {
     <div className="preview-light share-bg flex min-h-screen flex-col items-center gap-0 px-4 py-6">
       <div
         className="border-border w-full border bg-white shadow-sm"
-        style={{ maxWidth: widthMm * 3.78, aspectRatio: `${widthMm} / ${heightMm}` }}
+        style={{ maxWidth: widthMm * 3.78 }}
       >
-        <LetterRenderer form={letter} design={design} />
+        <LetterRenderer form={letter} design={design} fit />
       </div>
       <ShareFooter />
     </div>

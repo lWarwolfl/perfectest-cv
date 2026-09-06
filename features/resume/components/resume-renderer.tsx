@@ -13,6 +13,7 @@ import {
   EMPTY_PERSONAL_DETAILS,
 } from '@/features/resume/defaults'
 import { fontCss } from '@/features/resume/fonts'
+import { Paginated } from '@/components/common/paginated'
 import { ExternalLink, Link as LinkIcon, Mail, Phone, Globe, AtSign, MapPin } from 'lucide-react'
 
 export const PAGE_PX = {
@@ -118,7 +119,7 @@ function colorStyle(customization: Customization) {
 }
 
 function dim(text: string) {
-  return `color-mix(in srgb, ${text} 55%, transparent)`
+  return `color-mix(in srgb, ${text} 75%, transparent)`
 }
 
 function DisplayList({
@@ -203,7 +204,7 @@ function DisplayList({
         {items.map((it) => {
           const info = infoText(it)
           return (
-            <div key={it.key}>
+            <div key={it.key} data-pb-item>
               <div>{it.name}</div>
               {info && <div style={{ fontSize: '0.9em', color: dim(text) }}>{subText(info)}</div>}
             </div>
@@ -216,7 +217,7 @@ function DisplayList({
   return (
     <div style={{ lineHeight: lh, display: 'flex', flexDirection: 'column', gap }}>
       {items.map((it) => (
-        <div key={it.key}>
+        <div key={it.key} data-pb-item>
           {rows.bullets ? '• ' : ''}
           {it.name}
           {sub(infoText(it))}
@@ -326,11 +327,13 @@ export function ResumeRenderer({
   sections,
   customization: rawCustomization,
   showPlaceholder = false,
+  fit = false,
 }: {
   personalDetails: PersonalDetails
   sections: TSection[]
   customization: Customization
   showPlaceholder?: boolean
+  fit?: boolean
 }) {
   const personalDetails = { ...EMPTY_PERSONAL_DETAILS, ...rawPersonalDetails }
   const customization = { ...DEFAULT_CUSTOMIZATION, ...rawCustomization } as Customization
@@ -386,6 +389,7 @@ export function ResumeRenderer({
           >
             <span
               className={heading.capitalization === 'uppercase' ? 'uppercase' : 'capitalize'}
+              data-pb-head
               style={{ fontWeight: 600, fontSize: '1.05em' }}
             >
               {label}
@@ -410,7 +414,7 @@ export function ResumeRenderer({
             if (e.data.type !== 'work') return null
             const w = e.data
             return (
-              <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
+              <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span style={{ fontWeight: 500 }}>
                     {customization.workDisplay.jobTitleBeforeEmployer
@@ -463,7 +467,7 @@ export function ResumeRenderer({
             if (e.data.type !== 'education') return null
             const ed = e.data
             return (
-              <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
+              <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span style={{ fontWeight: 500 }}>
                     {customization.educationDisplay.degreeBeforeSchool
@@ -568,7 +572,7 @@ export function ResumeRenderer({
             if (e.data.type !== 'project') return null
             const p = e.data
             return (
-              <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
+              <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
                 <span style={{ fontWeight: 500 }}>
                   {linked(
                     p.projectTitle,
@@ -605,7 +609,7 @@ export function ResumeRenderer({
             ) {
               const c = e.data
               return (
-                <div key={e.id} style={{ marginBottom: '6px', lineHeight: lh }}>
+                <div key={e.id} data-pb-item style={{ marginBottom: '6px', lineHeight: lh }}>
                   <span style={{ fontWeight: 500 }}>
                     {linked(c.title, c.link, customization, colors.accent, colors.text)}
                   </span>
@@ -631,7 +635,7 @@ export function ResumeRenderer({
             if (e.data.type !== 'custom') return null
             const c = e.data
             return (
-              <div key={e.id} style={{ marginBottom: '8px', lineHeight: lh }}>
+              <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
                 <span style={{ fontWeight: 500 }}>{c.title}</span>
                 {c.subTitle && <span style={{ color: dim(colors.text) }}> - {c.subTitle}</span>}
                 {hasHtml(c.description) && (
@@ -804,41 +808,47 @@ export function ResumeRenderer({
   ]
   const leftWidth = Math.min(Math.max(layout.two.leftWidth || 50, 10), 90)
 
-  return (
+  const body = (
     <div
-      className="print-page mx-auto w-full bg-white"
+      className="mx-auto w-full bg-white"
       style={{
         fontFamily,
         fontSize: `${10 + fs}px`,
         lineHeight: lh,
         color: colors.text,
         padding: `${14 + Number(spacing.marginVertical) * 3}px ${16 + Number(spacing.marginHorizontal) * 3}px`,
-        minHeight: `${page.height}px`,
         width: `${page.width}px`,
       }}
     >
-      <div
-        style={
-          isTwoCol
-            ? {
-                display: 'grid',
-                gridTemplateColumns: `${leftWidth}fr ${100 - leftWidth}fr`,
-                gap: '24px',
-              }
-            : undefined
-        }
-      >
-        <div style={isTwoCol ? { minWidth: 0 } : undefined}>
-          {headerContent}
-          {detailsBlock}
-          <div style={{ marginTop: '12px' }}>
-            {(isTwoCol ? twoColBodies[0].sections : ordered).map(renderSection)}
+      {isTwoCol ? (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: `${leftWidth}fr ${100 - leftWidth}fr`,
+            gap: '24px',
+          }}
+        >
+          <div data-pb-col style={{ minWidth: 0 }}>
+            {headerContent}
+            {detailsBlock}
+            <div style={{ marginTop: '12px' }}>{twoColBodies[0].sections.map(renderSection)}</div>
+          </div>
+          <div data-pb-col style={{ minWidth: 0 }}>
+            {twoColBodies[1].sections.map(renderSection)}
           </div>
         </div>
-        {isTwoCol && (
-          <div style={{ minWidth: 0 }}>{twoColBodies[1].sections.map(renderSection)}</div>
-        )}
-      </div>
+      ) : (
+        <div>
+          {headerContent}
+          {detailsBlock}
+          <div style={{ marginTop: '12px' }}>{ordered.map(renderSection)}</div>
+        </div>
+      )}
     </div>
+  )
+  return (
+    <Paginated width={page.width} height={page.height} fit={fit}>
+      {body}
+    </Paginated>
   )
 }

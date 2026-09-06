@@ -3,6 +3,7 @@ import type { LetterDesign } from '@/features/letter/types'
 import { normalizeLetterDesign } from '@/features/letter/types'
 import type { Customization } from '@/features/resume/types'
 import { PAGE_PX } from '@/features/resume/components/resume-renderer'
+import { Paginated } from '@/components/common/paginated'
 import { fontCss } from '@/features/resume/fonts'
 import { Mail, Phone, MapPin, Globe, AtSign, Link as LinkIcon } from 'lucide-react'
 
@@ -98,10 +99,12 @@ export function LetterRenderer({
   form,
   design: rawDesign,
   showPlaceholder = false,
+  fit = false,
 }: {
   form: LetterContentPatch
   design: LetterDesign | null | undefined
   showPlaceholder?: boolean
+  fit?: boolean
 }) {
   const design = normalizeLetterDesign(rawDesign)
   const c = design.customization
@@ -306,17 +309,21 @@ export function LetterRenderer({
   const bodyBlocks = (
     <>
       {form.recipientCompany || form.recipientName ? (
-        <div style={{ marginBottom: '16px' }}>
+        <div data-pb-item style={{ marginBottom: '16px' }}>
           {form.recipientName && <p style={{ margin: 0 }}>{form.recipientName}</p>}
           {form.recipientPosition && <p style={{ margin: 0 }}>{form.recipientPosition}</p>}
           {form.recipientCompany && <p style={{ margin: 0 }}>{form.recipientCompany}</p>}
         </div>
       ) : null}
-      {form.subject && <p style={{ marginBottom: '16px', fontWeight: 500 }}>Re: {form.subject}</p>}
+      {form.subject && (
+        <p data-pb-item style={{ marginBottom: '16px', fontWeight: 500 }}>
+          Re: {form.subject}
+        </p>
+      )}
       {showBody && (
         <div style={{ lineHeight: lh }} dangerouslySetInnerHTML={{ __html: form.body || '' }} />
       )}
-      <div style={{ marginTop: '32px' }}>
+      <div data-pb-item style={{ marginTop: '32px' }}>
         {form.signaturePlace && <p style={{ margin: 0 }}>{form.signaturePlace}</p>}
         <p style={{ fontWeight: 600, margin: 0 }}>
           {form.signatureName || form.senderName || (showPlaceholder ? 'Your Name' : '')}
@@ -325,9 +332,9 @@ export function LetterRenderer({
     </>
   )
 
-  return (
+  const body = (
     <div
-      className="print-page mx-auto w-full"
+      className="mx-auto w-full"
       style={{
         fontFamily,
         fontSize: `${10 + fs}px`,
@@ -335,12 +342,16 @@ export function LetterRenderer({
         color: colors.text,
         backgroundColor: colors.bg,
         padding: `${14 + Number(spacing.marginVertical) * 3}px ${16 + Number(spacing.marginHorizontal) * 3}px`,
-        minHeight: `${page.height}px`,
         width: `${page.width}px`,
       }}
     >
       {senderBlocks}
       {bodyBlocks}
     </div>
+  )
+  return (
+    <Paginated width={page.width} height={page.height} fit={fit}>
+      {body}
+    </Paginated>
   )
 }

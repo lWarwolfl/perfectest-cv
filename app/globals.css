@@ -167,8 +167,18 @@
 }
 
 @media print {
+  /* Paginated page boxes print as-is: @page is sized inline to the box
+     (Paginated injects it), each box fills one sheet exactly. */
+  .print-pages > .print-page + .print-page {
+    break-before: page;
+  }
+  .print-pages > .print-page {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    size: initial;
+  }
+
   @page {
-    size: A4;
     margin: 0;
   }
   html,
@@ -194,9 +204,6 @@
     padding: 0 !important;
     background: white !important;
     box-shadow: none !important;
-  }
-  .print-page {
-    min-height: 0 !important;
   }
   .print-only,
   .print-only * {

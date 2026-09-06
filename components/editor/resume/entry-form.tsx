@@ -40,13 +40,15 @@ export function TitleInput({
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Input
-        id={id}
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-      />
-      {onLinkChange && <LinkDialog value={link || ''} onConfirm={onLinkChange} />}
+      <div className="flex items-center gap-2">
+        <Input
+          id={id}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {onLinkChange && <LinkDialog value={link || ''} onConfirm={onLinkChange} />}
+      </div>
     </Field>
   )
 }
