@@ -37,13 +37,13 @@ export function ProfileCard({
   const dirty = editName.trim() !== name || preview
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className="flex flex-col items-center gap-4">
       <div className="relative">
-        <Avatar className="size-16">
+        <Avatar className="size-28">
           {preview || image ? (
             <AvatarImage src={preview || image!} alt={name} />
           ) : (
-            <AvatarFallback>{name.charAt(0) || '?'}</AvatarFallback>
+            <AvatarFallback className="text-3xl">{name.charAt(0) || '?'}</AvatarFallback>
           )}
         </Avatar>
         <button
@@ -65,9 +65,9 @@ export function ProfileCard({
           }}
         />
       </div>
-      <div className="min-w-0 flex-1 space-y-2">
-        <p className="text-muted-foreground truncate text-xs">{email}</p>
-        <div className="flex items-center gap-2">
+      <div className="min-w-0 flex-1 space-y-2 self-stretch">
+        <p className="text-muted-foreground truncate text-center text-xs">{email}</p>
+        <div className="flex items-center justify-center gap-2">
           <Input
             aria-label="Display name"
             value={editName}

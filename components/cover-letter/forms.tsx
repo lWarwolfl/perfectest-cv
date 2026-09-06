@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import RichTextEditor from '@/components/editor/rich-text-editor'
+import LinkDialog from '@/components/editor/link-dialog'
 import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
 
@@ -111,20 +112,32 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Email')}>Email</FieldLabel>
-        <Input
-          id={fieldId('Email')}
-          type="email"
-          value={value.senderEmail || ''}
-          onChange={(e) => onChange({ senderEmail: e.target.value })}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            id={fieldId('Email')}
+            type="email"
+            value={value.senderEmail || ''}
+            onChange={(e) => onChange({ senderEmail: e.target.value })}
+          />
+          <LinkDialog
+            value={value.senderEmailLink || ''}
+            onConfirm={(url) => onChange({ senderEmailLink: url })}
+          />
+        </div>
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Phone')}>Phone</FieldLabel>
-        <Input
-          id={fieldId('Phone')}
-          value={value.senderPhone || ''}
-          onChange={(e) => onChange({ senderPhone: e.target.value })}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            id={fieldId('Phone')}
+            value={value.senderPhone || ''}
+            onChange={(e) => onChange({ senderPhone: e.target.value })}
+          />
+          <LinkDialog
+            value={value.senderPhoneLink || ''}
+            onConfirm={(url) => onChange({ senderPhoneLink: url })}
+          />
+        </div>
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Address')}>Address</FieldLabel>
@@ -136,27 +149,45 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Website')}>Website</FieldLabel>
-        <Input
-          id={fieldId('Website')}
-          value={value.senderWebsite || ''}
-          onChange={(e) => onChange({ senderWebsite: e.target.value })}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            id={fieldId('Website')}
+            value={value.senderWebsite || ''}
+            onChange={(e) => onChange({ senderWebsite: e.target.value })}
+          />
+          <LinkDialog
+            value={value.senderWebsiteLink || ''}
+            onConfirm={(url) => onChange({ senderWebsiteLink: url })}
+          />
+        </div>
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('LinkedIn')}>LinkedIn</FieldLabel>
-        <Input
-          id={fieldId('LinkedIn')}
-          value={value.senderLinkedIn || ''}
-          onChange={(e) => onChange({ senderLinkedIn: e.target.value })}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            id={fieldId('LinkedIn')}
+            value={value.senderLinkedIn || ''}
+            onChange={(e) => onChange({ senderLinkedIn: e.target.value })}
+          />
+          <LinkDialog
+            value={value.senderLinkedInLink || ''}
+            onConfirm={(url) => onChange({ senderLinkedInLink: url })}
+          />
+        </div>
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('GitHub')}>GitHub</FieldLabel>
-        <Input
-          id={fieldId('GitHub')}
-          value={value.senderGitHub || ''}
-          onChange={(e) => onChange({ senderGitHub: e.target.value })}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            id={fieldId('GitHub')}
+            value={value.senderGitHub || ''}
+            onChange={(e) => onChange({ senderGitHub: e.target.value })}
+          />
+          <LinkDialog
+            value={value.senderGitHubLink || ''}
+            onConfirm={(url) => onChange({ senderGitHubLink: url })}
+          />
+        </div>
       </Field>
     </div>
   )

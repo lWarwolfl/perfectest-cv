@@ -347,7 +347,9 @@ export interface PersonalDetails {
   fullName: string
   jobTitle: string
   displayEmail: string
+  emailLink?: string
   phone: string
+  phoneLink?: string
   address: string
   website: string
   websiteLink: string

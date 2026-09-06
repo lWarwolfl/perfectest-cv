@@ -311,3 +311,52 @@ export async function getResumeAction(id: string) {
   if (!resume) redirect('/app/dashboard')
   return resume
 }
+
+export async function syncFlowcvResumeAction(resumeId: string, flowcvUrl: string) {
+  const user = await requireUser()
+  const owned = await db.query.Resume.findFirst({
+    where: (t, { eq, and }) => and(eq(t.id, resumeId), eq(t.userId, user.id)),
+  })
+  if (!owned) throw new Error('Resume not found')
+
+  const { fetchFlowcvResume, flowcvToPersonalDetails, flowcvToEntryData } = await import('@/lib/flowcv')
+  const data = await fetchFlowcvResume(flowcvUrl)
+
+  await db
+    .update(Resume)
+    .set({ personalDetails: flowcvToPersonalDetails(data, owned.personalDetails) })
+    .where(eq(Resume.id, resumeId))
+
+  // replace synced sections wholesale (overwrites local edits in those sections)
+  const syncedTypes = ['profile', 'work', 'education', 'skill', 'language', 'project']
+  const existing = await db.query.ResumeSection.findMany({
+    where: eq(ResumeSection.resumeId, resumeId),
+    with: { entries: true },
+  })
+  for (const s of existing.filter((s) => syncedTypes.includes(s.sectionType))) {
+    await db.delete(ResumeSection).where(eq(ResumeSection.id, s.id))
+  }
+  const mapped = flowcvToEntryData(data)
+  const remaining = existing.filter((s) => !syncedTypes.includes(s.sectionType))
+  let order = remaining.length
+  for (const sec of mapped) {
+    const [section] = await db
+      .insert(ResumeSection)
+      .values({
+        resumeId,
+        order: order++,
+        sectionType: sec.sectionType,
+        displayName: SECTION_LABELS[sec.sectionType],
+        iconKey: SECTION_ICONS[sec.sectionType],
+      })
+      .returning()
+    if (sec.entries.length) {
+      await db.insert(ResumeEntry).values(
+        sec.entries.map((entryData, i) => ({ sectionId: section.id, order: i, data: entryData }))
+      )
+    }
+  }
+  revalidatePath(`/app/resumes/${resumeId}`)
+  revalidatePath('/app/resumes')
+  return { ok: true, synced: mapped.map((s) => s.sectionType) }
+}

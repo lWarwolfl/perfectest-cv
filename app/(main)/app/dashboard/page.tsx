@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 import { ProfileCard } from '@/components/dashboard/profile-card'
+import { FlowcvSyncCard } from '@/components/dashboard/flowcv-sync-card'
 import Link from 'next/link'
 import { format } from 'date-fns'
 
@@ -44,12 +45,13 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardContent>
+        <CardContent className="flex flex-col gap-6 lg:flex-row">
           <ProfileCard
             name={user?.name ?? ''}
             image={user?.image ?? null}
             email={user?.email ?? ''}
           />
+          <FlowcvSyncCard resumes={resumes.map((r) => ({ id: r.id, title: r.title }))} />
         </CardContent>
       </Card>
       <h1 className="text-2xl font-semibold">Welcome back{user?.name ? `, ${user.name}` : ''}</h1>

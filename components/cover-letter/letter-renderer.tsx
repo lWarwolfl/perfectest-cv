@@ -48,15 +48,15 @@ function detailHref(key: string, form: LetterContentPatch) {
   switch (key) {
     case 'displayEmail':
     case 'email':
-      return form.senderEmail ? `mailto:${form.senderEmail}` : ''
+      return form.senderEmailLink || ''
     case 'phone':
-      return form.senderPhone ? `tel:${form.senderPhone}` : ''
+      return form.senderPhoneLink || ''
     case 'website':
-      return form.senderWebsite || ''
+      return form.senderWebsiteLink || ''
     case 'linkedIn':
-      return form.senderLinkedIn || ''
+      return form.senderLinkedInLink || ''
     case 'github':
-      return form.senderGitHub || ''
+      return form.senderGitHubLink || ''
     default:
       return ''
   }

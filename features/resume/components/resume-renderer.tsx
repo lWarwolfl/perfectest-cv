@@ -344,8 +344,8 @@ export function ResumeRenderer({
   const sectionHeadings = customization.sectionHeadings || {}
 
   const detailLinks: Record<string, string> = {
-    displayEmail: personalDetails.displayEmail ? `mailto:${personalDetails.displayEmail}` : '',
-    phone: personalDetails.phone ? `tel:${personalDetails.phone}` : '',
+    displayEmail: personalDetails.displayEmail ? personalDetails.emailLink || '' : '',
+    phone: personalDetails.phone ? personalDetails.phoneLink || '' : '',
     website: personalDetails.websiteLink || personalDetails.website,
     linkedIn: personalDetails.social?.linkedIn?.link || '',
     github: personalDetails.social?.github?.link || '',

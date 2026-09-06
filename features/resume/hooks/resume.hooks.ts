@@ -24,6 +24,7 @@ import {
   reorderEntriesAction,
   deleteEntryAction,
   applyResumeTemplateAction,
+  syncFlowcvResumeAction,
 } from '@/server/resume/resume.actions'
 import { getErrorMessage } from '@/lib/utils'
 import type {
@@ -218,6 +219,19 @@ export function useApplyResumeTemplate(id: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] })
       toast.success('Template applied')
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useSyncFlowcv() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ resumeId, url }: { resumeId: string; url: string }) =>
+      syncFlowcvResumeAction(resumeId, url),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] })
+      toast.success('FlowCV resume synced')
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   })

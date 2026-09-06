@@ -21,11 +21,16 @@ export type LetterContentPatch = Partial<{
   senderPhotoFileId: string
   senderJobTitle: string
   senderEmail: string
+  senderEmailLink: string
   senderPhone: string
+  senderPhoneLink: string
   senderAddress: string
   senderWebsite: string
+  senderWebsiteLink: string
   senderLinkedIn: string
+  senderLinkedInLink: string
   senderGitHub: string
+  senderGitHubLink: string
   recipientName: string
   recipientPosition: string
   recipientCompany: string
@@ -72,11 +77,16 @@ export async function listLetterPreviewsAction() {
       senderName: true,
       senderJobTitle: true,
       senderEmail: true,
+      senderEmailLink: true,
       senderPhone: true,
+      senderPhoneLink: true,
       senderAddress: true,
       senderWebsite: true,
+      senderWebsiteLink: true,
       senderLinkedIn: true,
+      senderLinkedInLink: true,
       senderGitHub: true,
+      senderGitHubLink: true,
       recipientName: true,
       recipientPosition: true,
       recipientCompany: true,

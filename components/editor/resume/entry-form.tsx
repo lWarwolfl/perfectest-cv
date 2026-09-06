@@ -124,13 +124,11 @@ function AvatarControls({
   )
 }
 
+/** Plain non-link text fields of the personal details form. */
 const PERSONAL_FIELDS = [
   ['fullName', 'Full name'],
   ['jobTitle', 'Job title'],
-  ['displayEmail', 'Email'],
-  ['phone', 'Phone'],
   ['address', 'Address'],
-  ['website', 'Website'],
 ] as const
 
 export function PersonalDetailsForm({
@@ -140,10 +138,17 @@ export function PersonalDetailsForm({
   personal: PersonalDetails
   onChange: (patch: Partial<PersonalDetails>) => void
 }) {
+  const social = personal.social || { linkedIn: { link: '', display: '' }, github: { link: '', display: '' } }
   return (
     <div className="space-y-3">
       <AvatarControls personal={personal} onChange={onChange} />
-      {PERSONAL_FIELDS.map(([key, label]) => (
+      {(
+        [
+          ['Full name', 'fullName'],
+          ['Job title', 'jobTitle'],
+          ['Address', 'address'],
+        ] as const
+      ).map(([label, key]) => (
         <LabeledInput
           key={key}
           label={label}
@@ -152,35 +157,40 @@ export function PersonalDetailsForm({
           onChange={(e) => onChange({ [key]: e.target.value } as Partial<PersonalDetails>)}
         />
       ))}
-      <LabeledInput
-        label="LinkedIn"
-        id="pd-linkedIn"
-        value={personal.social?.linkedIn?.display || ''}
-        onChange={(e) =>
-          onChange({
-            social: {
-              ...personal.social,
-              linkedIn: {
-                ...personal.social?.linkedIn,
-                display: e.target.value,
-                link: e.target.value,
-              },
-            },
-          })
-        }
+      <TitleInput
+        label="Email"
+        value={personal.displayEmail || ''}
+        link={personal.emailLink || ''}
+        onChange={(v) => onChange({ displayEmail: v })}
+        onLinkChange={(url) => onChange({ emailLink: url })}
       />
-      <LabeledInput
+      <TitleInput
+        label="Phone"
+        value={personal.phone || ''}
+        link={personal.phoneLink || ''}
+        onChange={(v) => onChange({ phone: v })}
+        onLinkChange={(url) => onChange({ phoneLink: url })}
+      />
+      <TitleInput
+        label="Website"
+        value={personal.website || ''}
+        link={personal.websiteLink || ''}
+        onChange={(v) => onChange({ website: v })}
+        onLinkChange={(url) => onChange({ websiteLink: url })}
+      />
+      <TitleInput
+        label="LinkedIn"
+        value={social.linkedIn?.display || ''}
+        link={social.linkedIn?.link || ''}
+        onChange={(v) => onChange({ social: { ...social, linkedIn: { ...social.linkedIn, display: v } } })}
+        onLinkChange={(url) => onChange({ social: { ...social, linkedIn: { ...social.linkedIn, link: url } } })}
+      />
+      <TitleInput
         label="GitHub"
-        id="pd-github"
-        value={personal.social?.github?.display || ''}
-        onChange={(e) =>
-          onChange({
-            social: {
-              ...personal.social,
-              github: { ...personal.social?.github, display: e.target.value, link: e.target.value },
-            },
-          })
-        }
+        value={social.github?.display || ''}
+        link={social.github?.link || ''}
+        onChange={(v) => onChange({ social: { ...social, github: { ...social.github, display: v } } })}
+        onLinkChange={(url) => onChange({ social: { ...social, github: { ...social.github, link: url } } })}
       />
     </div>
   )
