@@ -198,4 +198,14 @@
   .print-page {
     min-height: 0 !important;
   }
+  .print-only,
+  .print-only * {
+    visibility: visible !important;
+  }
+  .print-only {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: white !important;
+  }
 }

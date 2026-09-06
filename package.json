@@ -17,7 +17,6 @@
     "@hookform/resolvers": "^5.9.1",
     "@iconify/react": "^6.0.2",
     "@imagekit/nodejs": "^7.11.0",
-    "@react-pdf/renderer": "^4.9.0",
     "@tanstack/react-query": "^5.102.8",
     "@tanstack/react-query-devtools": "^5.102.8",
     "@tiptap/extension-link": "^3.31.2",

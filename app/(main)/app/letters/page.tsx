@@ -1,29 +1,29 @@
 'use client'
 
-import { ConfirmDialog } from '@/components/common/confirm-dialog'
-import { CreateCard } from '@/components/common/create-card'
-import { PreviewFrame } from '@/components/common/preview-frame'
-import { ShareButton } from '@/components/common/share-button'
-import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import Link from 'next/link'
+import { Copy, Pencil, Trash2, Download, Link2, MoreVertical } from 'lucide-react'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
+  useListLetterPreviews,
   useCreateLetter,
   useDeleteLetter,
   useDuplicateLetter,
-  useListLetterPreviews,
 } from '@/features/letter/hooks/letter.hooks'
-import { normalizeLetterDesign } from '@/features/letter/types'
 import { useShareLetter } from '@/features/share/share.hooks'
-import { Copy, Download, MoreVertical, Pencil, Trash2 } from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { CreateCard } from '@/components/common/create-card'
+import { PreviewFrame } from '@/components/common/preview-frame'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import { ShareDialog } from '@/components/common/share-button'
+import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
+import { normalizeLetterDesign } from '@/features/letter/types'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { usePrintNode } from '@/lib/use-print'
 
 export default function LettersPage() {
   const { data: letters, isLoading } = useListLetterPreviews()
@@ -31,12 +31,14 @@ export default function LettersPage() {
   const del = useDeleteLetter()
   const dup = useDuplicateLetter()
   const share = useShareLetter()
+  const { print, job } = usePrintNode()
   const [confirm, setConfirm] = useState<{
     kind: 'delete' | 'duplicate'
     id: string
     title: string
   } | null>(null)
   const [menuId, setMenuId] = useState<string | null>(null)
+  const [shareState, setShare] = useState<{ id: string; live: boolean } | null>(null)
 
   return (
     <div className="space-y-6">
@@ -47,23 +49,19 @@ export default function LettersPage() {
         <CreateCard
           label="Letter name"
           buttonLabel="New Letter"
-          className="aspect-210/297 justify-center"
+          className="aspect-[210/297] justify-center"
           pending={create.isPending}
           onCreate={(name) => create.mutate(name || undefined)}
         />
         {isLoading
           ? Array.from({ length: 2 }, (_, i) => (
-              <div key={i} className="bg-muted aspect-210/297 animate-pulse rounded-lg" />
+              <div key={i} className="bg-muted aspect-[210/297] animate-pulse rounded-lg" />
             ))
           : letters?.map((l) => (
               <div key={l.id} className="group relative flex flex-col gap-3">
                 <div className="relative">
                   <PreviewFrame>
-                    <LetterRenderer
-                      form={l}
-                      design={normalizeLetterDesign(l.design)}
-                      showPlaceholder
-                    />
+                    <LetterRenderer form={l} design={normalizeLetterDesign(l.design)} showPlaceholder />
                   </PreviewFrame>
                   <Link
                     href={`/app/letters/${l.id}`}
@@ -71,7 +69,6 @@ export default function LettersPage() {
                     className="absolute inset-0 rounded-lg"
                   />
                 </div>
-
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                   <span className="bg-background/90 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium shadow-lg backdrop-blur-sm">
                     <Pencil className="size-3.5" /> Edit
@@ -84,10 +81,7 @@ export default function LettersPage() {
                       Updated {new Date(l.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <DropdownMenu
-                    open={menuId === l.id}
-                    onOpenChange={(o) => setMenuId(o ? l.id : null)}
-                  >
+                  <DropdownMenu open={menuId === l.id} onOpenChange={(o) => setMenuId(o ? l.id : null)}>
                     <DropdownMenuTrigger
                       render={
                         <Button variant="secondary" size="icon" aria-label="Card menu">
@@ -107,26 +101,45 @@ export default function LettersPage() {
                       >
                         <Trash2 /> Delete
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => window.open(`/api/letters/${l.id}/pdf`, '_blank')}
+                        onClick={() =>
+                          print(
+                            l.id,
+                            (normalizeLetterDesign(l.design).customization.fileName ||
+                              l.title ||
+                              'cover-letter').replace(/\.pdf$/i, '')
+                          )
+                        }
                       >
                         <Download /> Download
                       </DropdownMenuItem>
-                      <ShareButton
-                        className="mt-1 w-full"
-                        live={l.webResumeLive}
-                        kind="letter"
-                        pending={share.isPending}
-                        onToggle={(live) => share.mutateAsync({ id: l.id, live })}
-                        onOpen={() => setMenuId(null)}
-                      />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setMenuId(null)
+                          setShare({ id: l.id, live: l.webResumeLive })
+                        }}
+                      >
+                        <Link2 /> Share
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </div>
+                {/* Full-size hidden copy of the same preview, only visible in print output */}
+                <div className={`print-only ${job?.id === l.id ? '' : 'hidden'}`}>
+                  <LetterRenderer form={l} design={normalizeLetterDesign(l.design)} showPlaceholder />
                 </div>
               </div>
             ))}
       </div>
+      {shareState && (
+        <ShareDialog
+          live={shareState.live}
+          kind="letter"
+          pending={share.isPending}
+          onToggle={(live) => share.mutateAsync({ id: shareState.id, live })}
+          onClose={() => setShare(null)}
+        />
+      )}
       <ConfirmDialog
         open={!!confirm}
         onOpenChange={(open) => !open && setConfirm(null)}

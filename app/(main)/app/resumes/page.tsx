@@ -1,29 +1,29 @@
 'use client'
 
-import { ConfirmDialog } from '@/components/common/confirm-dialog'
-import { CreateCard } from '@/components/common/create-card'
-import { PreviewFrame } from '@/components/common/preview-frame'
-import { ShareButton } from '@/components/common/share-button'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import Link from 'next/link'
+import { Copy, Pencil, Trash2, Download, Link2, MoreVertical } from 'lucide-react'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
-import { DEFAULT_CUSTOMIZATION, EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
-import {
+  useListResumePreviews,
   useCreateResume,
   useDeleteResume,
   useDuplicateResume,
-  useListResumePreviews,
 } from '@/features/resume/hooks/resume.hooks'
 import { useShareResume } from '@/features/share/share.hooks'
-import { Copy, Download, MoreVertical, Pencil, Trash2 } from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { CreateCard } from '@/components/common/create-card'
+import { PreviewFrame } from '@/components/common/preview-frame'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import { ShareDialog } from '@/components/common/share-button'
+import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
+import { DEFAULT_CUSTOMIZATION, EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { usePrintNode } from '@/lib/use-print'
 
 export default function ResumesPage() {
   const { data: resumes, isLoading } = useListResumePreviews()
@@ -31,12 +31,14 @@ export default function ResumesPage() {
   const del = useDeleteResume()
   const dup = useDuplicateResume()
   const share = useShareResume()
+  const { print, job } = usePrintNode()
   const [confirm, setConfirm] = useState<{
     kind: 'delete' | 'duplicate'
     id: string
     title: string
   } | null>(null)
   const [menuId, setMenuId] = useState<string | null>(null)
+  const [shareState, setShare] = useState<{ id: string; live: boolean } | null>(null)
 
   return (
     <div className="space-y-6">
@@ -83,10 +85,7 @@ export default function ResumesPage() {
                       Updated {new Date(r.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <DropdownMenu
-                    open={menuId === r.id}
-                    onOpenChange={(o) => setMenuId(o ? r.id : null)}
-                  >
+                  <DropdownMenu open={menuId === r.id} onOpenChange={(o) => setMenuId(o ? r.id : null)}>
                     <DropdownMenuTrigger
                       render={
                         <Button variant="secondary" size="icon" aria-label="Card menu">
@@ -106,26 +105,50 @@ export default function ResumesPage() {
                       >
                         <Trash2 /> Delete
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => window.open(`/api/resumes/${r.id}/pdf`, '_blank')}
+                        onClick={() =>
+                          print(
+                            r.id,
+                            (r.doc.customization?.fileName || r.title || 'resume').replace(
+                              /\.pdf$/i,
+                              ''
+                            )
+                          )
+                        }
                       >
                         <Download /> Download
                       </DropdownMenuItem>
-                      <ShareButton
-                        className="mt-1 w-full"
-                        live={r.webResumeLive}
-                        kind="resume"
-                        pending={share.isPending}
-                        onToggle={(live) => share.mutateAsync({ id: r.id, live })}
-                        onOpen={() => setMenuId(null)}
-                      />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setMenuId(null)
+                          setShare({ id: r.id, live: r.webResumeLive })
+                        }}
+                      >
+                        <Link2 /> Share
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </div>
+                {/* Full-size hidden copy of the same preview, only visible in print output */}
+                <div className={`print-only ${job?.id === r.id ? '' : 'hidden'}`}>
+                  <ResumeRenderer
+                    personalDetails={r.doc.personalDetails ?? EMPTY_PERSONAL_DETAILS}
+                    sections={r.doc.sections}
+                    customization={r.doc.customization ?? DEFAULT_CUSTOMIZATION}
+                  />
                 </div>
               </div>
             ))}
       </div>
+      {shareState && (
+        <ShareDialog
+          live={shareState.live}
+          kind="resume"
+          pending={share.isPending}
+          onToggle={(live) => share.mutateAsync({ id: shareState.id, live })}
+          onClose={() => setShare(null)}
+        />
+      )}
       <ConfirmDialog
         open={!!confirm}
         onOpenChange={(open) => !open && setConfirm(null)}

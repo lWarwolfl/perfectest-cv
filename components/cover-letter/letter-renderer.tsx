@@ -3,6 +3,7 @@ import type { LetterDesign } from '@/features/letter/types'
 import { normalizeLetterDesign } from '@/features/letter/types'
 import type { Customization } from '@/features/resume/types'
 import { PAGE_PX } from '@/features/resume/components/resume-renderer'
+import { fontCss } from '@/features/resume/fonts'
 import { Mail, Phone, MapPin, Globe, AtSign, Link as LinkIcon } from 'lucide-react'
 
 const CONTACT_ICONS: Record<string, typeof Mail> = {
@@ -107,7 +108,7 @@ export function LetterRenderer({
   const colors = letterColorStyle(c)
   const header = c.header
   const spacing = c.spacing
-  const fontFamily = c.font.fontFamily || 'Inter'
+  const fontFamily = fontCss(c.font.fontFamily)
   const fs = 1 + Number(spacing.fontSize) * 0.05
   const lh = 1.2 + Number(spacing.lineHeight) * 0.1
   const page = PAGE_PX[c.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4']

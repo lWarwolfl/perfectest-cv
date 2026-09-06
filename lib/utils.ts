@@ -1,8 +1,24 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { toast } from 'sonner'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export async function downloadFile(url: string, name: string) {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error()
+    const blob = await res.blob()
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = name
+    a.click()
+    URL.revokeObjectURL(a.href)
+  } catch {
+    toast.error('Download failed')
+  }
 }
 
 export function getErrorMessage(error: unknown) {

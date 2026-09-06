@@ -12,6 +12,7 @@ import {
   DEFAULT_CUSTOMIZATION,
   EMPTY_PERSONAL_DETAILS,
 } from '@/features/resume/defaults'
+import { fontCss } from '@/features/resume/fonts'
 import { ExternalLink, Link as LinkIcon, Mail, Phone, Globe, AtSign, MapPin } from 'lucide-react'
 
 export const PAGE_PX = {
@@ -335,7 +336,7 @@ export function ResumeRenderer({
   const customization = { ...DEFAULT_CUSTOMIZATION, ...rawCustomization } as Customization
   const colors = colorStyle(customization)
   const { header, layout, heading, spacing } = customization
-  const fontFamily = customization.font.fontFamily || 'Inter'
+  const fontFamily = fontCss(customization.font.fontFamily)
   const fs = 1 + Number(spacing.fontSize) * 0.05
   const lh = 1.2 + Number(spacing.lineHeight) * 0.1
   const ordered = [...sections].sort((a, b) => a.order - b.order)

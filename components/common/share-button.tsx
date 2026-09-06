@@ -17,23 +17,15 @@ import {
 
 type ShareResult = { live: boolean; token: string | null } | undefined
 
-export function ShareButton({
-  live,
-  kind,
-  pending,
-  onToggle,
-  className,
-  onOpen,
-}: {
+export function ShareDialog({ live, kind, pending, onToggle, onClose }: {
   live: boolean
   kind: 'resume' | 'letter'
   pending: boolean
   onToggle: (live: boolean) => Promise<ShareResult>
-  className?: string
-  onOpen?: () => void
+  onClose: () => void
 }) {
   const label = kind === 'resume' ? 'resume' : 'cover letter'
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(true)
   const [url, setUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -44,41 +36,27 @@ export function ShareButton({
       if (res?.live && res.token) {
         setUrl(`${window.location.origin}/share/${kind}/${res.token}`)
         setCopied(false)
+      } else {
+        onClose()
       }
     } catch {
-      // error toast already shown by the mutation hook
+      onClose()
     }
   }
 
   function copy() {
     if (!url) return
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        setCopied(true)
-        toast.success('Link copied to clipboard')
-      })
-      .catch(() => toast.error(url))
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      toast.success('Link copied to clipboard')
+    }).catch(() => toast.error(url))
   }
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        className={className}
-        onClick={() => {
-          setConfirmOpen(true)
-          onOpen?.()
-        }}
-        disabled={pending}
-      >
-        <Link2 className="size-3.5" />
-        Share
-      </Button>
       <ConfirmDialog
         open={confirmOpen}
-        onOpenChange={setConfirmOpen}
+        onOpenChange={(open) => !open && onClose()}
         pending={pending}
         title={live ? `Update ${label} share URL?` : `Enable ${label} sharing?`}
         description={
@@ -89,26 +67,15 @@ export function ShareButton({
         confirmLabel={live ? 'Update URL' : 'Create link'}
         onConfirm={() => toggle(true)}
       />
-      <Dialog open={!!url} onOpenChange={(open) => !open && setUrl(null)}>
+      <Dialog open={!!url} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Share URL</DialogTitle>
             <DialogDescription>Anyone with this link can view your {label}.</DialogDescription>
           </DialogHeader>
-          <LabeledInput
-            label="Share URL"
-            readOnly
-            value={url || ''}
-            onFocus={(e) => e.target.select()}
-            className="font-mono text-xs"
-          />
+          <LabeledInput label="Share URL" readOnly value={url || ''} onFocus={(e) => e.target.select()} className="font-mono text-xs" />
           <DialogFooter>
-            <Button
-              variant="outline"
-              className="text-destructive"
-              disabled={pending}
-              onClick={() => toggle(false)}
-            >
+            <Button variant="outline" className="text-destructive" disabled={pending} onClick={() => toggle(false)}>
               Disable link
             </Button>
             <Button onClick={copy}>
@@ -118,6 +85,27 @@ export function ShareButton({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  )
+}
+
+export function ShareButton({ live, kind, pending, onToggle, className }: {
+  live: boolean
+  kind: 'resume' | 'letter'
+  pending: boolean
+  onToggle: (live: boolean) => Promise<ShareResult>
+  className?: string
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button variant="outline" size="sm" className={className} onClick={() => setOpen(true)} disabled={pending}>
+        <Link2 className="size-3.5" />
+        Share
+      </Button>
+      {open && (
+        <ShareDialog live={live} kind={kind} pending={pending} onToggle={onToggle} onClose={() => setOpen(false)} />
+      )}
     </>
   )
 }

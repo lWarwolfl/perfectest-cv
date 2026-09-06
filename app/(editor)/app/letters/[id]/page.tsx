@@ -43,6 +43,13 @@ const SECTION_TITLES: Record<SectionKey, string> = {
   signature: 'Signature',
 }
 
+function printWithFileName(name: string) {
+  const prev = document.title
+  document.title = name
+  window.print()
+  document.title = prev
+}
+
 export default function LetterEditorPage() {
   const params = useParams()
   const id = params.id as string
@@ -137,6 +144,14 @@ export default function LetterEditorPage() {
     { key: 'signature', preview: form.signatureName || form.senderName || 'Not added' },
   ]
 
+  function handlePrint() {
+    const name =
+      (design?.customization.fileName || letter?.title || 'cover-letter')
+        .replace(/\.pdf$/i, '')
+        .trim() || 'cover-letter'
+    printWithFileName(name)
+  }
+
   if (isLoading || !design) {
     return (
       <EditorShell
@@ -145,7 +160,7 @@ export default function LetterEditorPage() {
             overviewHref="/app/letters"
             activeTab={tab}
             onTabChange={setTab}
-            onDownload={() => window.open(`/api/letters/${id}/pdf`, '_blank')}
+            onDownload={() => {}}
           />
         }
         sidebar={<div />}
@@ -156,10 +171,7 @@ export default function LetterEditorPage() {
 
   return (
     <>
-      <ScreenGate
-        overviewHref="/app/letters"
-        onDownload={() => window.open(`/api/letters/${id}/pdf`, '_blank')}
-      />
+      <ScreenGate overviewHref="/app/letters" onDownload={handlePrint} />
       <EditorShell
         header={
           <EditorHeader
@@ -169,7 +181,7 @@ export default function LetterEditorPage() {
               setTab(t)
               setActiveSection(null)
             }}
-            onDownload={() => window.open(`/api/letters/${id}/pdf`, '_blank')}
+            onDownload={handlePrint}
             share={
               <ShareButton
                 className="h-8 text-sm"

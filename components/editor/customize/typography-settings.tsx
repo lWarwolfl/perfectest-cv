@@ -14,23 +14,13 @@ import { Label } from '@/components/ui/label'
 import { Type } from 'lucide-react'
 import { CustomizeCard } from './customize-tab-layout'
 import type { Customization } from '@/features/resume/types'
+import { FONTS, fontCss } from '@/features/resume/fonts'
 
 interface TypographySettingsProps {
   customization: Customization
   onPatch: (patch: Partial<Customization['spacing']>) => void
   onFontChange: (patch: Partial<Customization['font']>) => void
 }
-
-const FONT_FAMILIES = [
-  { group: 'Sans-Serif', value: 'Inter' },
-  { group: 'Sans-Serif', value: 'Roboto' },
-  { group: 'Sans-Serif', value: 'Arial' },
-  { group: 'Serif', value: 'Lora' },
-  { group: 'Serif', value: 'Merriweather' },
-  { group: 'Serif', value: 'Garamond' },
-  { group: 'Monospace', value: 'Geist Mono' },
-  { group: 'Monospace', value: 'JetBrains Mono' },
-] as const
 
 const LINE_HEIGHTS = [
   { value: '1', label: 'Compact (1.3)' },
@@ -56,16 +46,16 @@ export default function TypographySettings({
           value={customization.font.fontFamily}
           onValueChange={(v) => onFontChange({ fontFamily: v || 'Inter', selected: 'custom' })}
         >
-          <SelectTrigger className="w-full" style={{ fontFamily: customization.font.fontFamily }}>
+          <SelectTrigger className="w-full" style={{ fontFamily: fontCss(customization.font.fontFamily) }}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {['Sans-Serif', 'Serif', 'Monospace'].map((group) => (
               <SelectGroup key={group}>
                 <SelectLabel>{group}</SelectLabel>
-                {FONT_FAMILIES.filter((f) => f.group === group).map((f) => (
+                {FONTS.filter((f) => f.group === group).map((f) => (
                   <SelectItem key={f.value} value={f.value}>
-                    <span style={{ fontFamily: f.value }}>{f.value}</span>
+                    <span style={{ fontFamily: fontCss(f.value) }}>{f.value}</span>
                   </SelectItem>
                 ))}
               </SelectGroup>
