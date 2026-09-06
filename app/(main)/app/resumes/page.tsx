@@ -21,7 +21,7 @@ import {
   useListResumePreviews,
 } from '@/features/resume/hooks/resume.hooks'
 import { useShareResume } from '@/features/share/share.hooks'
-import { Copy, Download, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Copy, Download, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -89,8 +89,8 @@ export default function ResumesPage() {
                   >
                     <DropdownMenuTrigger
                       render={
-                        <Button variant="ghost" size="icon" aria-label="Card menu">
-                          <MoreHorizontal className="size-4" />
+                        <Button variant="secondary" size="icon" aria-label="Card menu">
+                          <MoreVertical className="size-4" />
                         </Button>
                       }
                     />

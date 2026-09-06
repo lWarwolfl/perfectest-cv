@@ -21,7 +21,7 @@ import {
 } from '@/features/letter/hooks/letter.hooks'
 import { normalizeLetterDesign } from '@/features/letter/types'
 import { useShareLetter } from '@/features/share/share.hooks'
-import { Copy, Download, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Copy, Download, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -90,8 +90,8 @@ export default function LettersPage() {
                   >
                     <DropdownMenuTrigger
                       render={
-                        <Button variant="ghost" size="icon" aria-label="Card menu">
-                          <MoreHorizontal className="size-4" />
+                        <Button variant="secondary" size="icon" aria-label="Card menu">
+                          <MoreVertical className="size-4" />
                         </Button>
                       }
                     />
@@ -113,7 +113,6 @@ export default function LettersPage() {
                       >
                         <Download /> Download
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       <ShareButton
                         className="mt-1 w-full"
                         live={l.webResumeLive}
