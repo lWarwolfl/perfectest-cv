@@ -1,17 +1,29 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Copy, Pencil, Trash2 } from 'lucide-react'
-import { useListResumePreviews, useCreateResume, useDeleteResume, useDuplicateResume } from '@/features/resume/hooks/resume.hooks'
-import { useShareResume } from '@/features/share/share.hooks'
-import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { CreateCard } from '@/components/common/create-card'
 import { PreviewFrame } from '@/components/common/preview-frame'
-import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { ShareButton } from '@/components/common/share-button'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
 import { DEFAULT_CUSTOMIZATION, EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
+import {
+  useCreateResume,
+  useDeleteResume,
+  useDuplicateResume,
+  useListResumePreviews,
+} from '@/features/resume/hooks/resume.hooks'
+import { useShareResume } from '@/features/share/share.hooks'
+import { Copy, Download, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
 
 export default function ResumesPage() {
   const { data: resumes, isLoading } = useListResumePreviews()
@@ -19,7 +31,12 @@ export default function ResumesPage() {
   const del = useDeleteResume()
   const dup = useDuplicateResume()
   const share = useShareResume()
-  const [confirm, setConfirm] = useState<{ kind: 'delete' | 'duplicate'; id: string; title: string } | null>(null)
+  const [confirm, setConfirm] = useState<{
+    kind: 'delete' | 'duplicate'
+    id: string
+    title: string
+  } | null>(null)
+  const [menuId, setMenuId] = useState<string | null>(null)
 
   return (
     <div className="space-y-6">
@@ -27,48 +44,96 @@ export default function ResumesPage() {
         <h1 className="text-2xl font-semibold">Resumes</h1>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <CreateCard label="Resume name" buttonLabel="New Resume" className="aspect-[210/297] justify-center" pending={create.isPending} onCreate={(name) => create.mutate(name || undefined)} />
+        <CreateCard
+          label="Resume name"
+          buttonLabel="New Resume"
+          className="aspect-[210/297] justify-center"
+          pending={create.isPending}
+          onCreate={(name) => create.mutate(name || undefined)}
+        />
         {isLoading
-          ? Array.from({ length: 2 }, (_, i) => <div key={i} className="aspect-[210/297] animate-pulse rounded-lg bg-muted" />)
+          ? Array.from({ length: 2 }, (_, i) => (
+              <div key={i} className="bg-muted aspect-[210/297] animate-pulse rounded-lg" />
+            ))
           : resumes?.map((r) => (
-          <div key={r.id} className="flex flex-col gap-3">
-            <PreviewFrame pageFormat={r.doc.customization?.regional?.pageFormat}>
-              <ResumeRenderer
-                personalDetails={r.doc.personalDetails ?? EMPTY_PERSONAL_DETAILS}
-                sections={r.doc.sections}
-                customization={r.doc.customization ?? DEFAULT_CUSTOMIZATION}
-              />
-            </PreviewFrame>
-            <div className="flex flex-col gap-2">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{r.title}</p>
-                <p className="text-xs text-muted-foreground">Updated {new Date(r.updatedAt).toLocaleDateString()}</p>
+              <div key={r.id} className="group relative flex flex-col gap-3">
+                <div className="relative">
+                  <PreviewFrame pageFormat={r.doc.customization?.regional?.pageFormat}>
+                    <ResumeRenderer
+                      personalDetails={r.doc.personalDetails ?? EMPTY_PERSONAL_DETAILS}
+                      sections={r.doc.sections}
+                      customization={r.doc.customization ?? DEFAULT_CUSTOMIZATION}
+                    />
+                  </PreviewFrame>
+                  <Link
+                    href={`/app/resumes/${r.id}`}
+                    aria-label={`Edit ${r.title}`}
+                    className="absolute inset-0 rounded-lg"
+                  />
+                </div>
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  <span className="bg-background/90 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium shadow-lg backdrop-blur-sm">
+                    <Pencil className="size-3.5" /> Edit
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{r.title}</p>
+                    <p className="text-muted-foreground text-xs">
+                      Updated {new Date(r.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <DropdownMenu
+                    open={menuId === r.id}
+                    onOpenChange={(o) => setMenuId(o ? r.id : null)}
+                  >
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" size="icon" aria-label="Card menu">
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => setConfirm({ kind: 'duplicate', id: r.id, title: r.title })}
+                      >
+                        <Copy /> Duplicate
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setConfirm({ kind: 'delete', id: r.id, title: r.title })}
+                      >
+                        <Trash2 /> Delete
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => window.open(`/api/resumes/${r.id}/pdf`, '_blank')}
+                      >
+                        <Download /> Download
+                      </DropdownMenuItem>
+                      <ShareButton
+                        className="mt-1 w-full"
+                        live={r.webResumeLive}
+                        kind="resume"
+                        pending={share.isPending}
+                        onToggle={(live) => share.mutateAsync({ id: r.id, live })}
+                        onOpen={() => setMenuId(null)}
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" render={<Link href={`/app/resumes/${r.id}`} />}>
-                  <Pencil className="size-3.5" /> Edit
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setConfirm({ kind: 'duplicate', id: r.id, title: r.title })}>
-                  <Copy className="size-3.5" /> Duplicate
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setConfirm({ kind: 'delete', id: r.id, title: r.title })}>
-                  <Trash2 className="size-3.5" /> Delete
-                </Button>
-                <ShareButton
-                  live={r.webResumeLive}
-                  kind="resume"
-                  pending={share.isPending}
-                  onToggle={(live) => share.mutateAsync({ id: r.id, live })}
-                />
-              </div>
-            </div>
-          </div>
-        ))}
+            ))}
       </div>
       <ConfirmDialog
         open={!!confirm}
         onOpenChange={(open) => !open && setConfirm(null)}
-        title={confirm?.kind === 'delete' ? `Delete "${confirm.title}"?` : `Duplicate "${confirm?.title}"?`}
+        title={
+          confirm?.kind === 'delete'
+            ? `Delete "${confirm.title}"?`
+            : `Duplicate "${confirm?.title}"?`
+        }
         description={
           confirm?.kind === 'delete'
             ? 'This permanently removes the resume and all its sections. This cannot be undone.'

@@ -158,9 +158,9 @@ export default function ResumeEditorPage() {
     setEditing(null)
   }
 
-  function handlePrint() {
+  async function handlePrint() {
     const name = (custom.fileName || doc?.resume.title || 'resume').replace(/\.pdf$/i, '').trim() || 'resume'
-    printWithFileName(name)
+    window.open(`/api/resumes/${id}/pdf`, '_blank')
   }
 
   const resume = doc?.resume

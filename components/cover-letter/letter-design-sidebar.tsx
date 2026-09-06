@@ -1,15 +1,14 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Copy } from 'lucide-react'
+import { Copy, FileText } from 'lucide-react'
 import { useCopyResumeDesign, useCopyResumeDetails } from '@/features/letter/hooks/letter.hooks'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import type { LetterDesign } from '@/features/letter/types'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import TypographySettings from '@/components/editor/customize/typography-settings'
 import ColorThemeSettings from '@/components/editor/customize/color-theme-settings'
 import HeaderControls, { LinkStylingSettings } from '@/components/editor/customize/header-controls'
@@ -106,6 +105,18 @@ export default function LetterDesignSidebar({ letterId, design, patchCustomizati
           onPatch={(patch) => patchCustomization({ spacing: { ...c.spacing, ...patch } })}
           onRegionalPatch={(patch) => patchCustomization({ regional: { ...c.regional, ...patch } })}
         />
+        <CustomizeCard title="Download" icon={FileText} description="Download file name.">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <FileText className="size-3.5" /> Download file name
+            </Label>
+            <Input
+              value={c.fileName || ''}
+              onChange={(e) => patchCustomization({ fileName: e.target.value })}
+              placeholder="Cover-Letter.pdf"
+            />
+          </div>
+        </CustomizeCard>
       </CustomizeTabLayout>
     </div>
   )

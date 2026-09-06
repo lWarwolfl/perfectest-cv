@@ -108,7 +108,7 @@ export default function LetterEditorPage() {
   if (isLoading || !design) {
     return (
       <EditorShell
-        header={<EditorHeader overviewHref="/app/letters" activeTab={tab} onTabChange={setTab} onDownload={() => {}} />}
+        header={<EditorHeader overviewHref="/app/letters" activeTab={tab} onTabChange={setTab} onDownload={() => window.open(`/api/letters/${id}/pdf`, '_blank')} />}
         sidebar={<div />}
         preview={<PageLoader />}
       />
@@ -117,14 +117,14 @@ export default function LetterEditorPage() {
 
   return (
     <>
-      <ScreenGate overviewHref="/app/letters" onDownload={() => window.print()} />
+      <ScreenGate overviewHref="/app/letters" onDownload={() => window.open(`/api/letters/${id}/pdf`, '_blank')} />
       <EditorShell
       header={
         <EditorHeader
           overviewHref="/app/letters"
           activeTab={tab}
           onTabChange={(t) => { setTab(t); setActiveSection(null) }}
-          onDownload={() => window.print()}
+          onDownload={() => window.open(`/api/letters/${id}/pdf`, '_blank')}
           share={
             <ShareButton
               className="h-8 text-sm"

@@ -1,12 +1,12 @@
 'use client'
 
-import Link from 'next/link'
-import { Download, Eye } from 'lucide-react'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { EditorLogo } from '@/components/editor/screen-gate'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { Download, Eye } from 'lucide-react'
+import Link from 'next/link'
 
 interface EditorHeaderProps {
   overviewHref: string
@@ -24,7 +24,7 @@ export default function EditorHeader({
   share,
 }: EditorHeaderProps) {
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-5">
+    <header className="border-border bg-background flex h-16 shrink-0 items-center justify-between border-b px-5">
       <div className="flex items-center gap-6">
         <Link href="/app/dashboard" className="flex items-center">
           <EditorLogo />
@@ -34,6 +34,7 @@ export default function EditorHeader({
           Overview
         </Button>
         <Tabs
+          className="max-sm:hidden"
           value={activeTab}
           onValueChange={(v) => onTabChange(v as 'content' | 'design')}
         >
@@ -70,10 +71,10 @@ export function EditorShell({
     <div className={cn('flex h-full flex-col', className)}>
       {header}
       <div className="editor-body flex min-h-0 flex-1 max-lg:hidden">
-        <div className="flex w-[30rem] shrink-0 flex-col border-r border-border print:hidden">
+        <div className="border-border flex w-[30rem] shrink-0 flex-col border-r print:hidden">
           {sidebar}
         </div>
-        <div className="print-area flex-1 overflow-auto bg-muted/30 p-6 print:bg-white print:p-0">
+        <div className="print-area bg-muted/30 flex-1 overflow-auto p-6 print:bg-white print:p-0">
           {preview}
         </div>
       </div>
