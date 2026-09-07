@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-const INTERVAL_MS = 5000
+const INTERVAL_MS = 30000
 
 /**
  * Registers the page's saveAll with the store (so the retry dialog can call it)
