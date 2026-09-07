@@ -93,9 +93,8 @@ export default function ResumeSidebar({
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto p-3">
           <div className="border-border bg-card mb-3 rounded-xl border">
-            <Button
+            <button
               type="button"
-              variant="ghost"
               className="flex w-full items-center gap-2 p-3 text-left"
               onClick={() => onDetailsOpenChange(!detailsOpen)}
             >
@@ -106,7 +105,7 @@ export default function ResumeSidebar({
               <ChevronDown
                 className={`size-4 transition-transform ${detailsOpen ? 'rotate-180' : ''}`}
               />
-            </Button>
+            </button>
             {detailsOpen && (
               <div className="border-border/60 border-t p-3">
                 <PersonalDetailsForm personal={personal} onChange={onPatchPersonal} />

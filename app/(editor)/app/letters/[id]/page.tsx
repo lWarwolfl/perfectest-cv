@@ -290,10 +290,9 @@ export default function LetterEditorPage() {
                 <div className="min-h-0 flex-1 overflow-y-auto p-3">
                   <div className="space-y-2">
                     {sections.map((s) => (
-                      <Button
+                      <button
                         key={s.key}
                         type="button"
-                        variant="ghost"
                         onClick={() => setActiveSection(s.key)}
                         className="group border-border bg-card hover:bg-muted/30 flex w-full cursor-pointer items-center justify-between rounded-xl border p-4 text-left shadow-sm transition-all"
                       >
@@ -315,7 +314,7 @@ export default function LetterEditorPage() {
                           </p>
                         </div>
                         <ChevronRight className="text-muted-foreground group-hover:text-foreground size-4 shrink-0 transition-all group-hover:translate-x-0.5" />
-                      </Button>
+                      </button>
                     ))}
                   </div>
                 </div>

@@ -153,11 +153,10 @@ function SortableEntry({
       >
         <GripVertical className="size-4" />
       </button>
-      <Button
+      <button
         type="button"
-        variant="ghost"
         onClick={() => onEntryClick(entry.id)}
-        className="hover:bg-muted/50 min-w-0 flex-1 items-start justify-start rounded-r-lg p-3 pr-9 pl-1 text-left whitespace-normal transition-colors"
+        className="hover:bg-muted/50 min-w-0 flex-1 rounded-r-lg p-3 pr-9 pl-1 text-left transition-colors"
       >
         <span className={`block truncate text-sm font-medium ${entry.hidden ? 'text-muted-foreground/60 line-through' : ''}`}>
           {title}
@@ -165,7 +164,7 @@ function SortableEntry({
         {preview && !entry.hidden && (
           <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">{preview}</span>
         )}
-      </Button>
+      </button>
       <Button
         type="button"
         variant="ghost"
@@ -331,12 +330,11 @@ export default function SectionCard({
             section.entries.slice(0, 1).map((entry) => {
               const { title, preview } = entryTitleAndPreview(entry.data)
               return (
-                <Button
+                <button
                   key={entry.id}
                   type="button"
-                  variant="ghost"
                   onClick={() => onEntryClick(entry.id)}
-                  className="hover:bg-muted/50 w-full items-start justify-start rounded-lg p-3 text-left whitespace-normal transition-colors"
+                  className="hover:bg-muted/50 w-full rounded-lg border p-3 text-left transition-colors"
                 >
                   <span className="block truncate text-sm font-medium">{title || 'Summary'}</span>
                   {preview && (
@@ -344,7 +342,7 @@ export default function SectionCard({
                       {preview}
                     </span>
                   )}
-                </Button>
+                </button>
               )
             })
           ) : (
