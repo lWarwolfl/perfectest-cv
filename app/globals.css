@@ -222,6 +222,12 @@ div.resume-prose {
     page-break-inside: avoid;
     size: initial;
   }
+  /* Chromium drops backgrounds (icon badges, bubbles) when printing unless
+     color-adjust is exact — the boxes print as-is, so force it. */
+  .print-pages .print-page * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 
   @page {
     margin: 0;
