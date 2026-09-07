@@ -160,7 +160,9 @@ export function LetterRenderer({
   )
   const centered = header.alignText === 'center' || photoPosition.position === 'top'
 
-  const detailKeys = ['displayEmail', 'phone', 'address', 'website', 'linkedIn', 'github']
+  const detailKeys = ['displayEmail', 'phone', 'address', 'website', 'linkedIn', 'github'].filter(
+    (k) => !(design.hiddenSenderDetails || []).includes(k)
+  )
   const chips = detailKeys
     .map((key) => ({ key, text: detailText(key, form) }))
     .filter((v): v is { key: string; text: string } => Boolean(v?.text))

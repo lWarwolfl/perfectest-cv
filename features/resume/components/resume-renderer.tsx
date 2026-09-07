@@ -356,6 +356,7 @@ export function ResumeRenderer({
     github: personalDetails.social?.github?.link || '',
   }
   const detailChips = personalDetails.detailsOrder
+    .filter((key) => !(personalDetails.hiddenDetails || []).includes(key))
     .map((key) => {
       if (key === 'linkedIn') return { key, text: personalDetails.social?.linkedIn?.display }
       if (key === 'github') return { key, text: personalDetails.social?.github?.display }

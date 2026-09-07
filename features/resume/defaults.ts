@@ -17,6 +17,7 @@ export const EMPTY_PERSONAL_DETAILS: PersonalDetails = {
   websiteLink: '',
   social: { github: { link: '', display: '' }, linkedIn: { link: '', display: '' } },
   detailsOrder: ['displayEmail', 'phone', 'address', 'website', 'linkedIn', 'github'],
+  hiddenDetails: [],
   photo: {
     xPct: 0,
     yPct: 0,

@@ -5,6 +5,7 @@ export interface LetterDesign {
   customization: Customization
   letterDateDisplay?: { position: 'left' | 'right' | 'center' }
   syncedFromResume?: boolean
+  hiddenSenderDetails?: string[]
 }
 
 export const EMPTY_LETTER_DESIGN: LetterDesign = {
@@ -65,6 +66,7 @@ export function normalizeLetterDesign(saved?: LetterDesign | LegacyDesign | null
   }
   if (s.customization) {
     out.customization = mergeCustomization(s.customization)
+    if (Array.isArray(s.hiddenSenderDetails)) out.hiddenSenderDetails = s.hiddenSenderDetails
     return out
   }
   const c = mergeCustomization(null)

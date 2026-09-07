@@ -10,7 +10,7 @@ import RichTextEditor from '@/components/editor/rich-text-editor'
 import LinkDialog from '@/components/editor/link-dialog'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Eye, EyeOff } from 'lucide-react'
 import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import type {
   TSection,
@@ -28,6 +28,8 @@ export function TitleInput({
   placeholder,
   onChange,
   onLinkChange,
+  hidden,
+  onHiddenChange,
 }: {
   label: string
   value: string
@@ -35,6 +37,8 @@ export function TitleInput({
   placeholder?: string
   onChange: (v: string) => void
   onLinkChange?: (url: string) => void
+  hidden?: boolean
+  onHiddenChange?: (v: boolean) => void
 }) {
   const id = `ti-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
   return (
@@ -47,6 +51,18 @@ export function TitleInput({
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
         />
+        {onHiddenChange && (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={hidden ? 'Show in document' : 'Hide from document'}
+            title={hidden ? 'Hidden — click to show' : 'Shown — click to hide'}
+            onClick={() => onHiddenChange(!hidden)}
+          >
+            {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </Button>
+        )}
         {onLinkChange && <LinkDialog value={link || ''} onConfirm={onLinkChange} />}
       </div>
     </Field>
@@ -141,6 +157,11 @@ export function PersonalDetailsForm({
   onChange: (patch: Partial<PersonalDetails>) => void
 }) {
   const social = personal.social || { linkedIn: { link: '', display: '' }, github: { link: '', display: '' } }
+  const hidden = personal.hiddenDetails || []
+  const toggleHidden = (key: string, v: boolean) =>
+    onChange({
+      hiddenDetails: v ? [...hidden, key] : hidden.filter((k) => k !== key),
+    })
   return (
     <div className="space-y-3">
       <AvatarControls personal={personal} onChange={onChange} />
@@ -163,6 +184,8 @@ export function PersonalDetailsForm({
         label="Email"
         value={personal.displayEmail || ''}
         link={personal.emailLink || ''}
+        hidden={hidden.includes('displayEmail')}
+        onHiddenChange={(v) => toggleHidden('displayEmail', v)}
         onChange={(v) => onChange({ displayEmail: v })}
         onLinkChange={(url) => onChange({ emailLink: url })}
       />
@@ -170,6 +193,8 @@ export function PersonalDetailsForm({
         label="Phone"
         value={personal.phone || ''}
         link={personal.phoneLink || ''}
+        hidden={hidden.includes('phone')}
+        onHiddenChange={(v) => toggleHidden('phone', v)}
         onChange={(v) => onChange({ phone: v })}
         onLinkChange={(url) => onChange({ phoneLink: url })}
       />
@@ -177,6 +202,8 @@ export function PersonalDetailsForm({
         label="Website"
         value={personal.website || ''}
         link={personal.websiteLink || ''}
+        hidden={hidden.includes('website')}
+        onHiddenChange={(v) => toggleHidden('website', v)}
         onChange={(v) => onChange({ website: v })}
         onLinkChange={(url) => onChange({ websiteLink: url })}
       />
@@ -184,6 +211,8 @@ export function PersonalDetailsForm({
         label="LinkedIn"
         value={social.linkedIn?.display || ''}
         link={social.linkedIn?.link || ''}
+        hidden={hidden.includes('linkedIn')}
+        onHiddenChange={(v) => toggleHidden('linkedIn', v)}
         onChange={(v) => onChange({ social: { ...social, linkedIn: { ...social.linkedIn, display: v } } })}
         onLinkChange={(url) => onChange({ social: { ...social, linkedIn: { ...social.linkedIn, link: url } } })}
       />
@@ -191,6 +220,8 @@ export function PersonalDetailsForm({
         label="GitHub"
         value={social.github?.display || ''}
         link={social.github?.link || ''}
+        hidden={hidden.includes('github')}
+        onHiddenChange={(v) => toggleHidden('github', v)}
         onChange={(v) => onChange({ social: { ...social, github: { ...social.github, display: v } } })}
         onLinkChange={(url) => onChange({ social: { ...social, github: { ...social.github, link: url } } })}
       />

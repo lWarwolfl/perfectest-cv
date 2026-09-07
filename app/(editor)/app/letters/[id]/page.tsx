@@ -244,7 +244,23 @@ export default function LetterEditorPage() {
                   </div>
                   <div className="min-h-0 flex-1 overflow-y-auto p-3">
                     {activeSection === 'sender' && (
-                      <SenderDetailsForm value={form} onChange={patchForm} />
+                      <SenderDetailsForm
+                        value={form}
+                        onChange={patchForm}
+                        hiddenDetails={design.hiddenSenderDetails || []}
+                        onHiddenToggle={(key, hid) => {
+                          const cur = design.hiddenSenderDetails || []
+                          setDesign((d) =>
+                            normalizeLetterDesign({
+                              ...(d || undefined),
+                              hiddenSenderDetails: hid
+                                ? [...cur, key]
+                                : cur.filter((k) => k !== key),
+                            })
+                          )
+                          markDirty()
+                        }}
+                      />
                     )}
                     {activeSection === 'date' && <DateForm value={form} onChange={patchForm} />}
                     {activeSection === 'recipient' && (

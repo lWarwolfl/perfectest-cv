@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/select'
 import RichTextEditor from '@/components/editor/rich-text-editor'
 import LinkDialog from '@/components/editor/link-dialog'
+import { Button } from '@/components/ui/button'
+import { Eye, EyeOff } from 'lucide-react'
 import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
 
@@ -25,7 +27,17 @@ function fieldId(label: string) {
   return `lf-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 }
 
-export function SenderDetailsForm({ value, onChange }: FormProps) {
+export function SenderDetailsForm({
+  value,
+  onChange,
+  hiddenDetails,
+  onHiddenToggle,
+}: {
+  value: LetterContentPatch
+  onChange: (patch: Partial<LetterContentPatch>) => void
+  hiddenDetails?: string[]
+  onHiddenToggle?: (key: string, hidden: boolean) => void
+}) {
   const fileId = value.senderPhotoFileId || ''
   const imageUrl = value.senderPhotoImageId || ''
   const upload = useMutation({
@@ -119,6 +131,18 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
             value={value.senderEmail || ''}
             onChange={(e) => onChange({ senderEmail: e.target.value })}
           />
+          {onHiddenToggle && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={(hiddenDetails || []).includes('displayEmail') ? 'Show in document' : 'Hide from document'}
+              title={(hiddenDetails || []).includes('displayEmail') ? 'Hidden — click to show' : 'Shown — click to hide'}
+              onClick={() => onHiddenToggle('displayEmail', !(hiddenDetails || []).includes('displayEmail'))}
+            >
+              {(hiddenDetails || []).includes('displayEmail') ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </Button>
+          )}
           <LinkDialog
             value={value.senderEmailLink || ''}
             onConfirm={(url) => onChange({ senderEmailLink: url })}
@@ -133,6 +157,18 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
             value={value.senderPhone || ''}
             onChange={(e) => onChange({ senderPhone: e.target.value })}
           />
+          {onHiddenToggle && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={(hiddenDetails || []).includes('phone') ? 'Show in document' : 'Hide from document'}
+              title={(hiddenDetails || []).includes('phone') ? 'Hidden — click to show' : 'Shown — click to hide'}
+              onClick={() => onHiddenToggle('phone', !(hiddenDetails || []).includes('phone'))}
+            >
+              {(hiddenDetails || []).includes('phone') ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </Button>
+          )}
           <LinkDialog
             value={value.senderPhoneLink || ''}
             onConfirm={(url) => onChange({ senderPhoneLink: url })}
@@ -155,6 +191,18 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
             value={value.senderWebsite || ''}
             onChange={(e) => onChange({ senderWebsite: e.target.value })}
           />
+          {onHiddenToggle && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={(hiddenDetails || []).includes('website') ? 'Show in document' : 'Hide from document'}
+              title={(hiddenDetails || []).includes('website') ? 'Hidden — click to show' : 'Shown — click to hide'}
+              onClick={() => onHiddenToggle('website', !(hiddenDetails || []).includes('website'))}
+            >
+              {(hiddenDetails || []).includes('website') ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </Button>
+          )}
           <LinkDialog
             value={value.senderWebsiteLink || ''}
             onConfirm={(url) => onChange({ senderWebsiteLink: url })}
@@ -169,6 +217,18 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
             value={value.senderLinkedIn || ''}
             onChange={(e) => onChange({ senderLinkedIn: e.target.value })}
           />
+          {onHiddenToggle && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={(hiddenDetails || []).includes('linkedIn') ? 'Show in document' : 'Hide from document'}
+              title={(hiddenDetails || []).includes('linkedIn') ? 'Hidden — click to show' : 'Shown — click to hide'}
+              onClick={() => onHiddenToggle('linkedIn', !(hiddenDetails || []).includes('linkedIn'))}
+            >
+              {(hiddenDetails || []).includes('linkedIn') ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </Button>
+          )}
           <LinkDialog
             value={value.senderLinkedInLink || ''}
             onConfirm={(url) => onChange({ senderLinkedInLink: url })}
@@ -183,6 +243,18 @@ export function SenderDetailsForm({ value, onChange }: FormProps) {
             value={value.senderGitHub || ''}
             onChange={(e) => onChange({ senderGitHub: e.target.value })}
           />
+          {onHiddenToggle && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={(hiddenDetails || []).includes('github') ? 'Show in document' : 'Hide from document'}
+              title={(hiddenDetails || []).includes('github') ? 'Hidden — click to show' : 'Shown — click to hide'}
+              onClick={() => onHiddenToggle('github', !(hiddenDetails || []).includes('github'))}
+            >
+              {(hiddenDetails || []).includes('github') ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </Button>
+          )}
           <LinkDialog
             value={value.senderGitHubLink || ''}
             onConfirm={(url) => onChange({ senderGitHubLink: url })}

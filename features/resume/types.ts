@@ -361,6 +361,7 @@ export interface PersonalDetails {
     linkedIn: { link: string; display: string }
   }
   detailsOrder: string[]
+  hiddenDetails?: string[]
   photo: {
     xPct: number
     yPct: number
