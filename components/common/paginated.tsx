@@ -247,37 +247,52 @@ export function Paginated({
 
   // shift each page copy so its window starts exactly at its cut offset,
   // and clip it there — layout effect so no unshifted frame ever paints.
-  // The clip goes on the per-page WRAPPER (absolute div) / column, never on
-  // the measured body: clipping the body would shrink what measure() reads
-  // and collapse the cuts. Explicit height + overflow:hidden — clip-path is
-  // dropped by Chromium's print pipeline on transformed nodes (PDF leak).
+  // NEVER clip the measured body (page 0's): a height/overflow on it shrinks
+  // what measure() reads and collapses all later pages. Bottom clip goes on
+  // the per-page wrapper (unmeasured); the top paper-margin band, where the
+  // shifted copy bleeds the previous window's last pT px, is hidden by a
+  // bg-colored cover strip (print-safe, unlike clip-path which Chromium's
+  // print pipeline drops on transformed nodes).
   useLayoutEffect(() => {
     const container = wrapRef.current?.closest('.print-pages')
     if (!container) return
     const pages = Math.max(...cuts.map((c) => c.length))
     const boxes = container.querySelectorAll<HTMLElement>(':scope > .print-page')
-    const body = wrapRef.current?.firstElementChild as HTMLElement | null
-    const pT = body ? parseFloat(getComputedStyle(body).paddingTop) || 0 : 0
+    const body0 = wrapRef.current?.firstElementChild as HTMLElement | null
+    const cs0 = body0 ? getComputedStyle(body0) : null
+    const pT = parseFloat(cs0?.paddingTop || '0') || 0
+    const bg = cs0?.backgroundColor || '#ffffff'
     boxes.forEach((box, i) => {
       if (i >= pages) return
       const wrapEl = box.firstElementChild as HTMLElement | null
       const bodyEl = wrapEl?.firstElementChild as HTMLElement | null
       if (!wrapEl || !bodyEl) return
+      bodyEl.style.clipPath = ''
       const cols = Array.from(bodyEl.querySelectorAll<HTMLElement>('[data-pb-col]'))
       const shift = (seq: number[]) => (seq[i] ?? (seq[seq.length - 1] ?? 0) + height)
-      const clip = (el: HTMLElement, h: number) => {
-        el.style.overflow = 'hidden'
-        el.style.height = `${Math.max(0, h)}px`
+      if (i > 0) {
+        let cover = box.querySelector<HTMLElement>(':scope > .pb-cover')
+        if (!cover) {
+          cover = document.createElement('div')
+          cover.className = 'pb-cover'
+          box.appendChild(cover)
+        }
+        cover.style.cssText = `position:absolute;top:0;left:0;right:0;height:${pT}px;background:${bg};z-index:10`
       }
       if (cols.length) {
-        // columns paginate independently: clip each column copy at its own
-        // next cut (col-local content px). Wrap stays unclipped.
+        // columns paginate independently: two-sided clip per column copy.
+        // ponytail: clip-path may leak in printed PDFs for two-col layouts;
+        // upgrade path = a clip wrapper div per column in the renderers
         cols.forEach((col, j) => {
           const seq = cuts[j] || [0]
           const c = shift(seq)
           col.style.transform = i === 0 ? '' : `translateY(${-c}px)`
           const next = seq[i + 1]
-          clip(col, next != null ? next - c : height)
+          const H = col.offsetHeight
+          col.style.overflow = ''
+          col.style.height = ''
+          col.style.clipPath =
+            next != null ? `inset(${c}px 0 ${Math.max(0, H - next)}px 0)` : `inset(${c}px 0 0 0)`
         })
         wrapEl.style.overflow = ''
         wrapEl.style.height = ''
@@ -286,9 +301,9 @@ export function Paginated({
         const c = shift(seq)
         bodyEl.style.transform = i === 0 ? '' : `translateY(${-c}px)`
         const next = seq[i + 1]
-        // wrap top = page top, body padding pT sits above content → window
-        // bottom in wrap px = (next - c) + pT; last page = full sheet
-        clip(wrapEl, next != null ? next - c + pT : height)
+        // wrapper window: content [c, next] sits at wrapper y [pT, next−c+pT]
+        wrapEl.style.overflow = 'hidden'
+        wrapEl.style.height = `${Math.max(0, next != null ? next - c + pT : height)}px`
         bodyEl.style.overflow = ''
         bodyEl.style.height = ''
       }
