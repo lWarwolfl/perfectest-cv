@@ -1,7 +1,5 @@
 'use client'
 
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
 import {
@@ -12,10 +10,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import RichTextEditor from '@/components/editor/rich-text-editor'
+import { PhotoControls } from '@/components/editor/photo-controls'
 import LinkDialog from '@/components/editor/link-dialog'
 import { Button } from '@/components/ui/button'
 import { Eye, EyeOff } from 'lucide-react'
-import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import type { LetterContentPatch } from '@/server/letter/letter.actions'
 
 interface FormProps {
@@ -38,73 +36,19 @@ export function SenderDetailsForm({
   hiddenDetails?: string[]
   onHiddenToggle?: (key: string, hidden: boolean) => void
 }) {
-  const fileId = value.senderPhotoFileId || ''
-  const imageUrl = value.senderPhotoImageId || ''
-  const upload = useMutation({
-    mutationFn: (file: File) =>
-      replaceImageAction({ name: 'avatar', image: file, oldFileId: fileId || undefined }),
-    onSuccess: (data) => {
-      const [img] = data
-      if (!img) return
-      onChange({ senderPhotoImageId: img.url, senderPhotoFileId: img.fileId })
-      toast.success('Photo updated')
-    },
-    onError: () => toast.error('Failed to upload photo'),
-  })
-  const remove = useMutation({
-    mutationFn: () => deleteImageAction(fileId),
-    onSuccess: () => {
-      onChange({ senderPhotoImageId: '', senderPhotoFileId: '' })
-      toast.success('Photo removed')
-    },
-    onError: () => toast.error('Failed to remove photo'),
-  })
   return (
     <div className="space-y-3">
       <Field>
         <FieldLabel>Photo</FieldLabel>
-        <div className="flex items-center gap-3">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt="profile"
-              className="border-border size-16 rounded-full border object-cover"
-            />
-          ) : (
-            <div className="border-border text-muted-foreground flex size-16 items-center justify-center rounded-full border text-sm">
-              ?
-            </div>
-          )}
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="letter-photo-upload"
-              className="text-primary cursor-pointer text-xs font-medium hover:underline"
-            >
-              {imageUrl ? 'Change photo' : 'Upload photo'}
-            </label>
-            <input
-              id="letter-photo-upload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) upload.mutate(file)
-                e.target.value = ''
-              }}
-            />
-            {imageUrl && (
-              <button
-                type="button"
-                onClick={() => remove.mutate()}
-                disabled={remove.isPending}
-                className="text-destructive cursor-pointer text-xs hover:underline"
-              >
-                Delete photo
-              </button>
-            )}
-          </div>
-        </div>
+        <PhotoControls
+          imageUrl={value.senderPhotoImageId || ''}
+          fileId={value.senderPhotoFileId || ''}
+          fullName={value.senderName || '?'}
+          inputId="letter-photo-upload"
+          onChange={(photo) =>
+            onChange({ senderPhotoImageId: photo.imageId, senderPhotoFileId: photo.fileId })
+          }
+        />
       </Field>
       <Field>
         <FieldLabel htmlFor={fieldId('Full Name')}>Full Name</FieldLabel>

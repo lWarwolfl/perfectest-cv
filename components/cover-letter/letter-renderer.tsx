@@ -145,20 +145,22 @@ export function LetterRenderer({
           : photoPosition.shape === 'rounded-sm'
             ? '8px'
             : '0'
-  const photoEl = (header.photo.show || photoPosition.show) && form.senderPhotoImageId && (
-    <img
-      src={form.senderPhotoImageId}
-      alt="profile"
-      style={{
-        filter: photoPosition.grayscale || header.photo.grayscale ? 'grayscale(1)' : undefined,
-        width: SIZE_PX[sizeKey],
-        height: SIZE_PX[sizeKey],
-        borderRadius: shapeRadius,
-        objectFit: 'cover',
-        flexShrink: 0,
-      }}
-    />
-  )
+  const photoEl =
+    photoPosition.show &&
+    form.senderPhotoImageId && (
+      <img
+        src={form.senderPhotoImageId}
+        alt="profile"
+        style={{
+          filter: photoPosition.grayscale ? 'grayscale(1)' : undefined,
+          width: SIZE_PX[sizeKey],
+          height: SIZE_PX[sizeKey],
+          borderRadius: shapeRadius,
+          objectFit: 'cover',
+          flexShrink: 0,
+        }}
+      />
+    )
   const centered = header.alignText === 'center' || photoPosition.position === 'top'
 
   const detailKeys = ['displayEmail', 'phone', 'address', 'website', 'linkedIn', 'github'].filter(

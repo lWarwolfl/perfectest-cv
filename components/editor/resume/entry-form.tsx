@@ -4,14 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LabeledInput } from '@/components/ui/labeled'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Spinner } from '@/components/ui/spinner'
 import RichTextEditor from '@/components/editor/rich-text-editor'
 import LinkDialog from '@/components/editor/link-dialog'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { PhotoControls } from '@/components/editor/photo-controls'
+import MonthYearPicker from '@/components/editor/month-year-picker'
 import { Trash2, Eye, EyeOff } from 'lucide-react'
-import { replaceImageAction, deleteImageAction } from '@/server/image/uploadImage.action'
 import type {
   TSection,
   PersonalDetails,
@@ -76,69 +73,16 @@ function AvatarControls({
   personal: PersonalDetails
   onChange: (patch: Partial<PersonalDetails>) => void
 }) {
-  const fileId = personal.photo?.fileId || ''
-  const imageUrl = personal.photo?.imageId || ''
-  const upload = useMutation({
-    mutationFn: (file: File) =>
-      replaceImageAction({ name: 'avatar', image: file, oldFileId: fileId || undefined }),
-    onSuccess: (data) => {
-      const [img] = data
-      if (!img) return
-      onChange({ photo: { ...personal.photo, imageId: img.url, fileId: img.fileId } })
-      toast.success('Photo updated')
-    },
-    onError: () => toast.error('Failed to upload photo'),
-  })
-  const remove = useMutation({
-    mutationFn: () => deleteImageAction(fileId),
-    onSuccess: () => {
-      onChange({ photo: { ...personal.photo, imageId: '', fileId: '' } })
-      toast.success('Photo removed')
-    },
-    onError: () => toast.error('Failed to remove photo'),
-  })
   return (
-    <div className="flex items-center gap-3">
-      <Avatar className="border-border size-16 overflow-hidden rounded-full border">
-        {imageUrl ? (
-          <AvatarImage src={imageUrl} alt={personal.fullName} />
-        ) : (
-          <AvatarFallback>{personal.fullName.charAt(0) || '?'}</AvatarFallback>
-        )}
-      </Avatar>
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="avatar-upload"
-          className="text-primary cursor-pointer text-xs font-medium hover:underline"
-        >
-          {imageUrl ? 'Change photo' : 'Upload photo'}
-        </label>
-        <input
-          id="avatar-upload"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) upload.mutate(file)
-            e.target.value = ''
-          }}
-        />
-        {imageUrl && (
-          <button
-            type="button"
-            onClick={() => remove.mutate()}
-            disabled={remove.isPending}
-            className="text-destructive cursor-pointer text-xs hover:underline"
-          >
-            Delete photo
-          </button>
-        )}
-      </div>
-      {(upload.isPending || remove.isPending) && (
-        <Spinner className="text-muted-foreground size-4" />
-      )}
-    </div>
+    <PhotoControls
+      imageUrl={personal.photo?.imageId || ''}
+      fileId={personal.photo?.fileId || ''}
+      fullName={personal.fullName}
+      inputId="avatar-upload"
+      onChange={(photo) =>
+        onChange({ photo: { ...personal.photo, ...photo } as PersonalDetails['photo'] })
+      }
+    />
   )
 }
 
@@ -267,48 +211,52 @@ export function EntryForm({
           onChange={(v) => up({ location: v.target.value })}
         />
         <div className="flex gap-2">
-          <LabeledInput
-            label="Start"
-            placeholder="MM/YYYY"
-            value={
-              e.startDate?.month && e.startDate?.year
-                ? `${e.startDate.month}/${e.startDate.year}`
-                : ''
-            }
-            onChange={(v) => {
-              const [m, y] = v.target.value.split('/')
-              up({
-                startDate: {
-                  hide: false,
-                  year: y || '',
-                  month: m || '',
-                  ongoing: false,
-                  onlyYear: false,
-                  customOngoingWord: 'present',
-                },
-              })
-            }}
-          />
-          <LabeledInput
-            label="End"
-            placeholder="MM/YYYY"
-            value={
-              e.endDate?.month && e.endDate?.year ? `${e.endDate.month}/${e.endDate.year}` : ''
-            }
-            onChange={(v) => {
-              const [m, y] = v.target.value.split('/')
-              up({
-                endDate: {
-                  hide: false,
-                  year: y || '',
-                  month: m || '',
-                  ongoing: !y && !m,
-                  onlyYear: false,
-                  customOngoingWord: 'present',
-                },
-              })
-            }}
-          />
+          <div className="flex-1 space-y-1.5">
+            <span className="text-muted-foreground text-xs font-medium">Start</span>
+            <MonthYearPicker
+              value={
+                e.startDate?.month && e.startDate?.year
+                  ? `${e.startDate.month}/${e.startDate.year}`
+                  : e.startDate?.year || ''
+              }
+              onChange={(v) => {
+                const [m, y] = v.split('/')
+                up({
+                  startDate: {
+                    hide: false,
+                    year: y || '',
+                    month: m || '',
+                    ongoing: false,
+                    onlyYear: false,
+                    customOngoingWord: 'present',
+                  },
+                })
+              }}
+            />
+          </div>
+          <div className="flex-1 space-y-1.5">
+            <span className="text-muted-foreground text-xs font-medium">End</span>
+            <MonthYearPicker
+              value={
+                e.endDate?.month && e.endDate?.year
+                  ? `${e.endDate.month}/${e.endDate.year}`
+                  : e.endDate?.year || ''
+              }
+              onChange={(v) => {
+                const [m, y] = v.split('/')
+                up({
+                  endDate: {
+                    hide: false,
+                    year: y || '',
+                    month: m || '',
+                    ongoing: !v,
+                    onlyYear: false,
+                    customOngoingWord: 'present',
+                  },
+                })
+              }}
+            />
+          </div>
         </div>
         <RichTextEditor
           compact
@@ -462,59 +410,48 @@ export function EntryForm({
           onChange={(v) => up({ subTitle: v.target.value })}
         />
         <div className="flex gap-2">
-          <LabeledInput
-            label="Start"
-            placeholder="MM/YYYY"
-            value={`${e.startDate.month}/${e.startDate.year}`.replace(/^\/|\/$/g, '')}
-            onChange={(v) => {
-              const [m, y] = v.target.value.split('/')
-              up({
-                startDate: {
-                  hide: false,
-                  year: y || '',
-                  month: m || '',
-                  ongoing: false,
-                  onlyYear: false,
-                  customOngoingWord: 'present',
-                },
-              })
-            }}
-          />
-          <LabeledInput
-            label="End"
-            placeholder="MM/YYYY or Present"
-            value={
-              e.endDate.ongoing
-                ? 'Present'
-                : `${e.endDate.month}/${e.endDate.year}`.replace(/^\/|\/$/g, '')
-            }
-            onChange={(v) => {
-              if (v.target.value.toLowerCase() === 'present') {
+          <div className="flex-1 space-y-1.5">
+            <span className="text-muted-foreground text-xs font-medium">Start</span>
+            <MonthYearPicker
+              value={`${e.startDate.month}/${e.startDate.year}`.replace(/^\/|\/$/g, '')}
+              onChange={(v) => {
+                const [m, y] = v.split('/')
                 up({
-                  endDate: {
+                  startDate: {
                     hide: false,
-                    year: '',
-                    month: '',
-                    ongoing: true,
+                    year: y || '',
+                    month: m || '',
+                    ongoing: false,
                     onlyYear: false,
                     customOngoingWord: 'present',
                   },
                 })
-                return
+              }}
+            />
+          </div>
+          <div className="flex-1 space-y-1.5">
+            <span className="text-muted-foreground text-xs font-medium">End</span>
+            <MonthYearPicker
+              value={
+                e.endDate.ongoing
+                  ? ''
+                  : `${e.endDate.month}/${e.endDate.year}`.replace(/^\/|\/$/g, '')
               }
-              const [m, y] = v.target.value.split('/')
-              up({
-                endDate: {
-                  hide: false,
-                  year: y || '',
-                  month: m || '',
-                  ongoing: false,
-                  onlyYear: false,
-                  customOngoingWord: 'present',
-                },
-              })
-            }}
-          />
+              onChange={(v) => {
+                const [m, y] = v.split('/')
+                up({
+                  endDate: {
+                    hide: false,
+                    year: y || '',
+                    month: m || '',
+                    ongoing: !v,
+                    onlyYear: false,
+                    customOngoingWord: 'present',
+                  },
+                })
+              }}
+            />
+          </div>
         </div>
         <RichTextEditor
           compact

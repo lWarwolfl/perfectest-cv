@@ -1,3 +1,5 @@
+import { format } from 'date-fns'
+
 import type {
   Customization,
   DateObject,
@@ -63,23 +65,13 @@ function dateStr(d: DateObject, dateDisplay: string) {
   if (!d) return ''
   if (d.hide) return ''
   if (d.onlyYear) return d.year || ''
-  const y = d.year || ''
-  if (d.ongoing)
-    return `${d.month && d.month !== '0' ? `${monthStr(d.month, dateDisplay)} ` : ''}${y} ${d.customOngoingWord || 'present'}`.trim()
-  if (dateDisplay === 'YYYY') return y
-  const m = monthStr(d.month, dateDisplay)
-  return `${m ? `${m} ` : ''}${y}`.trim()
-}
-
-function monthStr(month: string | undefined, dateDisplay: string) {
-  if (!month || month === '0') return ''
-  if (dateDisplay === 'MMM YYYY')
-    return (
-      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][
-        Number(month) - 1
-      ] || ''
-    )
-  return month
+  const y = Number(d.year)
+  const m = Number(d.month)
+  const hasDate = m >= 1 && m <= 12 && y > 0
+  const pattern = dateDisplay === 'MM/YYYY' ? 'MM/yyyy' : dateDisplay === 'MMM YYYY' ? 'MMM yyyy' : 'yyyy'
+  const main = hasDate ? format(new Date(y, m - 1, 1), pattern) : d.year || ''
+  if (d.ongoing) return `${main} ${d.customOngoingWord || 'present'}`.trim()
+  return main
 }
 
 function formatDateRange(start: DateObject, end: DateObject, dateDisplay: string) {
@@ -707,20 +699,21 @@ export function ResumeRenderer({
           : photoPosition.shape === 'rounded-sm'
             ? '8px'
             : '0'
-  const photoEl = (header.photo.show || photoPosition.show) && personalDetails.photo.imageId && (
-    <img
-      src={personalDetails.photo.imageId}
-      alt="profile"
-      style={{
-        filter: photoPosition.grayscale || header.photo.grayscale ? 'grayscale(1)' : undefined,
-        width: SIZE_PX[sizeKey],
-        height: SIZE_PX[sizeKey],
-        borderRadius: shapeRadius,
-        objectFit: 'cover',
-        flexShrink: 0,
-      }}
-    />
-  )
+  const photoEl =
+    photoPosition.show && personalDetails.photo.imageId && (
+      <img
+        src={personalDetails.photo.imageId}
+        alt="profile"
+        style={{
+          filter: photoPosition.grayscale ? 'grayscale(1)' : undefined,
+          width: SIZE_PX[sizeKey],
+          height: SIZE_PX[sizeKey],
+          borderRadius: shapeRadius,
+          objectFit: 'cover',
+          flexShrink: 0,
+        }}
+      />
+    )
 
   const centered = header.alignText === 'center' || photoPosition.position === 'top'
   const headerContent = (
