@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Mail, KanbanSquare } from 'lucide-react'
+import { LayoutDashboard, FileText, Mail, KanbanSquare, Sparkles } from 'lucide-react'
 import logo from '@public/logo.svg'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { LogoutButton } from '@/features/auth/components/sign-out-button'
@@ -15,6 +15,7 @@ const NAV = [
   { href: '/app/resumes', name: 'Resumes', icon: FileText },
   { href: '/app/letters', name: 'Cover Letters', icon: Mail },
   { href: '/app/tracker', name: 'Job Tracker', icon: KanbanSquare },
+  { href: '/app/ai', name: 'AI Features', icon: Sparkles },
 ]
 
 function useActive() {

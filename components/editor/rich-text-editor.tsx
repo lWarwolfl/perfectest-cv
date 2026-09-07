@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TextAlign from '@tiptap/extension-text-align'
+import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   AlignCenter,
   AlignJustify,
@@ -12,10 +15,15 @@ import {
   Italic,
   Link as LinkIcon,
   List,
+  Loader2,
+  Sparkles,
   Underline as UnderlineIcon,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { getAiSettingsAction, aiTransformAction } from '@/server/ai/ai.actions'
+import { getErrorMessage } from '@/lib/utils'
 
 interface RichTextEditorProps {
   onUpdate: (content: string) => void
@@ -25,11 +33,29 @@ interface RichTextEditorProps {
 
 const ACTIVE_CLASSES = 'bg-primary text-primary-foreground'
 
+const AI_LANGUAGES = ['English', 'Persian (فارسی)', 'German', 'French', 'Spanish', 'Arabic', 'Turkish']
+
+const AI_ACTIONS = [
+  { feature: 'improve', label: 'Improve writing' },
+  { feature: 'grammar', label: 'Fix spelling & grammar' },
+  { feature: 'summary', label: 'Generate summary' },
+] as const
+
 export default function RichTextEditor({
   onUpdate,
   value = '',
   compact = false,
 }: RichTextEditorProps) {
+  const [aiOpen, setAiOpen] = useState(false)
+  const [aiBusy, setAiBusy] = useState<string | null>(null)
+  const [aiLang, setAiLang] = useState(AI_LANGUAGES[0])
+  const { data: aiSettings } = useQuery({
+    queryKey: ['ai-settings-editor'],
+    queryFn: getAiSettingsAction,
+    staleTime: 60_000,
+  })
+  const aiReady = !!(aiSettings?.baseUrl && aiSettings?.apiKey && aiSettings?.model)
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ link: { openOnClick: false } }),
@@ -66,6 +92,29 @@ export default function RichTextEditor({
   }
   const setTextAlign = (align: 'left' | 'center' | 'right' | 'justify') => {
     editor.chain().focus().setTextAlign(align).run()
+  }
+  const runAi = async (feature: 'improve' | 'grammar' | 'summary' | 'translate') => {
+    const text = editor.getText().trim()
+    if (!text) {
+      toast.error('Nothing to work with — write some content first')
+      return
+    }
+    setAiBusy(feature)
+    try {
+      const html = await aiTransformAction({
+        feature,
+        text,
+        ...(feature === 'translate' ? { language: aiLang } : {}),
+      })
+      editor.commands.setContent(html)
+      onUpdate(html)
+      toast.success('AI suggestion applied')
+      setAiOpen(false)
+    } catch (e) {
+      toast.error(getErrorMessage(e))
+    } finally {
+      setAiBusy(null)
+    }
   }
 
   return (
@@ -145,6 +194,55 @@ export default function RichTextEditor({
             <AlignJustify className="size-4" />
           </Button>
         </div>
+        {aiReady && (
+          <Popover open={aiOpen} onOpenChange={setAiOpen}>
+            <PopoverTrigger
+              render={
+                <Button variant="outline" size="sm" className="ml-auto" title="AI suggestions">
+                  {aiBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                  AI
+                </Button>
+              }
+            />
+            <PopoverContent className="w-56 p-1" align="end">
+              {AI_ACTIONS.map((a) => (
+                <button
+                  key={a.feature}
+                  type="button"
+                  disabled={!!aiBusy}
+                  className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm disabled:opacity-50"
+                  onClick={() => runAi(a.feature)}
+                >
+                  {aiBusy === a.feature ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="size-3.5" />
+                  )}
+                  {a.label}
+                </button>
+              ))}
+              <div className="bg-border my-1 h-px" />
+              <div className="flex items-center gap-1 px-1 py-1">
+                <select
+                  aria-label="Translate to"
+                  className="border-input h-7 min-w-0 flex-1 rounded-md border bg-transparent px-1.5 text-xs"
+                  value={aiLang}
+                  onChange={(e) => setAiLang(e.target.value)}
+                >
+                  {AI_LANGUAGES.map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+                <Button variant="outline" size="xs" disabled={!!aiBusy} onClick={() => runAi('translate')}>
+                  {aiBusy === 'translate' ? <Loader2 className="size-3 animate-spin" /> : null}
+                  Translate
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
       <div
         className={`text-foreground resume-prose min-h-[140px] bg-transparent p-3 text-sm focus:outline-none [&_.ProseMirror]:outline-none ${compact ? '[&_.ProseMirror]:min-h-[64px]' : ''}`}

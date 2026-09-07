@@ -8,6 +8,12 @@ import type {
 } from '@/features/resume/types'
 import type { LetterDesign } from '@/features/letter/types'
 
+export interface AiSettings {
+  baseUrl: string
+  apiKey: string
+  model: string
+}
+
 export const User = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -15,6 +21,7 @@ export const User = pgTable('user', {
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
   role: text('role').notNull().default('user'),
+  aiSettings: jsonb('ai_settings').$type<AiSettings | null>(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at')
     .notNull()

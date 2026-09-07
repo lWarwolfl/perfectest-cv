@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 import { ProfileCard } from '@/components/dashboard/profile-card'
 import { FlowcvSyncCard } from '@/components/dashboard/flowcv-sync-card'
+import { AiSettingsCard } from '@/components/dashboard/ai-settings-card'
 import Link from 'next/link'
 import { format } from 'date-fns'
 
@@ -52,6 +53,7 @@ export default async function DashboardPage() {
             email={user?.email ?? ''}
           />
           <FlowcvSyncCard resumes={resumes.map((r) => ({ id: r.id, title: r.title }))} />
+          <AiSettingsCard />
         </CardContent>
       </Card>
       <h1 className="text-2xl font-semibold">Welcome back{user?.name ? `, ${user.name}` : ''}</h1>
