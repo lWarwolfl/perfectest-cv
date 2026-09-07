@@ -715,57 +715,8 @@ export function ResumeRenderer({
       />
     )
 
-  const centered = header.alignText === 'center' || photoPosition.position === 'top'
-  const headerContent = (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: photoPosition.position === 'top' ? 'column' : 'row',
-        alignItems: photoPosition.position === 'top' ? 'center' : 'flex-start',
-        justifyContent: 'space-between',
-        gap: '16px',
-        marginBottom: header.position === 'top' ? `${customization.spacing.headerDetailsGap ?? 16}px` : '0',
-      }}
-    >
-      {photoPosition.position === 'left' && photoEl}
-      <div style={{ flex: 1, textAlign: centered ? 'center' : 'left' }}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: header.jobTitlePosition === 'sameLine' ? 'row' : 'column',
-            alignItems: centered ? 'center' : 'baseline',
-            columnGap: `${customization.spacing.headerTitleGap ?? 12}px`,
-          }}
-        >
-          <h1
-            style={{
-              fontWeight: header.nameStyle === 'regular' ? 400 : 700,
-              fontSize: `${customization.spacing.nameFontSizePt || 24}px`,
-              lineHeight: 1.2,
-              color: customization.applyAccentColor.name ? colors.accent : colors.text,
-              margin: 0,
-            }}
-          >
-            {personalDetails.fullName || (showPlaceholder ? 'Your Name' : '')}
-          </h1>
-          {personalDetails.jobTitle && (
-            <p
-              style={{
-                fontStyle: header.jobTitleStyle === 'italic' ? 'italic' : 'normal',
-                fontSize: `${customization.spacing.jobTitleFontSizePt || 18}px`,
-                color: customization.applyAccentColor.jobTitle ? colors.accent : colors.text,
-                margin: 0,
-              }}
-            >
-              {personalDetails.jobTitle}
-            </p>
-          )}
-        </div>
-      </div>
-      {photoPosition.position === 'right' && photoEl}
-    </div>
-  )
-
+  const photoTop = photoPosition.position === 'top'
+  const centered = header.alignText === 'center' || photoTop
   const detailsBlock = detailChips.length > 0 && (
     <div
       style={{
@@ -829,6 +780,62 @@ export function ResumeRenderer({
     </div>
   )
 
+  const hasPhoto = Boolean(photoPosition.show && personalDetails.photo.imageId)
+  const headerContent = (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: photoTop ? 'column' : 'row',
+        alignItems: photoTop ? 'center' : 'flex-start',
+        justifyContent: 'space-between',
+        gap: '16px',
+        marginBottom: header.position === 'top' ? `${customization.spacing.headerDetailsGap ?? 16}px` : '0',
+      }}
+    >
+      {(photoPosition.position === 'left' || photoTop) && photoEl}
+      <div style={{ flex: 1, textAlign: centered ? 'center' : 'left', width: photoTop ? '100%' : undefined }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: header.jobTitlePosition === 'sameLine' ? 'row' : 'column',
+            alignItems: centered ? 'center' : 'baseline',
+            columnGap: `${customization.spacing.headerTitleGap ?? 12}px`,
+          }}
+        >
+          <h1
+            style={{
+              fontWeight: header.nameStyle === 'regular' ? 400 : 700,
+              fontSize: `${customization.spacing.nameFontSizePt || 24}px`,
+              lineHeight: 1.2,
+              color: customization.applyAccentColor.name ? colors.accent : colors.text,
+              margin: 0,
+            }}
+          >
+            {personalDetails.fullName || (showPlaceholder ? 'Your Name' : '')}
+          </h1>
+          {personalDetails.jobTitle && (
+            <p
+              style={{
+                fontStyle: header.jobTitleStyle === 'italic' ? 'italic' : 'normal',
+                fontSize: `${customization.spacing.jobTitleFontSizePt || 18}px`,
+                color: customization.applyAccentColor.jobTitle ? colors.accent : colors.text,
+                margin: 0,
+              }}
+            >
+              {personalDetails.jobTitle}
+            </p>
+          )}
+        </div>
+        {hasPhoto && detailsBlock && (
+          <div style={{ marginTop: `${customization.spacing.headerDetailsGap ?? 16}px` }}>
+            {detailsBlock}
+          </div>
+        )}
+      </div>
+      {photoPosition.position === 'right' && photoEl}
+    </div>
+  )
+
   const splitLeft = isTwoCol ? ordered.slice(0, Math.ceil(ordered.length / 2)) : []
   const splitRight = isTwoCol ? ordered.slice(Math.ceil(ordered.length / 2)) : []
 
@@ -860,7 +867,7 @@ export function ResumeRenderer({
         >
           <div data-pb-col style={{ minWidth: 0 }}>
             {headerContent}
-            {detailsBlock}
+            {!hasPhoto && detailsBlock}
             <div style={{ marginTop: '12px' }}>{twoColBodies[0].sections.map(renderSection)}</div>
           </div>
           <div data-pb-col style={{ minWidth: 0 }}>
@@ -870,7 +877,7 @@ export function ResumeRenderer({
       ) : (
         <div>
           {headerContent}
-          {detailsBlock}
+          {!hasPhoto && detailsBlock}
           <div style={{ marginTop: '12px' }}>{ordered.map(renderSection)}</div>
         </div>
       )}

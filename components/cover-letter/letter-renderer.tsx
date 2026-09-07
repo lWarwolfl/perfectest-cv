@@ -161,7 +161,9 @@ export function LetterRenderer({
         }}
       />
     )
-  const centered = header.alignText === 'center' || photoPosition.position === 'top'
+  const hasPhoto = Boolean(photoPosition.show && form.senderPhotoImageId)
+  const photoTop = photoPosition.position === 'top'
+  const centered = header.alignText === 'center' || photoTop
 
   const detailKeys = ['displayEmail', 'phone', 'address', 'website', 'linkedIn', 'github'].filter(
     (k) => !(design.hiddenSenderDetails || []).includes(k)
@@ -251,15 +253,15 @@ export function LetterRenderer({
     <div
       style={{
         display: 'flex',
-        flexDirection: photoPosition.position === 'top' ? 'column' : 'row',
-        alignItems: photoPosition.position === 'top' ? 'center' : 'flex-start',
+        flexDirection: photoTop ? 'column' : 'row',
+        alignItems: photoTop ? 'center' : 'flex-start',
         justifyContent: 'space-between',
         gap: '16px',
         marginBottom: '16px',
       }}
     >
-      {photoPosition.position === 'left' && photoEl}
-      <div style={{ flex: 1, textAlign: nameAlign }}>
+      {(photoPosition.position === 'left' || photoTop) && photoEl}
+      <div style={{ flex: 1, textAlign: nameAlign, width: photoTop ? '100%' : undefined }}>
         <div
           style={{
             display: 'flex',
@@ -292,6 +294,11 @@ export function LetterRenderer({
             </p>
           )}
         </div>
+        {hasPhoto && detailsBlock && (
+          <div style={{ marginTop: `${spacing.headerDetailsGap ?? 4}px` }}>
+            {detailsBlock}
+          </div>
+        )}
       </div>
       {photoPosition.position === 'right' && photoEl}
     </div>
@@ -300,15 +307,9 @@ export function LetterRenderer({
   const senderBlocks = (
     <div style={{ marginBottom: '24px' }}>
       {headerContent}
-      <div style={{ marginTop: `${spacing.headerDetailsGap ?? 4}px` }}>{detailsBlock}</div>
-      <div
-        style={{
-          marginTop: '20px',
-          alignSelf: dateAlignSelf,
-          width: nameAlign === 'center' ? '100%' : undefined,
-          textAlign: nameAlign,
-        }}
-      >
+      {!hasPhoto && detailsBlock}
+      {/* Date alignment follows letterDateDisplay only — never header alignment */}
+      <div style={{ display: 'flex', marginTop: '20px', justifyContent: dateAlignSelf }}>
         {dateEl}
       </div>
     </div>
