@@ -17,7 +17,7 @@ const CONTACT_ICONS: Record<string, typeof Mail> = {
   github: LinkIcon,
 }
 
-const SIZE_PX = { xs: 48, s: 64, m: 80, l: 96, xl: 112 } as const
+const SIZE_PX = { xs: 58, s: 77, m: 96, l: 115, xl: 134 } as const
 
 function iconWrapCls(
   style: Customization['header']['iconStyle'],
