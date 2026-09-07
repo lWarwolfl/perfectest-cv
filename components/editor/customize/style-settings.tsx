@@ -75,6 +75,10 @@ export default function StyleSettings({
           store.patchPhotoPosition(patch)
           emit({ photoPosition: { ...store.customization.photoPosition, ...patch } })
         }}
+        onSpacingPatch={(patch) => {
+          store.patchSpacing(patch)
+          emit({ spacing: { ...store.customization.spacing, ...patch } })
+        }}
       />
       <LinkStylingSettings
         customization={store.customization}

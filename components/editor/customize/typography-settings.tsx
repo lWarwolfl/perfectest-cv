@@ -73,7 +73,7 @@ export default function TypographySettings({
         <Input
           type="range"
           min={0}
-          max={8}
+          max={14}
           value={spacing.fontSize}
           onChange={(e) => onPatch({ fontSize: e.target.value })}
           className="accent-primary"

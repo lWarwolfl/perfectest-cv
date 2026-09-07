@@ -228,6 +228,8 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
     headingGap: '3',
     nameFontSizePt: 24,
     jobTitleFontSizePt: 18,
+    detailsFontSizePt: 12,
+    detailsIconSizePt: 10,
   },
   skill: {
     selected: 'rows',

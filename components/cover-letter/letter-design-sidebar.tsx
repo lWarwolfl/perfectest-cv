@@ -136,6 +136,7 @@ export default function LetterDesignSidebar({
           onPhotoPositionPatch={(patch) =>
             patchCustomization({ photoPosition: { ...c.photoPosition, ...patch } })
           }
+          onSpacingPatch={(patch) => patchCustomization({ spacing: { ...c.spacing, ...patch } })}
         />
         <LinkStylingSettings
           customization={c}

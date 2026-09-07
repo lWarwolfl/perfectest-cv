@@ -90,9 +90,11 @@ function letterColorStyle(c: Customization) {
       accent: basic.multi?.accentColor || '#044cb5',
       text: basic.multi?.textColor || '#000000',
       bg: basic.multi?.backgroundColor || '#ffffff',
+      secondary:
+        c.colors.basic.secondary || `color-mix(in srgb, ${basic.multi?.textColor || '#000000'} 55%, #888888)`,
     }
   }
-  return { accent: basic.single || '#044cb5', text: '#000000', bg: '#ffffff' }
+  return { accent: basic.single || '#044cb5', text: '#000000', bg: '#ffffff', secondary: c.colors.basic.secondary || undefined }
 }
 
 export function LetterRenderer({
@@ -173,13 +175,14 @@ export function LetterRenderer({
         flexWrap: arrangement === 'wrap' ? 'wrap' : 'nowrap',
         gridTemplateColumns: arrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
         gap: '2px 12px',
-        fontSize: '0.85em',
+        fontSize: `${spacing.detailsFontSizePt || 12}px`,
         justifyContent: centered && arrangement !== 'grid' ? 'center' : undefined,
         textAlign: centered ? 'center' : undefined,
       }}
     >
       {chips.map((chip, i) => {
         const IconCmp = CONTACT_ICONS[chip.key]
+        const iconSize = `${(spacing.detailsIconSizePt || 10) / 12}em`
         const icon = separator === 'icon' && IconCmp && (
           <span
             style={{
@@ -194,11 +197,11 @@ export function LetterRenderer({
               ),
             }}
           >
-            <IconCmp style={{ width: '0.9em', height: '0.9em' }} />
+            <IconCmp style={{ width: iconSize, height: iconSize }} />
           </span>
         )
         const sep = separator !== 'icon' && i > 0 && (
-          <span style={{ color: 'color-mix(in srgb, currentColor 55%, transparent)' }}>
+          <span style={{ color: colors.secondary || 'inherit' }}>
             {separator === 'bullet' ? ' • ' : ' | '}
           </span>
         )

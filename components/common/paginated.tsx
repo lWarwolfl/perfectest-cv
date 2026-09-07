@@ -246,56 +246,51 @@ export function Paginated({
   }, [fit, width])
 
   // shift each page copy so its window starts exactly at its cut offset,
-  // and clip it there — layout effect so no unshifted frame ever paints
+  // and clip it there — layout effect so no unshifted frame ever paints.
+  // The clip goes on the per-page WRAPPER (absolute div) / column, never on
+  // the measured body: clipping the body would shrink what measure() reads
+  // and collapse the cuts. Explicit height + overflow:hidden — clip-path is
+  // dropped by Chromium's print pipeline on transformed nodes (PDF leak).
   useLayoutEffect(() => {
     const container = wrapRef.current?.closest('.print-pages')
     if (!container) return
     const pages = Math.max(...cuts.map((c) => c.length))
     const boxes = container.querySelectorAll<HTMLElement>(':scope > .print-page')
-    // body padding repeats on every page copy (it is the paper margin); cuts
-    // are content-relative, so a copy's window in its local px is
-    // [c + pT, next + pT] — anything outside paints the neighbouring page's
-    // lines (the overlap/duplication artifact) and must be clipped.
-    const first = boxes[0]?.firstElementChild?.firstElementChild as HTMLElement | null
-    const cs = first ? getComputedStyle(first) : null
-    const kS = first ? pageScale(first) || 1 : 1
-    // computed padding & offsetHeight are layout px (transform-independent);
-    // only getBoundingClientRect deltas (topWithin) need /kS
-    const pT = parseFloat(cs?.paddingTop || '0') || 0
-    const pB = parseFloat(cs?.paddingBottom || '0') || 0
+    const body = wrapRef.current?.firstElementChild as HTMLElement | null
+    const pT = body ? parseFloat(getComputedStyle(body).paddingTop) || 0 : 0
     boxes.forEach((box, i) => {
       if (i >= pages) return
-      const bodyEl = box.firstElementChild?.firstElementChild as HTMLElement | null
-      if (!bodyEl) return
+      const wrapEl = box.firstElementChild as HTMLElement | null
+      const bodyEl = wrapEl?.firstElementChild as HTMLElement | null
+      if (!wrapEl || !bodyEl) return
       const cols = Array.from(bodyEl.querySelectorAll<HTMLElement>('[data-pb-col]'))
       const shift = (seq: number[]) => (seq[i] ?? (seq[seq.length - 1] ?? 0) + height)
-      // offsetHeight & computed padding are layout px (transforms don't apply);
-      // only getBoundingClientRect values (topWithin) need the /kS correction
-      const clip = (el: HTMLElement, topLocal: number, bottomLocal: number) => {
-        const H = el.offsetHeight
-        el.style.clipPath = `inset(${Math.max(0, topLocal)}px 0 ${Math.max(0, H - bottomLocal)}px 0)`
+      const clip = (el: HTMLElement, h: number) => {
+        el.style.overflow = 'hidden'
+        el.style.height = `${Math.max(0, h)}px`
       }
       if (cols.length) {
+        // columns paginate independently: clip each column copy at its own
+        // next cut (col-local content px). Wrap stays unclipped.
         cols.forEach((col, j) => {
           const seq = cuts[j] || [0]
           const c = shift(seq)
-          // topWithin is a getBoundingClientRect delta → /kS to layout px
-          const top = topWithin(col, bodyEl) / kS
           col.style.transform = i === 0 ? '' : `translateY(${-c}px)`
-          // window in col-local px: page margins are pT/pB (body padding);
-          // content coord y maps to screen top + y - c
-          const bottomLocal = height - pB - top + c
-          const topLocal = i === 0 ? 0 : c + pT - top
           const next = seq[i + 1]
-          clip(col, topLocal, next != null ? Math.min(bottomLocal, next) : bottomLocal)
+          clip(col, next != null ? next - c : height)
         })
+        wrapEl.style.overflow = ''
+        wrapEl.style.height = ''
       } else {
         const seq = cuts[0] || [0]
         const c = shift(seq)
         bodyEl.style.transform = i === 0 ? '' : `translateY(${-c}px)`
         const next = seq[i + 1]
-        // bodyEl local y renders at y - c (its top is the page top)
-        clip(bodyEl, i === 0 ? 0 : c + pT, next != null ? Math.min(height - pB + c, next + pT) : height - pB + c)
+        // wrap top = page top, body padding pT sits above content → window
+        // bottom in wrap px = (next - c) + pT; last page = full sheet
+        clip(wrapEl, next != null ? next - c + pT : height)
+        bodyEl.style.overflow = ''
+        bodyEl.style.height = ''
       }
     })
   }, [cuts, height])

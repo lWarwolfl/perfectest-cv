@@ -180,6 +180,7 @@ export interface ColorCustomization {
   mode: 'basic' | 'advanced' | 'border'
   basic: {
     single: string
+    secondary?: string // muted text (dates, subtitles, separators); derived from text when unset
     multi: { textColor: string; accentColor: string; backgroundColor: string }
     selected: 'single' | 'multi' | 'image'
     singleCustom: string
@@ -233,7 +234,7 @@ export interface LinkCustomization {
   underline: boolean
   useAccent: boolean
   icon: boolean
-  iconType: 'link' | 'external' | 'mail'
+  iconType: 'link' | 'external'
 }
 
 export interface LayoutCustomization {
@@ -278,6 +279,8 @@ export interface SpacingCustomization {
   headingGap: string
   nameFontSizePt: number
   jobTitleFontSizePt: number
+  detailsFontSizePt: number
+  detailsIconSizePt: number
 }
 
 export interface SectionDisplay {

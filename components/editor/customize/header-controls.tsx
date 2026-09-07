@@ -12,6 +12,7 @@ import {
 import { CustomizeCard } from './customize-tab-layout'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { Customization } from '@/features/resume/types'
 
@@ -19,6 +20,7 @@ interface HeaderControlsProps {
   customization: Customization
   onHeaderPatch: (patch: Partial<Customization['header']>) => void
   onPhotoPositionPatch: (patch: Partial<Customization['photoPosition']>) => void
+  onSpacingPatch?: (patch: Partial<Customization['spacing']>) => void
   showPhoto?: boolean
 }
 
@@ -140,7 +142,7 @@ export function LinkStylingSettings({ customization, onLinksPatch }: LinkStyling
         </div>
       </div>
       {links.icon && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <OptionButton
             active={links.iconType === 'link'}
             onClick={() => onLinksPatch({ iconType: 'link' })}
@@ -152,12 +154,6 @@ export function LinkStylingSettings({ customization, onLinksPatch }: LinkStyling
             onClick={() => onLinksPatch({ iconType: 'external' })}
           >
             <ExternalLink className="mx-auto block size-4" />
-          </OptionButton>
-          <OptionButton
-            active={links.iconType === 'mail'}
-            onClick={() => onLinksPatch({ iconType: 'mail' })}
-          >
-            <Mail className="mx-auto block size-4" />
           </OptionButton>
         </div>
       )}
@@ -210,6 +206,7 @@ export default function HeaderControls({
   customization,
   onHeaderPatch,
   onPhotoPositionPatch,
+  onSpacingPatch,
   showPhoto = true,
 }: HeaderControlsProps) {
   const header = customization.header
@@ -297,6 +294,41 @@ export default function HeaderControls({
             </OptionButton>
           ))}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-foreground text-sm font-bold">Details font size</Label>
+          <span className="text-foreground text-sm font-semibold">
+            {customization.spacing.detailsFontSizePt || 12}px
+          </span>
+        </div>
+        <Input
+          type="range"
+          min={8}
+          max={20}
+          value={customization.spacing.detailsFontSizePt || 12}
+          onChange={(e) => onSpacingPatch?.({ detailsFontSizePt: Number(e.target.value) })}
+          className="accent-primary"
+          disabled={!onSpacingPatch}
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-foreground text-sm font-bold">Details icon size</Label>
+          <span className="text-foreground text-sm font-semibold">
+            {customization.spacing.detailsIconSizePt || 10}px
+          </span>
+        </div>
+        <Input
+          type="range"
+          min={6}
+          max={20}
+          value={customization.spacing.detailsIconSizePt || 10}
+          onChange={(e) => onSpacingPatch?.({ detailsIconSizePt: Number(e.target.value) })}
+          className="accent-primary"
+          disabled={!onSpacingPatch}
+        />
       </div>
 
       <div className="space-y-2">

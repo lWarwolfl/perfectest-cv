@@ -115,7 +115,8 @@ function colorStyle(customization: Customization) {
       : basic.selected === 'multi'
         ? multi.backgroundColor
         : '#ffffff'
-  return { accent, text, bg }
+  const secondary = basic.secondary || `color-mix(in srgb, ${text} 55%, #888888)`
+  return { accent, text, bg, secondary }
 }
 
 function dim(text: string) {
@@ -127,12 +128,14 @@ function DisplayList({
   items,
   accent,
   text,
+  secondary,
   lh,
 }: {
   display: SectionDisplay
   items: { key: string; name: React.ReactNode; infoHtml?: string }[]
   accent: string
   text: string
+  secondary: string
   lh: number
 }) {
   const rows = display.rows ?? { spacing: 'spacious' as const, bullets: false }
@@ -149,7 +152,7 @@ function DisplayList({
     if (!info) return null
     const label =
       subinfo === 'colon' ? `: ${info}` : subinfo === 'dash' ? ` - ${info}` : ` (${info})`
-    return <span style={{ color: dim(text) }}>{label}</span>
+    return <span style={{ color: secondary }}>{label}</span>
   }
   const subText = (info: string) =>
     subinfo === 'colon' ? `: ${info}` : subinfo === 'dash' ? `- ${info}` : `(${info})`
@@ -206,7 +209,7 @@ function DisplayList({
           return (
             <div key={it.key} data-pb-item>
               <div>{it.name}</div>
-              {info && <div style={{ fontSize: '0.9em', color: dim(text) }}>{subText(info)}</div>}
+              {info && <div style={{ fontSize: '0.9em', color: secondary }}>{subText(info)}</div>}
             </div>
           )
         })}
@@ -298,8 +301,7 @@ function linked(
     textDecoration: links.underline ? 'underline' : 'none',
   }
   const showIcon = links.icon
-  const IconCmp =
-    links.iconType === 'link' ? LinkIcon : links.iconType === 'mail' ? Mail : ExternalLink
+  const IconCmp = links.iconType === 'link' ? LinkIcon : ExternalLink
   return (
     <a href={link} target="_blank" rel="noreferrer" style={style}>
       {label}
@@ -427,7 +429,7 @@ export function ResumeRenderer({
                           colors.text
                         )}
                     {w.employer && w.jobTitle && (
-                      <span style={{ color: dim(colors.text) }}>
+                      <span style={{ color: colors.secondary }}>
                         {' - '}
                         {customization.workDisplay.jobTitleBeforeEmployer
                           ? linked(
@@ -451,7 +453,7 @@ export function ResumeRenderer({
                   </span>
                 </div>
                 {w.location && (
-                  <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{w.location}</div>
+                  <div style={{ fontSize: '0.85em', color: colors.secondary }}>{w.location}</div>
                 )}
                 {hasHtml(w.description) && (
                   <div
@@ -474,7 +476,7 @@ export function ResumeRenderer({
                       ? ed.degree
                       : linked(ed.school, ed.schoolLink, customization, colors.accent, colors.text)}
                     {ed.school && ed.degree && (
-                      <span style={{ color: dim(colors.text) }}>
+                      <span style={{ color: colors.secondary }}>
                         {' - '}
                         {customization.educationDisplay.degreeBeforeSchool
                           ? linked(
@@ -498,7 +500,7 @@ export function ResumeRenderer({
                   </span>
                 </div>
                 {ed.location && (
-                  <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{ed.location}</div>
+                  <div style={{ fontSize: '0.85em', color: colors.secondary }}>{ed.location}</div>
                 )}
                 {hasHtml(ed.description) && (
                   <div
@@ -514,6 +516,7 @@ export function ResumeRenderer({
             display={customization.skill}
             accent={colors.accent}
             text={colors.text}
+            secondary={colors.secondary}
             lh={lh}
             items={entries.flatMap((e) =>
               e.data.type !== 'skill'
@@ -533,6 +536,7 @@ export function ResumeRenderer({
             display={customization.language}
             accent={colors.accent}
             text={colors.text}
+            secondary={colors.secondary}
             lh={lh}
             items={entries.flatMap((e) =>
               e.data.type !== 'language'
@@ -546,6 +550,7 @@ export function ResumeRenderer({
             display={customization.interest}
             accent={colors.accent}
             text={colors.text}
+            secondary={colors.secondary}
             lh={lh}
             items={entries.flatMap((e) =>
               e.data.type !== 'interest'
@@ -583,7 +588,7 @@ export function ResumeRenderer({
                   )}
                 </span>
                 {p.subTitle && (
-                  <div style={{ fontSize: '0.85em', color: dim(colors.text) }}>{p.subTitle}</div>
+                  <div style={{ fontSize: '0.85em', color: colors.secondary }}>{p.subTitle}</div>
                 )}
                 {hasHtml(p.description) && (
                   <div
@@ -613,7 +618,7 @@ export function ResumeRenderer({
                   <span style={{ fontWeight: 500 }}>
                     {linked(c.title, c.link, customization, colors.accent, colors.text)}
                   </span>
-                  {c.issuer && <span style={{ color: dim(colors.text) }}> - {c.issuer}</span>}
+                  {c.issuer && <span style={{ color: colors.secondary }}> - {c.issuer}</span>}
                   {c.date && (
                     <span
                       style={{
@@ -637,7 +642,7 @@ export function ResumeRenderer({
             return (
               <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
                 <span style={{ fontWeight: 500 }}>{c.title}</span>
-                {c.subTitle && <span style={{ color: dim(colors.text) }}> - {c.subTitle}</span>}
+                {c.subTitle && <span style={{ color: colors.secondary }}> - {c.subTitle}</span>}
                 {hasHtml(c.description) && (
                   <div
                     style={{ marginTop: '2px' }}
@@ -746,13 +751,14 @@ export function ResumeRenderer({
         gridTemplateColumns:
           header.detailsArrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
         gap: '2px 12px',
-        fontSize: '0.85em',
+        fontSize: `${customization.spacing.detailsFontSizePt || 12}px`,
         justifyContent: centered && header.detailsArrangement !== 'grid' ? 'center' : undefined,
         textAlign: centered ? 'center' : undefined,
       }}
     >
       {detailChips.map((chip, i) => {
         const IconCmp = CONTACT_ICONS[chip.key]
+        const iconSize = `${(customization.spacing.detailsIconSizePt || 10) / 12}em`
         const icon = header.detailsSeparator === 'icon' && IconCmp && (
           <span
             style={{
@@ -767,11 +773,11 @@ export function ResumeRenderer({
               ),
             }}
           >
-            <IconCmp style={{ width: '0.9em', height: '0.9em' }} />
+            <IconCmp style={{ width: iconSize, height: iconSize }} />
           </span>
         )
         const separator = header.detailsSeparator !== 'icon' && i > 0 && (
-          <span style={{ marginRight: '0', color: dim(colors.text) }}>
+          <span style={{ marginRight: '0', color: colors.secondary }}>
             {header.detailsSeparator === 'bullet' ? ' • ' : ' | '}
           </span>
         )

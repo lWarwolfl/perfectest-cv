@@ -102,6 +102,11 @@ export default function ColorThemeSettings({
             }
           />
           <HexField
+            label="Secondary"
+            value={basic.secondary || '#6b7280'}
+            onChange={(hex) => onPatch({ mode: 'basic', basic: { ...basic, secondary: hex } })}
+          />
+          <HexField
             label="Text"
             value={basic.multi.textColor}
             onChange={(hex) =>
