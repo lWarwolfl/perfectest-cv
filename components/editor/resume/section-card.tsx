@@ -19,9 +19,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChevronDown, Eye, EyeOff, Pencil, GripVertical, Trash2, Plus } from 'lucide-react'
-import type { TSection, HeadingStyle } from '@/features/resume/types'
+import {
+  BriefcaseBusiness,
+  BookOpen,
+  BookOpenCheck,
+  ChevronDown,
+  Code,
+  Eye,
+  EyeOff,
+  FolderOpen,
+  Globe,
+  GraduationCap,
+  GripVertical,
+  Heart,
+  Pencil,
+  Plus,
+  Quote,
+  SquarePen,
+  Star,
+  Trash2,
+  Trophy,
+  UserRound,
+  Users,
+  Award,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import type { TSection, HeadingStyle, SectionType } from '@/features/resume/types'
 import { SECTION_LABELS } from '@/features/resume/defaults'
+
+export const SECTION_ICONS: Record<SectionType, LucideIcon> = {
+  profile: UserRound,
+  work: BriefcaseBusiness,
+  education: GraduationCap,
+  skill: Code,
+  language: Globe,
+  interest: Heart,
+  project: FolderOpen,
+  certificate: Award,
+  publication: BookOpen,
+  organisation: Users,
+  course: BookOpenCheck,
+  award: Trophy,
+  reference: Quote,
+  declaration: SquarePen,
+  custom: Star,
+}
 
 const HEADING_STYLE_OPTIONS: { value: HeadingStyle; label: string }[] = [
   { value: 'line', label: 'Line' },
@@ -103,7 +145,7 @@ function SortableEntry({
         ref={setActivatorNodeRef}
         type="button"
         aria-label="Drag entry"
-        className="text-muted-foreground/40 hover:text-muted-foreground mt-2.5 cursor-grab touch-none pl-2 active:cursor-grabbing"
+        className="text-muted-foreground/40 hover:text-muted-foreground mt-3.5 flex cursor-grab touch-none items-center pl-2 active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >
@@ -178,7 +220,10 @@ export default function SectionCard({
   return (
     <div className="border-border bg-card rounded-xl border">
       <div className="flex items-center gap-2 p-3">
-        <GripVertical className="text-muted-foreground/40 size-4 shrink-0" />
+        {(() => {
+          const Icon = SECTION_ICONS[section.sectionType]
+          return Icon ? <Icon className="text-muted-foreground size-4 shrink-0" /> : null
+        })()}
         {editing ? (
           <Input
             value={draft}

@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { SECTION_LABELS } from '@/features/resume/defaults'
 import type { SectionType } from '@/features/resume/types'
+import { SECTION_ICONS } from '@/components/editor/resume/section-card'
 import { Plus } from 'lucide-react'
 
 interface AddSectionModalProps {
@@ -32,20 +33,27 @@ export default function AddSectionModal({
           <DialogDescription>Choose a section type to add to your resume.</DialogDescription>
         </DialogHeader>
         <div className="-mr-4 max-h-[50vh] space-y-1.5 overflow-y-auto pr-6">
-          {(Object.keys(SECTION_LABELS) as SectionType[]).map((type) => (
-            <Button
-              key={type}
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => {
-                onAddSection(type)
-                onOpenChange(false)
-              }}
-            >
-              <Plus className="mr-2 size-4" />
-              {SECTION_LABELS[type]}
-            </Button>
-          ))}
+          {(Object.keys(SECTION_LABELS) as SectionType[]).map((type) => {
+            const Icon = SECTION_ICONS[type]
+            return (
+              <Button
+                key={type}
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => {
+                  onAddSection(type)
+                  onOpenChange(false)
+                }}
+              >
+                {Icon ? (
+                  <Icon className="mr-2 size-4" />
+                ) : (
+                  <Plus className="mr-2 size-4" />
+                )}
+                {SECTION_LABELS[type]}
+              </Button>
+            )
+          })}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>

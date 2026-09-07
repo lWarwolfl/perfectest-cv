@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { EntryForm, PersonalDetailsForm } from '@/components/editor/resume/entry-form'
-import SectionCard, { entryTitleAndPreview } from '@/components/editor/resume/section-card'
+import SectionCard, { entryTitleAndPreview, SECTION_ICONS } from '@/components/editor/resume/section-card'
 import { Button } from '@/components/ui/button'
 import { UserRound, ChevronDown, Plus } from 'lucide-react'
 import AddSectionModal from '@/components/editor/add-section-modal'
@@ -116,17 +116,20 @@ export default function ResumeSidebar({
                 (st) =>
                   st !== 'profile' && !sections.find((s) => s.sectionType === (st as SectionType))
               )
-              .map((st) => (
-                <Button
-                  key={st}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onAddSection(st as SectionType)}
-                >
-                  <Plus className="size-3" />
-                  {SECTION_LABELS[st as keyof typeof SECTION_LABELS]}
-                </Button>
-              ))}
+              .map((st) => {
+                const Icon = SECTION_ICONS[st as SectionType]
+                return (
+                  <Button
+                    key={st}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onAddSection(st as SectionType)}
+                  >
+                    {Icon ? <Icon className="size-3" /> : <Plus className="size-3" />}
+                    {SECTION_LABELS[st as keyof typeof SECTION_LABELS]}
+                  </Button>
+                )
+              })}
           </div>
           <div className="space-y-2">
             {sections.map((s) => (

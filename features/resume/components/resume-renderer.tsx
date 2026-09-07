@@ -416,49 +416,57 @@ export function ResumeRenderer({
           entries.map((e) => {
             if (e.data.type !== 'work') return null
             const w = e.data
+            const jobFirst = customization.workDisplay.jobTitleBeforeEmployer
+            const primary = jobFirst ? w.jobTitle : w.employer
+            const secondary = jobFirst ? w.employer : w.jobTitle
             return (
               <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                  <span style={{ fontWeight: 500 }}>
-                    {customization.workDisplay.jobTitleBeforeEmployer
-                      ? w.jobTitle
-                      : linked(
-                          w.employer,
-                          w.employerLink,
-                          customization,
-                          colors.accent,
-                          colors.text
-                        )}
-                    {w.employer && w.jobTitle && (
-                      <span style={{ color: colors.secondary }}>
-                        {' - '}
-                        {customization.workDisplay.jobTitleBeforeEmployer
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    gap: '8px',
+                  }}
+                >
+                  <span>
+                    <span style={{ fontWeight: 600 }}>{primary}</span>
+                    {primary && secondary && (
+                      <span style={{ fontWeight: 400, color: colors.secondary }}>
+                        {', '}
+                        {jobFirst
                           ? linked(
-                              w.employer,
+                              secondary,
                               w.employerLink,
                               customization,
                               colors.accent,
                               colors.text
                             )
-                          : w.jobTitle}
+                          : secondary}
                       </span>
                     )}
                   </span>
                   <span
                     style={{
                       fontSize: '0.85em',
-                      color: customization.applyAccentColor.dates ? colors.accent : colors.text,
+                      color: customization.applyAccentColor.dates
+                        ? colors.accent
+                        : colors.text,
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {formatDateRange(w.startDate, w.endDate, customization.regional.dateDisplay)}
+                    {w.location && (
+                      <span style={{ color: colors.secondary }}>
+                        {' | '}
+                        {w.location}
+                      </span>
+                    )}
                   </span>
                 </div>
-                {w.location && (
-                  <div style={{ fontSize: '0.85em', color: colors.secondary }}>{w.location}</div>
-                )}
                 {hasHtml(w.description) && (
                   <div
-                    style={{ marginTop: '4px' }}
+                    style={{ marginTop: '2px' }}
                     dangerouslySetInnerHTML={{ __html: w.description }}
                   />
                 )}
