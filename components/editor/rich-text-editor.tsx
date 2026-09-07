@@ -39,6 +39,7 @@ const AI_ACTIONS = [
   { feature: 'improve', label: 'Improve writing' },
   { feature: 'grammar', label: 'Fix spelling & grammar' },
   { feature: 'summary', label: 'Generate summary' },
+  { feature: 'bullet', label: 'Turn into achievement bullets' },
 ] as const
 
 export default function RichTextEditor({
@@ -93,7 +94,7 @@ export default function RichTextEditor({
   const setTextAlign = (align: 'left' | 'center' | 'right' | 'justify') => {
     editor.chain().focus().setTextAlign(align).run()
   }
-  const runAi = async (feature: 'improve' | 'grammar' | 'summary' | 'translate') => {
+  const runAi = async (feature: 'improve' | 'grammar' | 'summary' | 'translate' | 'bullet') => {
     const text = editor.getText().trim()
     if (!text) {
       toast.error('Nothing to work with — write some content first')

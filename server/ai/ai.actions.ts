@@ -5,9 +5,6 @@ import { Resume, ResumeSection, User } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
 import { asc, eq } from 'drizzle-orm'
 
-// ponytail: OpenAI-compatible /chat/completions only — covers OpenAI, OpenRouter,
-// Groq, Ollama, LM Studio etc. Add per-provider adapters if one needs a different wire format.
-
 export async function getAiSettingsAction() {
   const user = await requireUser()
   const [row] = await db.select({ aiSettings: User.aiSettings }).from(User).where(eq(User.id, user.id))
@@ -56,7 +53,6 @@ function stripTags(html: string) {
     .replace(/&#0?39;/g, "'")
 }
 
-/** Plain text -> minimal safe HTML paragraphs (blocklist-free by construction). */
 function textToParagraphs(text: string) {
   return text
     .split(/\n{2,}/)
@@ -67,15 +63,24 @@ function textToParagraphs(text: string) {
 }
 
 async function chat(settings: { baseUrl: string; apiKey: string; model: string }, messages: { role: string; content: string }[]) {
-  const res = await fetch(settings.baseUrl.replace(/\/+$/, '') + '/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
-    body: JSON.stringify({ model: settings.model, messages, temperature: 0.4 }),
-    signal: AbortSignal.timeout(120_000),
-  })
+  let res: Response
+  try {
+    res = await fetch(settings.baseUrl.replace(/\/+$/, '') + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
+      body: JSON.stringify({ model: settings.model, messages, temperature: 0.4 }),
+      signal: AbortSignal.timeout(120_000),
+    })
+  } catch (e) {
+    const name = e instanceof Error ? e.name : ''
+    if (name === 'TimeoutError' || name === 'AbortError') {
+      throw new Error('The AI endpoint timed out. The model may be loading (local runtimes) or overloaded — try again.')
+    }
+    throw new Error("Can't reach the AI endpoint. Check the API address on the dashboard and that the provider is up.")
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    throw new Error(`AI request failed (${res.status}): ${body.slice(0, 300)}`)
+    throw new Error(friendlyApiError(res.status, body, settings.model))
   }
   const json = (await res.json()) as { choices?: { message?: { content?: unknown } }[] }
   const content = json.choices?.[0]?.message?.content
@@ -83,8 +88,28 @@ async function chat(settings: { baseUrl: string; apiKey: string; model: string }
   return content.trim()
 }
 
+function friendlyApiError(status: number, body: string, model: string) {
+  const detail = body.slice(0, 200)
+  switch (status) {
+    case 401:
+    case 403:
+      return 'API key rejected (401). Check the API secret on the dashboard.'
+    case 404:
+      return 'Endpoint not found (404). The API address must include the version path, e.g. https://api.openai.com/v1'
+    case 429:
+      return 'Rate limited or out of quota (429) at the provider. Wait a moment or check your plan/billing.'
+    case 400:
+      return `Request rejected (400). The model "${model}" may not exist at this endpoint — re-fetch models on the dashboard. ${detail}`
+    case 502:
+    case 503:
+      return 'Provider is temporarily down (5xx). Try again shortly.'
+    default:
+      return `AI request failed (${status}): ${detail}`
+  }
+}
+
 export async function aiTransformAction(input: {
-  feature: 'improve' | 'summary' | 'translate' | 'grammar' | 'cover-letter'
+  feature: 'improve' | 'summary' | 'translate' | 'grammar' | 'cover-letter' | 'bullet' | 'ats-match'
   text: string
   language?: string
   jobDescription?: string
@@ -121,18 +146,34 @@ export async function aiTransformAction(input: {
         input.jobDescription ? ` and this job description:\n\n<job>\n${input.jobDescription}\n</job>` : ''
       }:\n\n<resume>\n${text}\n</resume>`
       break
+    case 'bullet':
+      prompt = `Rewrite this duty/description as 1-3 strong achievement bullets for a resume. Start each with a past-tense action verb, add plausible-sounding but generic metrics ONLY if implied (never invent employers/dates), use "Improved X by Y%" phrasing. One bullet per line:\n\n${text}`
+      break
+    case 'ats-match':
+      prompt = `You are an ATS (applicant tracking system) optimization expert. Compare this resume against the job description and return a report in this exact plain-text structure:
+
+Match score: <0-100>%
+
+Missing keywords:
+- <keyword or phrase from the job description not present in the resume> (one per line, 5-12 items)
+
+Suggestions:
+- <one concrete rewrite suggestion per line, referencing resume content>
+
+<job description>
+${input.jobDescription || '(no job description provided)'}
+
+<resume>
+${text}`
+      break
   }
   const raw = await chat(settings, [
     { role: 'system', content: system },
     { role: 'user', content: prompt },
   ])
-  // ponytail: model output is treated as plain text and rebuilt as paragraphs —
-  // never rendered raw, so no sanitizer needed. Switch to allowlist sanitizer
-  // (see lib/flowcv.ts) if you ever pass the raw HTML through.
   return textToParagraphs(raw)
 }
 
-/** Full resume text for the AI features page + target resume id for writing results back. */
 export async function getResumeTextAction(resumeId: string) {
   const user = await requireUser()
   const resume = await db.query.Resume.findFirst({

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Bot, Check, ChevronDown, RefreshCcw, Search } from 'lucide-react'
+import { AlertTriangle, Bot, Check, ChevronDown, RefreshCcw, Search } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -10,8 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Spinner } from '@/components/ui/spinner'
 import { useAiSettings, useSaveAiSettings } from '@/features/ai/ai.hooks'
 import { listAiModelsAction } from '@/server/ai/ai.actions'
-import { getErrorMessage } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import { getErrorMessage, cn } from '@/lib/utils'
 
 export function AiSettingsCard() {
   const { data: saved, isLoading } = useAiSettings()
@@ -21,10 +20,10 @@ export function AiSettingsCard() {
   const [models, setModels] = useState<string[]>([])
   const [modelsOpen, setModelsOpen] = useState(false)
   const [filter, setFilter] = useState('')
+  const [modelError, setModelError] = useState('')
 
   const save = useSaveAiSettings()
 
-  // local edit state falls back to the saved values after load
   const url = baseUrl ?? saved?.baseUrl ?? ''
   const key = apiKey ?? saved?.apiKey ?? ''
   const selected = model ?? saved?.model ?? ''
@@ -33,9 +32,13 @@ export function AiSettingsCard() {
     mutationFn: async () => {
       const ids = await listAiModelsAction(url, key)
       setModels(ids)
+      setModelError('')
       setModelsOpen(true)
     },
-    onError: (e) => toast.error(getErrorMessage(e)),
+    onError: (e) => {
+      setModelError(getErrorMessage(e))
+      toast.error(getErrorMessage(e))
+    },
   })
 
   const filtered = useMemo(
@@ -44,6 +47,7 @@ export function AiSettingsCard() {
   )
   const dirty = url !== (saved?.baseUrl ?? '') || key !== (saved?.apiKey ?? '') || selected !== (saved?.model ?? '')
   const canFetch = /^https?:\/\//.test(url.trim()) && key.trim().length > 0
+  const noModels = models.length === 0
 
   if (isLoading) return <div className="bg-muted h-40 animate-pulse rounded-xl" />
 
@@ -67,6 +71,30 @@ export function AiSettingsCard() {
           value={url}
           onChange={(e) => setBaseUrl(e.target.value)}
         />
+        <div className="flex flex-wrap gap-1">
+          {(
+            [
+              ['OpenAI', 'https://api.openai.com/v1'],
+              ['OpenRouter', 'https://openrouter.ai/api/v1'],
+              ['Groq', 'https://api.groq.com/openai/v1'],
+              ['Gemini', 'https://generativelanguage.googleapis.com/v1beta/openai'],
+              ['DeepSeek', 'https://api.deepseek.com/v1'],
+              ['Ollama', 'http://localhost:11434/v1'],
+            ] as const
+          ).map(([label, base]) => (
+            <button
+              key={label}
+              type="button"
+              className={cn(
+                'border-input hover:bg-muted rounded-full border px-2 py-0.5 text-[11px]',
+                url === base && 'bg-primary/10 border-primary text-primary'
+              )}
+              onClick={() => setBaseUrl(base)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="space-y-2">
         <label className="text-muted-foreground text-xs font-medium">API secret</label>
@@ -139,15 +167,34 @@ export function AiSettingsCard() {
             {fetchModels.isPending ? <Spinner className="size-4" /> : <RefreshCcw className="size-4" />}
           </Button>
         </div>
+        {noModels && (
+          <p className="text-muted-foreground flex items-start gap-1.5 text-[11px]">
+            <AlertTriangle className="text-amber-500 mt-0.5 size-3 shrink-0" />
+            {modelError ||
+              'No models fetched yet — enter your API address and secret, then click the refresh button.'}
+          </p>
+        )}
+        {modelError && !noModels && (
+          <p className="text-destructive flex items-start gap-1.5 text-[11px]">
+            <AlertTriangle className="mt-0.5 size-3 shrink-0" />
+            {modelError}
+          </p>
+        )}
       </div>
-      <Button
-        className="mt-auto w-full"
-        disabled={!dirty || !canFetch || !selected || save.isPending}
-        onClick={() => save.mutate({ baseUrl: url.trim(), apiKey: key.trim(), model: selected })}
-      >
-        {save.isPending ? <Spinner className="size-4" /> : <Check className="size-4" />}
-        Save connection
-      </Button>
+      {!canFetch || noModels || !selected ? (
+        <Button className="mt-auto w-full" disabled>
+          Save connection
+        </Button>
+      ) : (
+        <Button
+          className="mt-auto w-full"
+          disabled={!dirty || save.isPending}
+          onClick={() => save.mutate({ baseUrl: url.trim(), apiKey: key.trim(), model: selected })}
+        >
+          {save.isPending ? <Spinner className="size-4" /> : <Check className="size-4" />}
+          Save connection
+        </Button>
+      )}
     </div>
   )
 }
