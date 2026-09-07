@@ -21,7 +21,13 @@ function SelectInner({
     React.Children.forEach(node, (child) => {
       if (!React.isValidElement(child)) return
       const childProps = child.props as { value?: unknown; children?: React.ReactNode } | undefined
-      if (childProps && 'value' in childProps && child.type === SelectPrimitive.Item) {
+      // callers render the wrapped SelectItem from this module, not the
+      // primitive — match both or collection never fires
+      if (
+        childProps &&
+        'value' in childProps &&
+        (child.type === SelectItem || child.type === SelectPrimitive.Item)
+      ) {
         collected.push({ value: childProps.value, label: childProps.children })
       }
       if (childProps?.children) collect(childProps.children)
