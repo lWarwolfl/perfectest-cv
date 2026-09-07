@@ -17,7 +17,7 @@ const CONTACT_ICONS: Record<string, typeof Mail> = {
   github: LinkIcon,
 }
 
-const SIZE_PX = { xs: 40, s: 56, m: 72, l: 88, xl: 104 } as const
+const SIZE_PX = { xs: 48, s: 64, m: 80, l: 96, xl: 112 } as const
 
 function iconWrapCls(
   style: Customization['header']['iconStyle'],
@@ -181,7 +181,7 @@ export function LetterRenderer({
         flexDirection: arrangement === 'column' ? 'column' : 'row',
         flexWrap: arrangement === 'wrap' ? 'wrap' : 'nowrap',
         gridTemplateColumns: arrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
-        gap: `2px ${spacing.detailsGap ?? 12}px`,
+        gap: `${spacing.detailsGapY ?? 2}px ${spacing.detailsGap ?? 12}px`,
         fontSize: `${spacing.detailsFontSizePt || 12}px`,
         justifyContent: centered && arrangement !== 'grid' ? 'center' : undefined,
         textAlign: centered ? 'center' : undefined,
@@ -254,7 +254,7 @@ export function LetterRenderer({
       style={{
         display: 'flex',
         flexDirection: photoTop ? 'column' : 'row',
-        alignItems: photoTop ? 'center' : 'flex-start',
+        alignItems: photoTop || hasPhoto ? 'center' : 'flex-start',
         justifyContent: 'space-between',
         gap: '16px',
         marginBottom: '16px',

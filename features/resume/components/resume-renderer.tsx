@@ -33,7 +33,7 @@ const CONTACT_ICONS: Record<string, typeof Mail> = {
   github: LinkIcon,
 }
 
-const SIZE_PX = { xs: 40, s: 56, m: 72, l: 88, xl: 104 } as const
+const SIZE_PX = { xs: 48, s: 64, m: 80, l: 96, xl: 112 } as const
 
 function iconWrapCls(
   style: Customization['header']['iconStyle'],
@@ -725,7 +725,7 @@ export function ResumeRenderer({
         flexWrap: header.detailsArrangement === 'wrap' ? 'wrap' : 'nowrap',
         gridTemplateColumns:
           header.detailsArrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
-        gap: `2px ${customization.spacing.detailsGap ?? 12}px`,
+        gap: `${customization.spacing.detailsGapY ?? 2}px ${customization.spacing.detailsGap ?? 12}px`,
         fontSize: `${customization.spacing.detailsFontSizePt || 12}px`,
         justifyContent: centered && header.detailsArrangement !== 'grid' ? 'center' : undefined,
         textAlign: centered ? 'center' : undefined,
@@ -786,7 +786,7 @@ export function ResumeRenderer({
       style={{
         display: 'flex',
         flexDirection: photoTop ? 'column' : 'row',
-        alignItems: photoTop ? 'center' : 'flex-start',
+        alignItems: photoTop ? 'center' : hasPhoto ? 'center' : 'flex-start',
         justifyContent: 'space-between',
         gap: '16px',
         marginBottom: header.position === 'top' ? `${customization.spacing.headerDetailsGap ?? 16}px` : '0',

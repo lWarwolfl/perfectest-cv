@@ -284,6 +284,7 @@ export interface SpacingCustomization {
   detailsIconSizePt: number
   headerTitleGap?: number
   detailsGap?: number
+  detailsGapY?: number
   headerDetailsGap?: number
 }
 

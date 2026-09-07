@@ -358,6 +358,21 @@ export default function HeaderControls({
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
+          <Label className="text-foreground text-sm font-bold">Detail item gap Y</Label>
+          <span className="text-foreground text-sm font-semibold">
+            {customization.spacing.detailsGapY ?? 2}px
+          </span>
+        </div>
+        <StepperSlider
+          min={0}
+          max={20}
+          value={customization.spacing.detailsGapY ?? 2}
+          onChange={(v) => onSpacingPatch?.({ detailsGapY: v })}
+          disabled={!onSpacingPatch}
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
           <Label className="text-foreground text-sm font-bold">Title → details gap</Label>
           <span className="text-foreground text-sm font-semibold">
             {customization.spacing.headerDetailsGap ?? 16}px
