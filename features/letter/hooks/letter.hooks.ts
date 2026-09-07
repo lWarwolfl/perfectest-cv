@@ -78,14 +78,12 @@ export function useRenameLetter() {
 export function useSaveLetterContent(id: string) {
   return useMutation({
     mutationFn: (patch: LetterContentPatch) => saveLetterContentAction(id, patch),
-    onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
 
 export function useSaveLetterDesign(id: string) {
   return useMutation({
     mutationFn: (design: LetterDesign) => saveLetterDesignAction(id, design),
-    onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
 

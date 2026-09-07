@@ -109,7 +109,6 @@ export function useSaveResumePersonalDetails() {
   return useMutation({
     mutationFn: ({ id, personalDetails }: { id: string; personalDetails: PersonalDetails }) =>
       saveResumePersonalDetailsAction(id, personalDetails),
-    onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
 
@@ -117,7 +116,6 @@ export function useSaveResumeCustomization() {
   return useMutation({
     mutationFn: ({ id, customization }: { id: string; customization: Customization }) =>
       saveResumeCustomizationAction(id, customization),
-    onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
 
@@ -176,7 +174,6 @@ export function useUpdateEntryData(id: string) {
     mutationFn: ({ entryId, data }: { entryId: string; data: EntryData }) =>
       updateEntryDataAction(entryId, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES, id, 'document'] }),
-    onError: (e) => toast.error(getErrorMessage(e)),
   })
 }
 

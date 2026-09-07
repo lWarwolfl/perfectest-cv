@@ -127,11 +127,13 @@ function SortableEntry({
   title,
   preview,
   onEntryClick,
+  onToggleHidden,
 }: {
   entry: TSection['entries'][number]
   title: string
   preview: string
   onEntryClick: (entryId: string) => void
+  onToggleHidden: (entryId: string, hidden: boolean) => void
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: entry.id })
@@ -156,10 +158,21 @@ function SortableEntry({
         onClick={() => onEntryClick(entry.id)}
         className="hover:bg-muted/50 min-w-0 flex-1 rounded-r-lg p-3 pl-1 text-left transition-colors"
       >
-        <span className="block truncate text-sm font-medium">{title}</span>
-        {preview && (
+        <span className={`block truncate text-sm font-medium ${entry.hidden ? 'text-muted-foreground/60 line-through' : ''}`}>
+          {title}
+        </span>
+        {preview && !entry.hidden && (
           <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">{preview}</span>
         )}
+      </button>
+      <button
+        type="button"
+        aria-label={entry.hidden ? 'Show in document' : 'Hide from document'}
+        title={entry.hidden ? 'Hidden — click to show' : 'Shown — click to hide'}
+        onClick={() => onToggleHidden(entry.id, !entry.hidden)}
+        className="text-muted-foreground hover:text-foreground mt-3 mr-2 flex items-center"
+      >
+        {entry.hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
       </button>
     </div>
   )
@@ -177,6 +190,7 @@ export default function SectionCard({
   showTitle,
   canDelete,
   onReorderEntries,
+  onToggleEntryHidden,
 }: {
   section: TSection
   onToggle: (hidden: boolean) => void
@@ -192,6 +206,7 @@ export default function SectionCard({
   showTitle: boolean
   canDelete: boolean
   onReorderEntries: (sectionId: string, entryIds: string[]) => void
+  onToggleEntryHidden: (entryId: string, hidden: boolean) => void
 }) {
   const [open, setOpen] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -313,19 +328,31 @@ export default function SectionCard({
             section.entries.slice(0, 1).map((entry) => {
               const { title, preview } = entryTitleAndPreview(entry.data)
               return (
-                <button
-                  key={entry.id}
-                  type="button"
-                  onClick={() => onEntryClick(entry.id)}
-                  className="hover:bg-muted/50 w-full rounded-lg border p-3 text-left transition-colors"
-                >
-                  <span className="block truncate text-sm font-medium">{title || 'Summary'}</span>
-                  {preview && (
-                    <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">
-                      {preview}
+                <div key={entry.id} className="flex items-stretch gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onEntryClick(entry.id)}
+                    className="hover:bg-muted/50 min-w-0 flex-1 rounded-lg border p-3 text-left transition-colors"
+                  >
+                    <span className={`block truncate text-sm font-medium ${entry.hidden ? 'text-muted-foreground/60 line-through' : ''}`}>
+                      {title || 'Summary'}
                     </span>
-                  )}
-                </button>
+                    {preview && !entry.hidden && (
+                      <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">
+                        {preview}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={entry.hidden ? 'Show in document' : 'Hide from document'}
+                    title={entry.hidden ? 'Hidden — click to show' : 'Shown — click to hide'}
+                    onClick={() => onToggleEntryHidden(entry.id, !entry.hidden)}
+                    className="text-muted-foreground hover:text-foreground flex items-center pr-2"
+                  >
+                    {entry.hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  </button>
+                </div>
               )
             })
           ) : (
@@ -349,6 +376,7 @@ export default function SectionCard({
                           title={title || SECTION_LABELS[section.sectionType]}
                           preview={preview}
                           onEntryClick={onEntryClick}
+                          onToggleHidden={onToggleEntryHidden}
                         />
                       )
                     })}

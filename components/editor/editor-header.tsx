@@ -14,6 +14,7 @@ interface EditorHeaderProps {
   onTabChange: (tab: 'content' | 'design') => void
   onDownload: () => void
   share?: React.ReactNode
+  saveStatus?: React.ReactNode
 }
 
 export default function EditorHeader({
@@ -22,6 +23,7 @@ export default function EditorHeader({
   onTabChange,
   onDownload,
   share,
+  saveStatus,
 }: EditorHeaderProps) {
   return (
     <header className="border-border bg-background flex h-16 shrink-0 items-center justify-between border-b px-5">
@@ -45,6 +47,7 @@ export default function EditorHeader({
         </Tabs>
       </div>
       <div className="flex items-center gap-3">
+        {saveStatus}
         <ThemeToggle />
         {share}
         <Button onClick={onDownload}>

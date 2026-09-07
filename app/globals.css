@@ -192,15 +192,21 @@ div.resume-prose {
   & li {
     display: list-item;
   }
-  /* dash markers: class lives on the same element as resume-prose */
+  /* dash markers: class lives on the same element as resume-prose.
+     ::before is absolutely positioned so block children (<p> from TipTap)
+     can't push it onto its own line, and li gets matching padding. */
   &.resume-list-dash ul {
     list-style: none;
     padding-left: 1.1em;
   }
+  &.resume-list-dash ul > li {
+    position: relative;
+    padding-left: 0.9em;
+  }
   &.resume-list-dash ul > li::before {
     content: '–';
-    display: inline-block;
-    margin-left: -0.9em;
+    position: absolute;
+    left: 0;
     width: 0.9em;
   }
 }

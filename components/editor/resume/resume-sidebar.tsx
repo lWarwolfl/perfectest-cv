@@ -38,6 +38,7 @@ interface ResumeSidebarProps {
   onDeleteEntry: (entryId: string) => void
   onCloseEntryEdit: (save: boolean) => void
   onReorderEntries: (sectionId: string, entryIds: string[]) => void
+  onToggleEntryHidden: (entryId: string, hidden: boolean) => void
 }
 
 export default function ResumeSidebar({
@@ -59,6 +60,7 @@ export default function ResumeSidebar({
   onDeleteEntry,
   onCloseEntryEdit,
   onReorderEntries,
+  onToggleEntryHidden,
 }: ResumeSidebarProps) {
   const section = editing ? sections.find((s) => s.id === editing.sectionId) : null
   const entry = section?.entries.find((e) => e.id === editing?.entryId)
@@ -146,6 +148,7 @@ export default function ResumeSidebar({
                 headingStyle={custom.sectionHeadings?.[s.id]?.style || custom.heading.style}
                 showTitle={custom.sectionHeadings?.[s.id]?.showTitle !== false}
                 onReorderEntries={onReorderEntries}
+                onToggleEntryHidden={onToggleEntryHidden}
               />
             ))}
           </div>

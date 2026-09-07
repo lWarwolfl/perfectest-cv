@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useShareResume } from '@/features/share/share.hooks'
 import { ShareButton } from '@/components/common/share-button'
@@ -14,6 +14,7 @@ import {
   useAddEntry,
   useDeleteEntry,
   useUpdateEntryData,
+  useUpdateEntryMeta,
   useSaveSectionMeta,
   useReorderSections,
   useReorderEntries,
@@ -35,6 +36,8 @@ import { ScreenGate } from '@/components/editor/screen-gate'
 import { PageLoader } from '@/components/common/page-loader'
 import ResumeSidebar from '@/components/editor/resume/resume-sidebar'
 import { useResumeStyleStore } from '@/stores/use-resume-style-store'
+import { useAutosaveStore } from '@/stores/use-autosave-store'
+import { useAutosave, AutosaveStatus, AutosaveDialog } from '@/components/editor/autosave'
 import StyleSettings from '@/components/editor/customize/style-settings'
 
 function printWithFileName(name: string) {
@@ -80,6 +83,7 @@ export default function ResumeEditorPage() {
   const addEntry = useAddEntry(id)
   const deleteEntry = useDeleteEntry(id)
   const updateData = useUpdateEntryData(id)
+  const updateMeta = useUpdateEntryMeta(id)
   const saveSectionMeta = useSaveSectionMeta(id)
   const reorderSections = useReorderSections(id)
   const reorderEntries = useReorderEntries(id)
@@ -94,6 +98,9 @@ export default function ResumeEditorPage() {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [titleDraft, setTitleDraft] = useState('')
   const dirty = useRef(false)
+  const personalDirty = useRef(false)
+  const customDirty = useRef(false)
+  const entriesDirty = useRef(false)
 
   useEffect(() => {
     if (doc) {
@@ -111,26 +118,45 @@ export default function ResumeEditorPage() {
     }
   }, [doc])
 
-  useEffect(() => {
+  const saveAll = useCallback(async () => {
     if (!dirty.current) return
-    const t = setTimeout(() => {
-      savePersonal.mutate({ id, personalDetails: personal })
-      saveCustom.mutate({ id, customization: custom })
-    }, 1500)
-    return () => clearTimeout(t)
-  }, [personal, custom])
-
-  useEffect(() => {
-    if (!dirty.current || editing) return
-    const t = setTimeout(() => {
-      for (const s of sections) {
-        for (const e of s.entries) {
-          if (e._dirty) updateData.mutate({ entryId: e.id, data: e.data })
+    if (useAutosaveStore.getState().status === 'saving') return
+    useAutosaveStore.getState().start()
+    try {
+      // mutateAsync (not mutate) so failures reject here — mutate() swallows
+      // errors into onError toasts and we'd mark the doc saved when it isn't.
+      if (personalDirty.current) {
+        await savePersonal.mutateAsync({ id, personalDetails: personal })
+      }
+      if (customDirty.current) {
+        await saveCustom.mutateAsync({ id, customization: custom })
+      }
+      if (entriesDirty.current) {
+        for (const s of sections) {
+          for (const e of s.entries) {
+            if (e._dirty) await updateData.mutateAsync({ entryId: e.id, data: e.data })
+          }
         }
       }
-    }, 1500)
-    return () => clearTimeout(t)
-  }, [sections, editing])
+      if (editing) {
+        dirty.current = true
+        useAutosaveStore.getState().success()
+        return
+      }
+      dirty.current = false
+      personalDirty.current = false
+      customDirty.current = false
+      entriesDirty.current = false
+      setSections((prev) =>
+        prev.map((s) => ({ ...s, entries: s.entries.map((e) => ({ ...e, _dirty: false })) }))
+      )
+      useAutosaveStore.getState().success()
+    } catch {
+      useAutosaveStore.getState().failure()
+    }
+  }, [id, personal, custom, sections, editing])
+
+  useAutosave(saveAll)
 
   function markDirty() {
     dirty.current = true
@@ -150,11 +176,13 @@ export default function ResumeEditorPage() {
       })
     )
     markDirty()
+    entriesDirty.current = true
   }
 
   function patchPersonal(patch: Partial<PersonalDetails>) {
     setPersonal((p) => ({ ...p, ...patch }))
     markDirty()
+    personalDirty.current = true
   }
 
   function patchSectionHeading(
@@ -169,6 +197,17 @@ export default function ResumeEditorPage() {
       },
     }))
     markDirty()
+    customDirty.current = true
+  }
+
+  function toggleEntryHidden(entryId: string, hidden: boolean) {
+    setSections((prev) =>
+      prev.map((s) => ({
+        ...s,
+        entries: s.entries.map((e) => (e.id === entryId ? { ...e, hidden } : e)),
+      }))
+    )
+    updateMeta.mutate({ entryId, hidden })
   }
 
   function closeEntryEdit(save: boolean) {
@@ -179,6 +218,7 @@ export default function ResumeEditorPage() {
         ?.entries.find((e) => e.id === editing?.entryId)
       if (editingEntry?._dirty) {
         updateData.mutate({ entryId: editingEntry.id, data: editingEntry.data })
+        entriesDirty.current = true
       }
     } else if (doc) {
       const snapshot = [...(doc.sections || [])].sort((a, b) => a.order - b.order)
@@ -227,6 +267,7 @@ export default function ResumeEditorPage() {
             activeTab={tab}
             onTabChange={setTab}
             onDownload={handlePrint}
+            saveStatus={<AutosaveStatus />}
             share={
               <ShareButton
                 className="h-8 text-sm"
@@ -293,6 +334,7 @@ export default function ResumeEditorPage() {
                 onUpdateEntry={mutateData}
                 onDeleteEntry={(entryId) => deleteEntry.mutate(entryId)}
                 onCloseEntryEdit={closeEntryEdit}
+                onToggleEntryHidden={toggleEntryHidden}
                 onReorderEntries={(sectionId, entryIds) => {
                   setSections((prev) =>
                     prev.map((s) => {
@@ -312,6 +354,7 @@ export default function ResumeEditorPage() {
                     setCustom(next)
                     hydrateStyle(next)
                     markDirty()
+                    customDirty.current = true
                   }}
                   onReorderSections={(ids) => {
                     const byId = new Map(sections.map((s) => [s.id, s]))
@@ -341,6 +384,7 @@ export default function ResumeEditorPage() {
           </div>
         }
       />
+      <AutosaveDialog />
     </>
   )
 }

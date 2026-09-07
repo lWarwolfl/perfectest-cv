@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeftRight, ChevronRight } from 'lucide-react'
@@ -16,6 +16,8 @@ import type { LetterContentPatch } from '@/server/letter/letter.actions'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import { normalizeLetterDesign, type LetterDesign } from '@/features/letter/types'
 import type { Customization } from '@/features/resume/types'
+import { useAutosaveStore } from '@/stores/use-autosave-store'
+import { useAutosave, AutosaveStatus, AutosaveDialog } from '@/components/editor/autosave'
 import EditorHeader, { EditorShell } from '@/components/editor/editor-header'
 import { ScreenGate } from '@/components/editor/screen-gate'
 import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
@@ -74,17 +76,25 @@ export default function LetterEditorPage() {
       setForm({ ...letter })
       setDesign(normalizeLetterDesign(letter.design))
       setTitleDraft(letter.title)
+      dirty.current = false
     }
   }, [letter])
 
-  useEffect(() => {
+  const saveAll = useCallback(async () => {
     if (!dirty.current || !design) return
-    const t = setTimeout(() => {
-      saveContent.mutate(form)
-      saveDesign.mutate(design)
-    }, 1500)
-    return () => clearTimeout(t)
+    if (useAutosaveStore.getState().status === 'saving') return
+    useAutosaveStore.getState().start()
+    try {
+      await saveContent.mutateAsync(form)
+      await saveDesign.mutateAsync(design)
+      dirty.current = false
+      useAutosaveStore.getState().success()
+    } catch {
+      useAutosaveStore.getState().failure()
+    }
   }, [form, design])
+
+  useAutosave(saveAll)
 
   function markDirty() {
     dirty.current = true
@@ -182,6 +192,7 @@ export default function LetterEditorPage() {
               setActiveSection(null)
             }}
             onDownload={handlePrint}
+            saveStatus={<AutosaveStatus />}
             share={
               <ShareButton
                 className="h-8 text-sm"
@@ -324,6 +335,7 @@ export default function LetterEditorPage() {
           </div>
         }
       />
+      <AutosaveDialog />
     </>
   )
 }
