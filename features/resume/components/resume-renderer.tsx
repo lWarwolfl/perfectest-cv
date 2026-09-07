@@ -148,11 +148,18 @@ function DisplayList({
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-  const sub = (info: string) => {
-    if (!info) return null
-    const label =
-      subinfo === 'colon' ? `: ${info}` : subinfo === 'dash' ? ` - ${info}` : ` (${info})`
-    return <span style={{ color: secondary }}>{label}</span>
+  const sub = (it: { infoHtml?: string }) => {
+    const html = (it.infoHtml || '').trim()
+    if (!html || !infoText(it)) return null
+    const open = subinfo === 'colon' ? ': ' : subinfo === 'dash' ? ' - ' : '('
+    const close = subinfo === 'bracket' ? ')' : ''
+    return (
+      <span style={{ color: secondary }}>
+        {open}
+        <span dangerouslySetInnerHTML={{ __html: html }} />
+        {close}
+      </span>
+    )
   }
   if (display.selected === 'compact') {
     const sep = display.text === 'pipe' ? ' | ' : display.text === 'comma' ? ', ' : ' • '
@@ -162,7 +169,7 @@ function DisplayList({
           <span key={it.key}>
             {i > 0 && sep}
             {it.name}
-            {sub(infoText(it))}
+            {sub(it)}
           </span>
         ))}
       </div>
@@ -186,7 +193,7 @@ function DisplayList({
             }}
           >
             {it.name}
-            {sub(infoText(it))}
+            {sub(it)}
           </span>
         ))}
       </div>
@@ -203,11 +210,16 @@ function DisplayList({
         }}
       >
         {items.map((it) => {
-          const info = infoText(it)
+          const html = (it.infoHtml || '').trim()
           return (
             <div key={it.key} data-pb-item>
               <div style={{ fontWeight: 600 }}>{it.name}</div>
-              {info && <div style={{ fontSize: '0.9em', color: secondary }}>{info}</div>}
+              {html && infoText(it) && (
+                <div
+                  style={{ fontSize: '0.9em', color: secondary }}
+                  dangerouslySetInnerHTML={{ __html: html }}
+                />
+              )}
             </div>
           )
         })}
@@ -221,7 +233,7 @@ function DisplayList({
         <div key={it.key} data-pb-item>
           {rows.bullets ? '• ' : ''}
           <span style={{ fontWeight: 600 }}>{it.name}</span>
-          {sub(infoText(it))}
+          {sub(it)}
         </div>
       ))}
     </div>
