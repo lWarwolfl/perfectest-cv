@@ -309,6 +309,7 @@ export interface RegionalCustomization {
   dateDisplay: string
   monthFormat: 'MM' | 'MMM' | 'MMMM'
   dateDelimiter: '/' | '-'
+  listMarker?: 'disc' | 'dash'
 }
 
 export interface PhotoPositionCustomization {

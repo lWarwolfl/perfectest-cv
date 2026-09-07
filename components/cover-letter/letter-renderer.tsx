@@ -116,6 +116,7 @@ export function LetterRenderer({
   const fontFamily = fontCss(c.font.fontFamily)
   const fs = Number(spacing.fontSize) * 0.5
   const lh = 1.2 + Number(spacing.lineHeight) * 0.1
+  const listMarker = c.regional?.listMarker ?? 'disc'
   const page = PAGE_PX[c.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4']
   const today = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -326,7 +327,7 @@ export function LetterRenderer({
         </p>
       )}
       {showBody && (
-        <div style={{ lineHeight: lh }} dangerouslySetInnerHTML={{ __html: form.body || '' }} />
+        <div className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`} style={{ lineHeight: lh }} dangerouslySetInnerHTML={{ __html: form.body || '' }} />
       )}
       <div data-pb-item style={{ marginTop: '32px' }}>
         {form.signaturePlace && <p style={{ margin: 0 }}>{form.signaturePlace}</p>}

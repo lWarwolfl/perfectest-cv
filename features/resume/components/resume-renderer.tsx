@@ -130,6 +130,7 @@ function DisplayList({
   text,
   secondary,
   lh,
+  listMarker,
 }: {
   display: SectionDisplay
   items: { key: string; name: React.ReactNode; infoHtml?: string }[]
@@ -137,6 +138,7 @@ function DisplayList({
   text: string
   secondary: string
   lh: number
+  listMarker: 'disc' | 'dash'
 }) {
   const rows = display.rows ?? { spacing: 'spacious' as const, bullets: false }
   const subinfo = display.subinfo ?? ('colon' as const)
@@ -156,7 +158,7 @@ function DisplayList({
     return (
       <span style={{ color: secondary }}>
         {open}
-        <span dangerouslySetInnerHTML={{ __html: html }} />
+        <span className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`} dangerouslySetInnerHTML={{ __html: html }} />
         {close}
       </span>
     )
@@ -216,9 +218,10 @@ function DisplayList({
               <div style={{ fontWeight: 600 }}>{it.name}</div>
               {html && infoText(it) && (
                 <div
+                  className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                   style={{ fontSize: '0.9em', color: secondary }}
                   dangerouslySetInnerHTML={{ __html: html }}
-                />
+                  />
               )}
             </div>
           )
@@ -355,6 +358,7 @@ export function ResumeRenderer({
   const fs = Number(spacing.fontSize) * 0.5
   const lh = 1.2 + Number(spacing.lineHeight) * 0.1
   const entryGapPx = Number(spacing.entryGap ?? 4) * 2
+  const listMarker = customization.regional.listMarker ?? 'disc'
   const ordered = [...sections].sort((a, b) => a.order - b.order)
   const page = PAGE_PX[customization.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4']
   const sectionHeadings = customization.sectionHeadings || {}
@@ -477,9 +481,10 @@ export function ResumeRenderer({
                 </div>
                 {hasHtml(w.description) && (
                   <div
+                    className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                     style={{ marginTop: '2px' }}
                     dangerouslySetInnerHTML={{ __html: w.description }}
-                  />
+                    />
                 )}
               </div>
             )
@@ -524,9 +529,10 @@ export function ResumeRenderer({
                 )}
                 {hasHtml(ed.description) && (
                   <div
+                    className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                     style={{ marginTop: '4px' }}
                     dangerouslySetInnerHTML={{ __html: ed.description }}
-                  />
+                    />
                 )}
               </div>
             )
@@ -538,6 +544,7 @@ export function ResumeRenderer({
             text={colors.text}
             secondary={colors.secondary}
             lh={lh}
+            listMarker={listMarker}
             items={entries.flatMap((e) =>
               e.data.type !== 'skill'
                 ? []
@@ -558,6 +565,7 @@ export function ResumeRenderer({
             text={colors.text}
             secondary={colors.secondary}
             lh={lh}
+            listMarker={listMarker}
             items={entries.flatMap((e) =>
               e.data.type !== 'language'
                 ? []
@@ -572,6 +580,7 @@ export function ResumeRenderer({
             text={colors.text}
             secondary={colors.secondary}
             lh={lh}
+            listMarker={listMarker}
             items={entries.flatMap((e) =>
               e.data.type !== 'interest'
                 ? []
@@ -612,9 +621,10 @@ export function ResumeRenderer({
                 )}
                 {hasHtml(p.description) && (
                   <div
+                    className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                     style={{ marginTop: '2px' }}
                     dangerouslySetInnerHTML={{ __html: p.description }}
-                  />
+                    />
                 )}
               </div>
             )
@@ -665,9 +675,10 @@ export function ResumeRenderer({
                 {c.subTitle && <span style={{ color: colors.secondary }}> - {c.subTitle}</span>}
                 {hasHtml(c.description) && (
                   <div
+                    className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                     style={{ marginTop: '2px' }}
                     dangerouslySetInnerHTML={{ __html: c.description }}
-                  />
+                    />
                 )}
               </div>
             )

@@ -166,6 +166,47 @@
   background-size: 22px 22px;
 }
 
+/* Rich-text HTML (entry descriptions, list subinfo, letter body) lands in
+   dangerouslySetInnerHTML where Tailwind preflight has zeroed <p> margins and
+   <ul> list styling — restore typographic defaults, scoped so it never leaks
+   outside preview/editor surfaces. */
+.preview-light .resume-prose,
+.resume-prose .resume-prose,
+span.resume-prose,
+div.resume-prose {
+  & p {
+    margin: 0 0 0.35em;
+  }
+  & p:last-child {
+    margin-bottom: 0;
+  }
+  & ul,
+  & ol {
+    list-style: disc;
+    margin: 0.2em 0 0.35em;
+    padding-left: 1.4em;
+  }
+  & ol {
+    list-style: decimal;
+  }
+  & li {
+    display: list-item;
+  }
+  /* dash markers: <div class="resume-list-dash"> switches bullets to hyphens */
+  & .resume-list-dash ul {
+    list-style: none;
+  }
+  & .resume-list-dash ul > li::before {
+    content: '–';
+    display: inline-block;
+    margin-left: -1em;
+    width: 1em;
+  }
+  & .resume-list-dash ul > li {
+    list-style: none;
+  }
+}
+
 @media print {
   /* Paginated page boxes print as-is: @page is sized inline to the box
      (Paginated injects it), each box fills one sheet exactly. */

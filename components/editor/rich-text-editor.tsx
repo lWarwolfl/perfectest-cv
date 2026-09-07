@@ -23,7 +23,7 @@ interface RichTextEditorProps {
   compact?: boolean
 }
 
-const ACTIVE_CLASSES = 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground'
+const ACTIVE_CLASSES = 'bg-primary text-primary-foreground'
 
 export default function RichTextEditor({
   onUpdate,
@@ -147,7 +147,7 @@ export default function RichTextEditor({
         </div>
       </div>
       <div
-        className={`text-foreground min-h-[140px] bg-transparent p-3 text-sm focus:outline-none [&_.ProseMirror]:outline-none ${compact ? '[&_.ProseMirror]:min-h-[64px]' : ''}`}
+        className={`text-foreground resume-prose min-h-[140px] bg-transparent p-3 text-sm focus:outline-none [&_.ProseMirror]:outline-none ${compact ? '[&_.ProseMirror]:min-h-[64px]' : ''}`}
       >
         <EditorContent editor={editor} />
       </div>

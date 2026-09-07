@@ -50,6 +50,21 @@ export default function PageSpacingSettings({
         </Select>
       </div>
       <div className="space-y-2">
+        <Label>List markers</Label>
+        <Select
+          value={regional.listMarker ?? 'disc'}
+          onValueChange={(v) => onRegionalPatch({ listMarker: v === 'dash' ? 'dash' : 'disc' })}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="disc">Dots (•)</SelectItem>
+            <SelectItem value="dash">Dashes (–)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Top / bottom margin</Label>
           <span className="text-foreground text-sm font-semibold">
