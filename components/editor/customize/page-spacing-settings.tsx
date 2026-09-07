@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
+import StepperSlider from './stepper-slider'
 import type { Customization } from '@/features/resume/types'
 
 interface PageSpacingSettingsProps {
@@ -56,13 +56,11 @@ export default function PageSpacingSettings({
             {14 + Number(spacing.marginVertical) * 3}px
           </span>
         </div>
-        <Input
-          type="range"
+        <StepperSlider
           min={0}
           max={6}
-          value={spacing.marginVertical}
-          onChange={(e) => onPatch({ marginVertical: e.target.value })}
-          className="accent-primary"
+          value={Number(spacing.marginVertical)}
+          onChange={(v) => onPatch({ marginVertical: String(v) })}
         />
       </div>
       <div className="space-y-2">
@@ -72,13 +70,11 @@ export default function PageSpacingSettings({
             {16 + Number(spacing.marginHorizontal) * 3}px
           </span>
         </div>
-        <Input
-          type="range"
+        <StepperSlider
           min={0}
           max={6}
-          value={spacing.marginHorizontal}
-          onChange={(e) => onPatch({ marginHorizontal: e.target.value })}
-          className="accent-primary"
+          value={Number(spacing.marginHorizontal)}
+          onChange={(v) => onPatch({ marginHorizontal: String(v) })}
         />
       </div>
       <div className="space-y-2">
@@ -88,13 +84,25 @@ export default function PageSpacingSettings({
             {Number(spacing.spacingFactor) * 2}px
           </span>
         </div>
-        <Input
-          type="range"
+        <StepperSlider
           min={0}
           max={10}
-          value={spacing.spacingFactor}
-          onChange={(e) => onPatch({ spacingFactor: e.target.value })}
-          className="accent-primary"
+          value={Number(spacing.spacingFactor)}
+          onChange={(v) => onPatch({ spacingFactor: String(v) })}
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label>Entry gap</Label>
+          <span className="text-foreground text-sm font-semibold">
+            {Number(spacing.entryGap ?? 4) * 2}px
+          </span>
+        </div>
+        <StepperSlider
+          min={0}
+          max={10}
+          value={Number(spacing.entryGap ?? 4)}
+          onChange={(v) => onPatch({ entryGap: String(v) })}
         />
       </div>
       <div className="space-y-2">
@@ -104,13 +112,11 @@ export default function PageSpacingSettings({
             {Number(spacing.headingGap ?? 3) * 2}px
           </span>
         </div>
-        <Input
-          type="range"
+        <StepperSlider
           min={0}
           max={10}
-          value={spacing.headingGap ?? 3}
-          onChange={(e) => onPatch({ headingGap: e.target.value })}
-          className="accent-primary"
+          value={Number(spacing.headingGap ?? 3)}
+          onChange={(v) => onPatch({ headingGap: String(v) })}
         />
       </div>
     </CustomizeCard>

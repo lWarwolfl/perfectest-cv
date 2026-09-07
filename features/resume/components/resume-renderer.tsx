@@ -297,7 +297,7 @@ function linked(
   if (!link) return label
   const links = customization.links
   const style: React.CSSProperties = {
-    color: links.useAccent ? accent : textColor,
+    color: links.useAccent ? accent : 'inherit',
     textDecoration: links.underline ? 'underline' : 'none',
   }
   const showIcon = links.icon
@@ -342,8 +342,9 @@ export function ResumeRenderer({
   const colors = colorStyle(customization)
   const { header, layout, heading, spacing } = customization
   const fontFamily = fontCss(customization.font.fontFamily)
-  const fs = 1 + Number(spacing.fontSize) * 0.05
+  const fs = Number(spacing.fontSize) * 0.5
   const lh = 1.2 + Number(spacing.lineHeight) * 0.1
+  const entryGapPx = Number(spacing.entryGap ?? 4) * 2
   const ordered = [...sections].sort((a, b) => a.order - b.order)
   const page = PAGE_PX[customization.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4']
   const sectionHeadings = customization.sectionHeadings || {}
@@ -420,7 +421,7 @@ export function ResumeRenderer({
             const primary = jobFirst ? w.jobTitle : w.employer
             const secondary = jobFirst ? w.employer : w.jobTitle
             return (
-              <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
+              <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}>
                 <div
                   style={{
                     display: 'flex',
@@ -478,7 +479,7 @@ export function ResumeRenderer({
             if (e.data.type !== 'education') return null
             const ed = e.data
             return (
-              <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
+              <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span style={{ fontWeight: 500 }}>
                     {customization.educationDisplay.degreeBeforeSchool
@@ -586,7 +587,7 @@ export function ResumeRenderer({
             if (e.data.type !== 'project') return null
             const p = e.data
             return (
-              <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
+              <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}>
                 <span style={{ fontWeight: 500 }}>
                   {linked(
                     p.projectTitle,
@@ -623,7 +624,7 @@ export function ResumeRenderer({
             ) {
               const c = e.data
               return (
-                <div key={e.id} data-pb-item style={{ marginBottom: '6px', lineHeight: lh }}>
+                <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx - 2}px`, lineHeight: lh }}>
                   <span style={{ fontWeight: 500 }}>
                     {linked(c.title, c.link, customization, colors.accent, colors.text)}
                   </span>
@@ -649,7 +650,7 @@ export function ResumeRenderer({
             if (e.data.type !== 'custom') return null
             const c = e.data
             return (
-              <div key={e.id} data-pb-item style={{ marginBottom: '8px', lineHeight: lh }}>
+              <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}>
                 <span style={{ fontWeight: 500 }}>{c.title}</span>
                 {c.subTitle && <span style={{ color: colors.secondary }}> - {c.subTitle}</span>}
                 {hasHtml(c.description) && (

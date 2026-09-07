@@ -224,6 +224,7 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
     fontSize: '3',
     lineHeight: '3',
     spacingFactor: '3',
+    entryGap: '4',
     marginVertical: '3',
     marginHorizontal: '3',
     headingGap: '3',

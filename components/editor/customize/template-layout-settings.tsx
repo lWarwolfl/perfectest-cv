@@ -17,8 +17,8 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { Columns2, GripVertical, RectangleHorizontal, Rows3 } from 'lucide-react'
 import { CustomizeCard } from './customize-tab-layout'
+import StepperSlider from './stepper-slider'
 import { Switch } from '@/components/ui/switch'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { Customization, TSection } from '@/features/resume/types'
 
@@ -130,21 +130,19 @@ export default function TemplateLayoutSettings({
         <div className="space-y-2">
           <Label className="text-muted-foreground text-xs">Column width ratio</Label>
           <div className="flex items-center gap-3">
-            <Input
-              type="range"
+            <StepperSlider
               min={20}
               max={80}
               value={two.leftWidth}
-              onChange={(e) =>
+              onChange={(v) =>
                 onPatch({
                   two: {
                     ...two,
-                    leftWidth: Number(e.target.value),
-                    rightWidth: 100 - Number(e.target.value),
+                    leftWidth: v,
+                    rightWidth: 100 - v,
                   },
                 })
               }
-              className="accent-primary flex-1"
             />
             <span className="text-foreground w-16 text-right text-sm font-semibold">
               {two.leftWidth}/{two.rightWidth}

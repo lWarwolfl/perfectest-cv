@@ -114,7 +114,7 @@ export function LetterRenderer({
   const header = c.header
   const spacing = c.spacing
   const fontFamily = fontCss(c.font.fontFamily)
-  const fs = 1 + Number(spacing.fontSize) * 0.05
+  const fs = Number(spacing.fontSize) * 0.5
   const lh = 1.2 + Number(spacing.lineHeight) * 0.1
   const page = PAGE_PX[c.regional?.pageFormat === 'US Letter' ? 'US Letter' : 'A4']
   const today = new Date().toLocaleDateString('en-US', {

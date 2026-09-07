@@ -10,9 +10,9 @@ import {
   BriefcaseBusiness,
 } from 'lucide-react'
 import { CustomizeCard } from './customize-tab-layout'
+import StepperSlider from './stepper-slider'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { Customization } from '@/features/resume/types'
 
@@ -303,13 +303,11 @@ export default function HeaderControls({
             {customization.spacing.detailsFontSizePt || 12}px
           </span>
         </div>
-        <Input
-          type="range"
+        <StepperSlider
           min={8}
           max={20}
           value={customization.spacing.detailsFontSizePt || 12}
-          onChange={(e) => onSpacingPatch?.({ detailsFontSizePt: Number(e.target.value) })}
-          className="accent-primary"
+          onChange={(v) => onSpacingPatch?.({ detailsFontSizePt: v })}
           disabled={!onSpacingPatch}
         />
       </div>
@@ -320,13 +318,11 @@ export default function HeaderControls({
             {customization.spacing.detailsIconSizePt || 10}px
           </span>
         </div>
-        <Input
-          type="range"
+        <StepperSlider
           min={6}
           max={20}
           value={customization.spacing.detailsIconSizePt || 10}
-          onChange={(e) => onSpacingPatch?.({ detailsIconSizePt: Number(e.target.value) })}
-          className="accent-primary"
+          onChange={(v) => onSpacingPatch?.({ detailsIconSizePt: v })}
           disabled={!onSpacingPatch}
         />
       </div>

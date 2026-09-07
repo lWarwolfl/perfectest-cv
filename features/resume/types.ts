@@ -276,6 +276,7 @@ export interface SpacingCustomization {
   spacingFactor: string
   marginVertical: string
   marginHorizontal: string
+  entryGap: string
   headingGap: string
   nameFontSizePt: number
   jobTitleFontSizePt: number
