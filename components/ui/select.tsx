@@ -2,11 +2,43 @@
 
 import * as React from 'react'
 import { Select as SelectPrimitive } from '@base-ui/react/select'
+import type { SelectRoot } from '@base-ui/react/select'
 
 import { cn } from '@/lib/utils'
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from 'lucide-react'
 
-const Select = SelectPrimitive.Root
+/**
+ * Wraps Base UI's Select.Root to collect <SelectItem value/label> pairs into the
+ * `items` prop — without it, SelectValue renders the raw value in the trigger
+ * instead of the item's label.
+ */
+function SelectInner({
+  children,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  const collected: { value: unknown; label: React.ReactNode }[] = []
+  function collect(node: React.ReactNode) {
+    React.Children.forEach(node, (child) => {
+      if (!React.isValidElement(child)) return
+      const childProps = child.props as { value?: unknown; children?: React.ReactNode } | undefined
+      if (childProps && 'value' in childProps && child.type === SelectPrimitive.Item) {
+        collected.push({ value: childProps.value, label: childProps.children })
+      }
+      if (childProps?.children) collect(childProps.children)
+    })
+  }
+  const finalProps = { ...props }
+  if (!props.items) {
+    collect(children)
+    finalProps.items = collected.length > 0 ? collected : undefined
+  }
+  return (
+    <SelectPrimitive.Root {...finalProps}>{children}</SelectPrimitive.Root>
+  )
+}
+
+// cast preserves Base UI's generic <Value> inference at call sites
+const Select = SelectInner as unknown as typeof SelectPrimitive.Root
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (

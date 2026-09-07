@@ -184,7 +184,7 @@ div.resume-prose {
   & ol {
     list-style: disc;
     margin: 0.2em 0 0.35em;
-    padding-left: 1.4em;
+    padding-left: 1.1em;
   }
   & ol {
     list-style: decimal;
@@ -192,18 +192,16 @@ div.resume-prose {
   & li {
     display: list-item;
   }
-  /* dash markers: <div class="resume-list-dash"> switches bullets to hyphens */
-  & .resume-list-dash ul {
+  /* dash markers: class lives on the same element as resume-prose */
+  &.resume-list-dash ul {
     list-style: none;
+    padding-left: 1.1em;
   }
-  & .resume-list-dash ul > li::before {
+  &.resume-list-dash ul > li::before {
     content: '–';
     display: inline-block;
-    margin-left: -1em;
-    width: 1em;
-  }
-  & .resume-list-dash ul > li {
-    list-style: none;
+    margin-left: -0.9em;
+    width: 0.9em;
   }
 }
 

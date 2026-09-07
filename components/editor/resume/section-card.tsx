@@ -283,37 +283,33 @@ export default function SectionCard({
       </div>
       {open && (
         <div className="border-border/60 space-y-2 border-t p-3">
-          {!isProfile && (
-            <div className="bg-muted/40 flex flex-wrap items-center gap-2 rounded-lg p-2">
-              <span className="text-muted-foreground text-xs font-medium">Title style</span>
-              <Select
-                value={headingStyle}
-                onValueChange={(v) =>
-                  onSectionHeadingPatch(section.id, { style: v as HeadingStyle })
-                }
-              >
-                <SelectTrigger className="h-7 w-[130px] text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {HEADING_STYLE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onSectionHeadingPatch(section.id, { showTitle: !showTitle })}
-              >
-                {showTitle ? <Eye className="size-3" /> : <EyeOff className="size-3" />}
-                {showTitle ? 'Title shown' : 'Title hidden'}
-              </Button>
-            </div>
-          )}
-          {isProfile ? (
+        <div className="bg-muted/40 flex flex-wrap items-center gap-2 rounded-lg p-2">
+          <span className="text-muted-foreground text-xs font-medium">Title style</span>
+          <Select
+            value={headingStyle}
+            onValueChange={(v) => onSectionHeadingPatch(section.id, { style: v as HeadingStyle })}
+          >
+            <SelectTrigger className="h-7 w-[130px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {HEADING_STYLE_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSectionHeadingPatch(section.id, { showTitle: !showTitle })}
+          >
+            {showTitle ? <Eye className="size-3" /> : <EyeOff className="size-3" />}
+            {showTitle ? 'Title shown' : 'Title hidden'}
+          </Button>
+        </div>
+        {isProfile ? (
             section.entries.slice(0, 1).map((entry) => {
               const { title, preview } = entryTitleAndPreview(entry.data)
               return (
