@@ -289,7 +289,7 @@ export interface SpacingCustomization {
 
 export interface SectionDisplay {
   selected: 'grid' | 'rows' | 'compact' | 'bubble'
-  grid: { columns: 1 | 2 | 3 | 4; splitCommasIntoBullets: boolean }
+  grid: { columns: 1 | 2 | 3 | 4; splitCommasIntoBullets: boolean; gapX?: number; gapY?: number }
   text: 'bullet' | 'pipe' | 'wrap' | 'comma'
   rows: { spacing: 'tight' | 'spacious'; bullets: boolean }
   subinfo: 'colon' | 'dash' | 'bracket'

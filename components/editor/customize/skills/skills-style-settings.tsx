@@ -3,6 +3,7 @@
 import { CustomizeCard } from '../customize-tab-layout'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import StepperSlider from '../stepper-slider'
 import { LayoutGrid } from 'lucide-react'
 import type { Customization, SectionDisplay } from '@/features/resume/types'
 
@@ -117,6 +118,32 @@ export default function SkillsStyleSettings({
             <Label htmlFor="skills-split-commas" className="text-foreground cursor-pointer text-sm">
               Split commas into bullets
             </Label>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-foreground text-sm font-bold">Column gap (X)</Label>
+              <span className="text-foreground text-sm font-semibold">
+                {display.grid.gapX ?? 12}px
+              </span>
+            </div>
+            <StepperSlider
+              min={0}
+              max={40}
+              value={display.grid.gapX ?? 12}
+              onChange={(v) => patch({ grid: { ...display.grid, gapX: v } })}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-foreground text-sm font-bold">Row gap (Y)</Label>
+              <span className="text-foreground text-sm font-semibold">{display.grid.gapY ?? 2}px</span>
+            </div>
+            <StepperSlider
+              min={0}
+              max={40}
+              value={display.grid.gapY ?? 2}
+              onChange={(v) => patch({ grid: { ...display.grid, gapY: v } })}
+            />
           </div>
         </div>
       )}

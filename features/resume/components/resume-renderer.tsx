@@ -154,8 +154,6 @@ function DisplayList({
       subinfo === 'colon' ? `: ${info}` : subinfo === 'dash' ? ` - ${info}` : ` (${info})`
     return <span style={{ color: secondary }}>{label}</span>
   }
-  const subText = (info: string) =>
-    subinfo === 'colon' ? `: ${info}` : subinfo === 'dash' ? `- ${info}` : `(${info})`
   if (display.selected === 'compact') {
     const sep = display.text === 'pipe' ? ' | ' : display.text === 'comma' ? ', ' : ' • '
     return (
@@ -200,19 +198,15 @@ function DisplayList({
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-          gap: `2px 12px`,
+          gap: `${display.grid.gapY ?? 2}px ${display.grid.gapX ?? 12}px`,
           lineHeight: lh,
         }}
       >
-        {items.map((it) => {
-          const info = infoText(it)
-          return (
-            <div key={it.key} data-pb-item>
-              <div>{it.name}</div>
-              {info && <div style={{ fontSize: '0.9em', color: secondary }}>{subText(info)}</div>}
-            </div>
-          )
-        })}
+        {items.map((it) => (
+          <div key={it.key} data-pb-item style={{ fontWeight: 600 }}>
+            {it.name}
+          </div>
+        ))}
       </div>
     )
   }
@@ -222,7 +216,7 @@ function DisplayList({
       {items.map((it) => (
         <div key={it.key} data-pb-item>
           {rows.bullets ? '• ' : ''}
-          {it.name}
+          <span style={{ fontWeight: 600 }}>{it.name}</span>
           {sub(infoText(it))}
         </div>
       ))}
