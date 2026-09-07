@@ -202,11 +202,15 @@ function DisplayList({
           lineHeight: lh,
         }}
       >
-        {items.map((it) => (
-          <div key={it.key} data-pb-item style={{ fontWeight: 600 }}>
-            {it.name}
-          </div>
-        ))}
+        {items.map((it) => {
+          const info = infoText(it)
+          return (
+            <div key={it.key} data-pb-item>
+              <div style={{ fontWeight: 600 }}>{it.name}</div>
+              {info && <div style={{ fontSize: '0.9em', color: secondary }}>{info}</div>}
+            </div>
+          )
+        })}
       </div>
     )
   }
