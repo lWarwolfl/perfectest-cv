@@ -176,7 +176,7 @@ export function LetterRenderer({
         flexDirection: arrangement === 'column' ? 'column' : 'row',
         flexWrap: arrangement === 'wrap' ? 'wrap' : 'nowrap',
         gridTemplateColumns: arrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
-        gap: '2px 12px',
+        gap: `2px ${spacing.detailsGap ?? 12}px`,
         fontSize: `${spacing.detailsFontSizePt || 12}px`,
         justifyContent: centered && arrangement !== 'grid' ? 'center' : undefined,
         textAlign: centered ? 'center' : undefined,
@@ -262,7 +262,7 @@ export function LetterRenderer({
             display: 'flex',
             flexDirection: header.jobTitlePosition === 'sameLine' ? 'row' : 'column',
             alignItems: centered ? 'center' : 'baseline',
-            columnGap: '12px',
+            columnGap: `${spacing.headerTitleGap ?? 12}px`,
           }}
         >
           <h1
@@ -297,7 +297,7 @@ export function LetterRenderer({
   const senderBlocks = (
     <div style={{ marginBottom: '24px' }}>
       {headerContent}
-      <div style={{ marginTop: '4px' }}>{detailsBlock}</div>
+      <div style={{ marginTop: `${spacing.headerDetailsGap ?? 4}px` }}>{detailsBlock}</div>
       <div
         style={{
           marginTop: '20px',

@@ -282,6 +282,9 @@ export interface SpacingCustomization {
   jobTitleFontSizePt: number
   detailsFontSizePt: number
   detailsIconSizePt: number
+  headerTitleGap?: number
+  detailsGap?: number
+  headerDetailsGap?: number
 }
 
 export interface SectionDisplay {

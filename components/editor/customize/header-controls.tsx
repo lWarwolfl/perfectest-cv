@@ -326,6 +326,51 @@ export default function HeaderControls({
           disabled={!onSpacingPatch}
         />
       </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-foreground text-sm font-bold">Title / job title gap</Label>
+          <span className="text-foreground text-sm font-semibold">
+            {customization.spacing.headerTitleGap ?? 12}px
+          </span>
+        </div>
+        <StepperSlider
+          min={0}
+          max={40}
+          value={customization.spacing.headerTitleGap ?? 12}
+          onChange={(v) => onSpacingPatch?.({ headerTitleGap: v })}
+          disabled={!onSpacingPatch}
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-foreground text-sm font-bold">Detail item gap</Label>
+          <span className="text-foreground text-sm font-semibold">
+            {customization.spacing.detailsGap ?? 12}px
+          </span>
+        </div>
+        <StepperSlider
+          min={0}
+          max={40}
+          value={customization.spacing.detailsGap ?? 12}
+          onChange={(v) => onSpacingPatch?.({ detailsGap: v })}
+          disabled={!onSpacingPatch}
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-foreground text-sm font-bold">Title → details gap</Label>
+          <span className="text-foreground text-sm font-semibold">
+            {customization.spacing.headerDetailsGap ?? 16}px
+          </span>
+        </div>
+        <StepperSlider
+          min={0}
+          max={40}
+          value={customization.spacing.headerDetailsGap ?? 16}
+          onChange={(v) => onSpacingPatch?.({ headerDetailsGap: v })}
+          disabled={!onSpacingPatch}
+        />
+      </div>
 
       <div className="space-y-2">
         <Label className="text-foreground text-sm font-bold">Icon style</Label>

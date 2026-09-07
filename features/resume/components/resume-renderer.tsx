@@ -710,7 +710,7 @@ export function ResumeRenderer({
         alignItems: photoPosition.position === 'top' ? 'center' : 'flex-start',
         justifyContent: 'space-between',
         gap: '16px',
-        marginBottom: header.position === 'top' ? '16px' : '0',
+        marginBottom: header.position === 'top' ? `${customization.spacing.headerDetailsGap ?? 16}px` : '0',
       }}
     >
       {photoPosition.position === 'left' && photoEl}
@@ -720,7 +720,7 @@ export function ResumeRenderer({
             display: 'flex',
             flexDirection: header.jobTitlePosition === 'sameLine' ? 'row' : 'column',
             alignItems: centered ? 'center' : 'baseline',
-            columnGap: '12px',
+            columnGap: `${customization.spacing.headerTitleGap ?? 12}px`,
           }}
         >
           <h1
@@ -760,7 +760,7 @@ export function ResumeRenderer({
         flexWrap: header.detailsArrangement === 'wrap' ? 'wrap' : 'nowrap',
         gridTemplateColumns:
           header.detailsArrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
-        gap: '2px 12px',
+        gap: `2px ${customization.spacing.detailsGap ?? 12}px`,
         fontSize: `${customization.spacing.detailsFontSizePt || 12}px`,
         justifyContent: centered && header.detailsArrangement !== 'grid' ? 'center' : undefined,
         textAlign: centered ? 'center' : undefined,
