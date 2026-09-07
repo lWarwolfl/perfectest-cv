@@ -1,6 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -71,6 +80,49 @@ export function entryTitleAndPreview(data: TSection['entries'][number]['data']):
   }
 }
 
+function SortableEntry({
+  entry,
+  title,
+  preview,
+  onEntryClick,
+}: {
+  entry: TSection['entries'][number]
+  title: string
+  preview: string
+  onEntryClick: (entryId: string) => void
+}) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({ id: entry.id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`bg-card flex items-start gap-1 rounded-lg border ${isDragging ? 'relative z-10 opacity-50' : ''}`}
+    >
+      <button
+        ref={setActivatorNodeRef}
+        type="button"
+        aria-label="Drag entry"
+        className="text-muted-foreground/40 hover:text-muted-foreground mt-2.5 cursor-grab touch-none pl-2 active:cursor-grabbing"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onEntryClick(entry.id)}
+        className="hover:bg-muted/50 min-w-0 flex-1 rounded-r-lg p-3 pl-1 text-left transition-colors"
+      >
+        <span className="block truncate text-sm font-medium">{title}</span>
+        {preview && (
+          <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">{preview}</span>
+        )}
+      </button>
+    </div>
+  )
+}
+
 export default function SectionCard({
   section,
   onToggle,
@@ -82,6 +134,7 @@ export default function SectionCard({
   headingStyle,
   showTitle,
   canDelete,
+  onReorderEntries,
 }: {
   section: TSection
   onToggle: (hidden: boolean) => void
@@ -96,10 +149,21 @@ export default function SectionCard({
   headingStyle: HeadingStyle
   showTitle: boolean
   canDelete: boolean
+  onReorderEntries: (sectionId: string, entryIds: string[]) => void
 }) {
   const [open, setOpen] = useState(true)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
+
+  function handleEntryDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = section.entries.findIndex((e) => e.id === active.id)
+    const newIndex = section.entries.findIndex((e) => e.id === over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+    onReorderEntries(section.id, arrayMove(section.entries, oldIndex, newIndex).map((e) => e.id))
+  }
 
   function commitEdit() {
     const title = draft.trim()
@@ -225,26 +289,31 @@ export default function SectionCard({
             })
           ) : (
             <>
-              {section.entries.map((entry) => {
-                const { title, preview } = entryTitleAndPreview(entry.data)
-                return (
-                  <button
-                    key={entry.id}
-                    type="button"
-                    onClick={() => onEntryClick(entry.id)}
-                    className="hover:bg-muted/50 w-full rounded-lg border p-3 text-left transition-colors"
-                  >
-                    <span className="block truncate text-sm font-medium">
-                      {title || SECTION_LABELS[section.sectionType]}
-                    </span>
-                    {preview && (
-                      <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">
-                        {preview}
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleEntryDragEnd}
+              >
+                <SortableContext
+                  items={section.entries.map((e) => e.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {section.entries.map((entry) => {
+                      const { title, preview } = entryTitleAndPreview(entry.data)
+                      return (
+                        <SortableEntry
+                          key={entry.id}
+                          entry={entry}
+                          title={title || SECTION_LABELS[section.sectionType]}
+                          preview={preview}
+                          onEntryClick={onEntryClick}
+                        />
+                      )
+                    })}
+                  </div>
+                </SortableContext>
+              </DndContext>
               <Button variant="outline" size="sm" onClick={onAddEntry}>
                 <Plus className="size-3" /> Add entry
               </Button>

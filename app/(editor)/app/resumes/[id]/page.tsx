@@ -16,6 +16,7 @@ import {
   useUpdateEntryData,
   useSaveSectionMeta,
   useReorderSections,
+  useReorderEntries,
 } from '@/features/resume/hooks/resume.hooks'
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
 import { EMPTY_PERSONAL_DETAILS, DEFAULT_CUSTOMIZATION } from '@/features/resume/defaults'
@@ -81,6 +82,7 @@ export default function ResumeEditorPage() {
   const updateData = useUpdateEntryData(id)
   const saveSectionMeta = useSaveSectionMeta(id)
   const reorderSections = useReorderSections(id)
+  const reorderEntries = useReorderEntries(id)
   const share = useShareResume()
 
   const [sections, setSections] = useState<import('@/features/resume/types').TSection[]>([])
@@ -291,6 +293,16 @@ export default function ResumeEditorPage() {
                 onUpdateEntry={mutateData}
                 onDeleteEntry={(entryId) => deleteEntry.mutate(entryId)}
                 onCloseEntryEdit={closeEntryEdit}
+                onReorderEntries={(sectionId, entryIds) => {
+                  setSections((prev) =>
+                    prev.map((s) => {
+                      if (s.id !== sectionId) return s
+                      const byId = new Map(s.entries.map((e) => [e.id, e]))
+                      return { ...s, entries: entryIds.map((eid) => byId.get(eid)!).filter(Boolean) }
+                    })
+                  )
+                  reorderEntries.mutate({ sectionId, entryIds })
+                }}
               />
             ) : (
               <div className="min-h-0 flex-1 overflow-y-auto">
