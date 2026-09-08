@@ -16,7 +16,7 @@ export function useSignIn() {
     },
     onSuccess: () => {
       toast.success('Signed in successfully')
-      router.push('/app/dashboard')
+      router.push('/dashboard')
       router.refresh()
     },
     onError: (e) => {

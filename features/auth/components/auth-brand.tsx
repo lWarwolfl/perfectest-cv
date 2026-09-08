@@ -53,7 +53,7 @@ export function GoogleButton({ label }: { label: string }) {
       variant="outline"
       className="w-full"
       onClick={() =>
-        authClient.signIn.social({ provider: 'google', callbackURL: '/app/dashboard' })
+        authClient.signIn.social({ provider: 'google', callbackURL: '/dashboard' })
       }
     >
       <GoogleIcon className="size-4" />

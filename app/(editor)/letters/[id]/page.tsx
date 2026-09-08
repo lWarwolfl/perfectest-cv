@@ -167,7 +167,7 @@ export default function LetterEditorPage() {
       <EditorShell
         header={
           <EditorHeader
-            overviewHref="/app/letters"
+            overviewHref="/letters"
             activeTab={tab}
             onTabChange={setTab}
             onDownload={() => {}}
@@ -181,11 +181,11 @@ export default function LetterEditorPage() {
 
   return (
     <>
-      <ScreenGate overviewHref="/app/letters" onDownload={handlePrint} />
+      <ScreenGate overviewHref="/letters" onDownload={handlePrint} />
       <EditorShell
         header={
           <EditorHeader
-            overviewHref="/app/letters"
+            overviewHref="/letters"
             activeTab={tab}
             onTabChange={(t) => {
               setTab(t)

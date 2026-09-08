@@ -308,7 +308,7 @@ export async function getResumeAction(id: string) {
   const resume = await db.query.Resume.findFirst({
     where: (t, { eq, and }) => and(eq(t.id, id), eq(t.userId, user.id)),
   })
-  if (!resume) redirect('/app/dashboard')
+  if (!resume) redirect('/dashboard')
   return resume
 }
 
@@ -356,7 +356,7 @@ export async function syncFlowcvResumeAction(resumeId: string, flowcvUrl: string
       )
     }
   }
-  revalidatePath(`/app/resumes/${resumeId}`)
-  revalidatePath('/app/resumes')
+  revalidatePath(`/resumes/${resumeId}`)
+  revalidatePath('/resumes')
   return { ok: true, synced: mapped.map((s) => s.sectionType) }
 }

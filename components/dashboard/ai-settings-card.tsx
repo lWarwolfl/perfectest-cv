@@ -95,7 +95,7 @@ export function AiSettingsCard() {
 
   return (
     <Card>
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="flex flex-1 flex-col gap-3">
         <div className="flex items-center gap-2">
           <span className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg">
             <Bot className="size-4" />

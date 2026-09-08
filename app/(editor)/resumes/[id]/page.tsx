@@ -245,7 +245,7 @@ export default function ResumeEditorPage() {
       <EditorShell
         header={
           <EditorHeader
-            overviewHref="/app/resumes"
+            overviewHref="/resumes"
             activeTab={tab}
             onTabChange={setTab}
             onDownload={() => {}}
@@ -259,11 +259,11 @@ export default function ResumeEditorPage() {
 
   return (
     <>
-      <ScreenGate overviewHref="/app/resumes" onDownload={handlePrint} />
+      <ScreenGate overviewHref="/resumes" onDownload={handlePrint} />
       <EditorShell
         header={
           <EditorHeader
-            overviewHref="/app/resumes"
+            overviewHref="/resumes"
             activeTab={tab}
             onTabChange={setTab}
             onDownload={handlePrint}

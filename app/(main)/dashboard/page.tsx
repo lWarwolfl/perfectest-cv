@@ -47,8 +47,8 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <NameEditor name={user?.name ?? ''} />
       <div className="grid gap-6 lg:grid-cols-2">
-        <FlowcvSyncCard resumes={resumes.map((r) => ({ id: r.id, title: r.title }))} />
         <AiSettingsCard />
+        <FlowcvSyncCard resumes={resumes.map((r) => ({ id: r.id, title: r.title }))} />
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
             <CardTitle>{resumes.length} Resumes</CardTitle>
           </CardHeader>
           <CardContent>
-            <Link href="/app/resumes">
+            <Link href="/resumes">
               <Button>Manage</Button>
             </Link>
           </CardContent>
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
             <CardTitle>{letters.length} Cover Letters</CardTitle>
           </CardHeader>
           <CardContent>
-            <Link href="/app/letters">
+            <Link href="/letters">
               <Button>Manage</Button>
             </Link>
           </CardContent>
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
             <CardTitle>{tracker?.cards?.length ?? 0} Tracked Jobs</CardTitle>
           </CardHeader>
           <CardContent>
-            <Link href="/app/tracker">
+            <Link href="/tracker">
               <Button>Open Board</Button>
             </Link>
           </CardContent>

@@ -14,17 +14,14 @@ import {
   Sparkles,
   Target,
 } from 'lucide-react'
-import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { useAiSettings, useAiTransform } from '@/features/ai/ai.hooks'
 import { useListResumes } from '@/features/resume/hooks/resume.hooks'
 import { getResumeTextAction } from '@/server/ai/ai.actions'
-import { getErrorMessage } from '@/lib/utils'
 
 const LANGUAGES = [
   'English',
@@ -42,7 +39,7 @@ function ConnectionBadge() {
   if (isLoading) return <Spinner className="size-4" />
   const ok = !!(settings?.baseUrl && settings?.apiKey && settings?.model)
   return (
-    <Link href="/app/dashboard" className="group">
+    <Link href="/dashboard" className="group">
       <span
         className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
           ok ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
@@ -194,7 +191,7 @@ export default function AiFeaturesPage() {
               disabled until then.
             </p>
           </div>
-          <Link href="/app/dashboard">
+          <Link href="/dashboard">
             <Button size="sm">
               <Settings className="size-3.5" /> Dashboard
             </Button>
@@ -320,7 +317,7 @@ export default function AiFeaturesPage() {
             />
             <p className="text-muted-foreground text-xs">
               Paste this into any editor, or replace your profile/summary section with it.{' '}
-              <Link href={`/app/resumes/${resumeId}`} className="underline">
+              <Link href={`/resumes/${resumeId}`} className="underline">
                 Open the resume
               </Link>
             </p>

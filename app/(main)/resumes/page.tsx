@@ -68,7 +68,7 @@ export default function ResumesPage() {
                     />
                   </PreviewFrame>
                   <Link
-                    href={`/app/resumes/${r.id}`}
+                    href={`/resumes/${r.id}`}
                     aria-label={`Edit ${r.title}`}
                     className="absolute inset-0 rounded-lg"
                   />

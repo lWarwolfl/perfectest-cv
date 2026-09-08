@@ -105,7 +105,7 @@ export async function getLetterAction(id: string) {
   const letter = await db.query.Letter.findFirst({
     where: (t, { eq, and }) => and(eq(t.id, id), eq(t.userId, user.id)),
   })
-  if (!letter) redirect('/app/dashboard')
+  if (!letter) redirect('/dashboard')
   return letter
 }
 

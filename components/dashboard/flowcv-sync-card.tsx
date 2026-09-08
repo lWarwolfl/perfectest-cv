@@ -31,7 +31,7 @@ export function FlowcvSyncCard({ resumes }: { resumes: { id: string; title: stri
       { resumeId, url: url.trim() },
       {
         onSuccess: () => {
-          router.push(`/app/resumes/${resumeId}`)
+          router.push(`/resumes/${resumeId}`)
         },
       }
     )
@@ -39,7 +39,7 @@ export function FlowcvSyncCard({ resumes }: { resumes: { id: string; title: stri
 
   return (
     <Card>
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="flex flex-1 flex-col gap-3">
         <div className="flex items-center gap-2">
           <span className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg">
             <CloudDownload className="size-4" />

@@ -11,11 +11,11 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 const NAV = [
-  { href: '/app/dashboard', name: 'Dashboard', icon: LayoutDashboard },
-  { href: '/app/resumes', name: 'Resumes', icon: FileText },
-  { href: '/app/letters', name: 'Cover Letters', icon: Mail },
-  { href: '/app/tracker', name: 'Job Tracker', icon: KanbanSquare },
-  { href: '/app/ai', name: 'AI Features', icon: Sparkles },
+  { href: '/dashboard', name: 'Dashboard', icon: LayoutDashboard },
+  { href: '/resumes', name: 'Resumes', icon: FileText },
+  { href: '/letters', name: 'Cover Letters', icon: Mail },
+  { href: '/tracker', name: 'Job Tracker', icon: KanbanSquare },
+  { href: '/ai', name: 'AI Features', icon: Sparkles },
 ]
 
 function useActive() {
@@ -27,7 +27,7 @@ export default function Sidebar({ email }: { email?: string | null }) {
   const isActive = useActive()
   return (
     <aside className="border-sidebar-border bg-sidebar text-sidebar-foreground m-4 hidden w-60 shrink-0 flex-col self-start rounded-2xl border px-3 py-4 md:sticky md:top-4 md:h-[calc(100vh-2rem)] md:flex">
-      <Link href="/app/dashboard" className="mb-6 flex items-center gap-2 px-2">
+      <Link href="/dashboard" className="mb-6 flex items-center gap-2 px-2">
         <Image alt="Perfectest CV logo" src={logo} className="size-9" />
         <span className="text-lg font-semibold">Perfectest CV</span>
       </Link>

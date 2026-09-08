@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const protectedPrefixes = ['/app']
+const protectedPrefixes = ['/']
 const authPrefixes = ['/auth']
 
 export function proxy(request: NextRequest) {
@@ -20,7 +20,7 @@ export function proxy(request: NextRequest) {
 
   if (isAuthPage && sessionCookie) {
     const url = request.nextUrl.clone()
-    url.pathname = '/app/dashboard'
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
@@ -28,5 +28,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/auth/:path*'],
+  matcher: ['/((?!api|_next|favicon.ico|.*\\..*).*)', '/auth/:path*'],
 }

@@ -64,7 +64,7 @@ export default function LettersPage() {
                     <LetterRenderer form={l} design={normalizeLetterDesign(l.design)} showPlaceholder />
                   </PreviewFrame>
                   <Link
-                    href={`/app/letters/${l.id}`}
+                    href={`/letters/${l.id}`}
                     aria-label={`Edit ${l.title}`}
                     className="absolute inset-0 rounded-lg"
                   />

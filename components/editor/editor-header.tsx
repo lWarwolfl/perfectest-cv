@@ -28,7 +28,7 @@ export default function EditorHeader({
   return (
     <header className="border-border bg-background flex h-16 shrink-0 items-center justify-between border-b px-5">
       <div className="flex items-center gap-6">
-        <Link href="/app/dashboard" className="flex items-center">
+        <Link href="/dashboard" className="flex items-center">
           <EditorLogo />
         </Link>
         <Button variant="ghost" render={<Link href={overviewHref} />}>
