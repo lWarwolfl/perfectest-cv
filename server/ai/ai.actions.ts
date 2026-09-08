@@ -40,6 +40,73 @@ export async function listAiModelsAction(baseUrl: string, apiKey: string) {
   return ids
 }
 
+// Auto-detect the AI provider from keys on this machine (env + common config files),
+// like Hermes does. Runs server-side only — never exposes paths to the client.
+const AI_KEY_FILES: [string, RegExp][] = [
+  [`${process.env.HOME ?? ''}/.config/opencode/auth.json`, /"?(api_?key|token|key)"?\s*:\s*"([^"]+)"/i],
+  [`${process.env.HOME ?? ''}/.openrouter/api.json`, /"?(api_?key|token)"?\s*:\s*"([^"]+)"/i],
+]
+
+export async function detectAiConfigAction(): Promise<{
+  baseUrl: string | null
+  apiKey: string | null
+  name: string | null
+}> {
+  await requireUser()
+  const found = async (): Promise<{ apiKey: string | null; name: string | null }> => {
+    for (const [name, val] of Object.entries(process.env)) {
+      if (
+        typeof val === 'string' &&
+        /^(sk-|sk_|sk-ant-|gsk_|tr-|or-)[A-Za-z0-9_-]{16,}$/.test(val.trim())
+      ) {
+        const provider = /OPENROUTER/i.test(name)
+          ? 'OpenRouter'
+          : /GROQ/i.test(name)
+            ? 'Groq'
+            : /GITHUB/i.test(name)
+              ? 'GitHub Models'
+              : /DEEPSEEK/i.test(name)
+                ? 'DeepSeek'
+                : /ZAI|Z_AI/i.test(name)
+                  ? 'Z.AI'
+                  : 'OpenAI'
+        return { apiKey: val.trim(), name: provider }
+      }
+    }
+    for (const [path, re] of AI_KEY_FILES) {
+      try {
+        const { readFile } = await import('node:fs/promises')
+        const m = re.exec(await readFile(path, 'utf8'))
+        if (m?.[2]) return { apiKey: m[2], name: 'config file' }
+      } catch {
+        // file missing — next candidate
+      }
+    }
+    return { apiKey: null, name: null }
+  }
+
+  const { apiKey, name } = await found()
+  if (!apiKey) return { baseUrl: null, apiKey: null, name: null }
+
+  const guess: [RegExp, string, string][] = [
+    [/tokenrouter/i, 'TokenRouter', 'https://tokenrouter.me/v1'],
+    [/openrouter/i, 'OpenRouter', 'https://openrouter.ai/api/v1'],
+    [/^sk-or-/, 'OpenRouter', 'https://openrouter.ai/api/v1'],
+    [/^gsk_/, 'Groq', 'https://api.groq.com/openai/v1'],
+    [/^tr-/, 'TokenRouter', 'https://tokenrouter.me/v1'],
+    [/github/i, 'GitHub Models', 'https://models.github.ai/inference'],
+    [/deepseek/i, 'DeepSeek', 'https://api.deepseek.com/v1'],
+    [/zai|z_ai/, 'Z.AI', 'https://api.z.ai/api/paas/v4'],
+    [/^sk-ant-/, 'Anthropic', 'https://api.anthropic.com/v1'],
+  ]
+  const hit = guess.find(([re]) => re.test(apiKey) || re.test(name ?? ''))
+  return {
+    baseUrl: hit?.[2] ?? 'https://api.openai.com/v1',
+    apiKey,
+    name: hit?.[1] ?? name ?? 'OpenAI',
+  }
+}
+
 function stripTags(html: string) {
   return html
     .replace(/<br\s*\/?>/gi, '\n')
@@ -127,13 +194,27 @@ export async function aiTransformAction(input: {
     'You are a professional resume-writing assistant. ' +
     'Return ONLY the rewritten text — no preamble, no explanations, no markdown code fences. ' +
     'Keep the input language unless asked to translate. Preserve line/paragraph structure.'
+  // Distilled from r/EngineeringResumes wiki, Google's XYZ formula (Laszlo Bock),
+  // MIT/Stanford/UMD career guides, Tech Interview Handbook, ByteByteGo (Ethan Evans).
+  const RULES =
+    'Writing rules: start every bullet with a strong, plain past-tense action verb (built, designed, led, reduced, automated, migrated) — never "responsible for", "helped with", "worked on", "assisted", "utilized", "leveraged", "spearheaded", "orchestrated". ' +
+    'Use the XYZ pattern where possible: accomplished [X] as measured by [Y] by doing [Z]. Quantify outcomes (%, $, users, latency, time saved) and give numbers a baseline when the input implies one ("from 900ms to 120ms"); if there is no outcome metric, quantify scope instead (users served, team size, number of systems, throughput, frequency). ' +
+    'Name the tech stack inside the bullet and add domain context (what industry or kind of system). ' +
+    'No first-person pronouns, no ending periods on single-line bullets, one sentence per bullet, 1-2 lines. ' +
+    'Cut self-praise and filler adjectives (successfully, innovative, excellent, passionate, results-driven). ' +
+    'Order bullets most impressive and most relevant first. ' +
+    'NEVER invent employers, dates, technologies or numbers that are not implied by the input. '
   let prompt: string
   switch (input.feature) {
     case 'improve':
-      prompt = `Rewrite this resume content to be clearer, more concise and more impactful. Keep it truthful — do not invent facts:\n\n${text}`
+      prompt =
+        RULES +
+        `Rewrite this resume content to be clearer, more concise and more impactful following the rules. Keep every claim truthful and defensible in an interview:\n\n${text}`
       break
     case 'summary':
-      prompt = `Write a short professional summary (3-5 sentences) for a resume based on this content:\n\n${text}`
+      prompt =
+        `Write a concise professional summary (2-4 sentences) for a resume based on this content. ` +
+        `Lead with scope and impact (years/roles/domain/stack), no first person, no clichés like "results-driven professional" or "passionate". Only state what the content supports:\n\n${text}`
       break
     case 'translate':
       prompt = `Translate this resume content into ${input.language || 'English'}. Keep names, links and technical terms intact:\n\n${text}`
@@ -142,12 +223,17 @@ export async function aiTransformAction(input: {
       prompt = `Fix spelling, grammar and punctuation ONLY — do not rewrite or restructure. Return the corrected text:\n\n${text}`
       break
     case 'cover-letter':
-      prompt = `Write a tailored cover letter (max 350 words) based on this resume content${
-        input.jobDescription ? ` and this job description:\n\n<job>\n${input.jobDescription}\n</job>` : ''
-      }:\n\n<resume>\n${text}\n</resume>`
+      prompt =
+        `Write a tailored cover letter (max 350 words) based on this resume content` +
+        (input.jobDescription
+          ? ` and this job description. Mirror the job description's key requirements with the resume's concrete achievements (with their numbers), without copying its phrasing:\n\n<job>\n${input.jobDescription}\n</job>`
+          : '') +
+        `:\n\n<resume>\n${text}\n</resume>`
       break
     case 'bullet':
-      prompt = `Rewrite this duty/description as 1-3 strong achievement bullets for a resume. Start each with a past-tense action verb, add plausible-sounding but generic metrics ONLY if implied (never invent employers/dates), use "Improved X by Y%" phrasing. One bullet per line:\n\n${text}`
+      prompt =
+        RULES +
+        `Rewrite this duty/description as 1-3 achievement bullets following the rules. Metrics are acceptable ONLY if implied by the input (never invent employers, dates, or specific figures):\n\n${text}`
       break
     case 'ats-match':
       prompt = `You are an ATS (applicant tracking system) optimization expert. Compare this resume against the job description and return a report in this exact plain-text structure:
@@ -155,10 +241,10 @@ export async function aiTransformAction(input: {
 Match score: <0-100>%
 
 Missing keywords:
-- <keyword or phrase from the job description not present in the resume> (one per line, 5-12 items)
+- <keyword or phrase from the job description not present in the resume> (one per line, 5-12 items; prefer exact terms the ATS matches on, and include the expanded form where the resume only uses an abbreviation, e.g. "Amazon Web Services (AWS)")
 
 Suggestions:
-- <one concrete rewrite suggestion per line, referencing resume content>
+- <one concrete rewrite suggestion per line, referencing resume content; suggest moving JD keywords into experience bullets, not just the skills section>
 
 <job description>
 ${input.jobDescription || '(no job description provided)'}

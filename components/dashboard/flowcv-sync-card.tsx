@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSyncFlowcv } from '@/features/resume/hooks/resume.hooks'
+import { Card, CardContent } from '@/components/ui/card'
 import { getErrorMessage } from '@/lib/utils'
 
 const FLOWCV_URL_RE = /^https:\/\/(www\.)?flowcv\.com\/resume\/[A-Za-z0-9]+\/?$/
@@ -36,18 +37,19 @@ export function FlowcvSyncCard({ resumes }: { resumes: { id: string; title: stri
   }
 
   return (
-    <div className="border-l lg:pl-6 flex flex-col gap-3 flex-1 min-w-72 mt-6 lg:mt-0">
-      <div className="flex items-center gap-2">
-        <span className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg">
-          <CloudDownload className="size-4" />
-        </span>
-        <div>
-          <h3 className="text-sm leading-tight font-semibold">Import from FlowCV</h3>
-          <p className="text-muted-foreground text-xs">
-            Pull your public FlowCV resume straight into one of your resumes.
-          </p>
+    <Card>
+      <CardContent className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <span className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg">
+            <CloudDownload className="size-4" />
+          </span>
+          <div>
+            <h3 className="text-sm leading-tight font-semibold">Import from FlowCV</h3>
+            <p className="text-muted-foreground text-xs">
+              Pull your public FlowCV resume straight into one of your resumes.
+            </p>
+          </div>
         </div>
-      </div>
       <div className="space-y-2">
         <label className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
           <Link2 className="size-3" /> Public resume URL
@@ -86,6 +88,7 @@ export function FlowcvSyncCard({ resumes }: { resumes: { id: string; title: stri
       <p className="text-muted-foreground text-[11px]">
         Replaces Profile, Work, Education, Skills, Languages &amp; Projects on the selected resume.
       </p>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
