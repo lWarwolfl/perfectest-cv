@@ -12,7 +12,7 @@ export function proxy(request: NextRequest) {
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
   const isAuthPage = authPrefixes.some((p) => pathname.startsWith(p))
 
-  if (isProtected && !sessionCookie) {
+  if (isProtected && !isAuthPage && !sessionCookie) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/signin'
     return NextResponse.redirect(url)
