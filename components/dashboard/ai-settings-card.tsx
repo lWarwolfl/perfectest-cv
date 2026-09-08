@@ -121,6 +121,7 @@ export function AiSettingsCard() {
           <Input
             placeholder="https://api.openai.com/v1"
             value={url}
+            autoComplete="off"
             onChange={(e) => setBaseUrl(e.target.value)}
           />
           <div className="flex flex-wrap gap-1">
@@ -145,6 +146,7 @@ export function AiSettingsCard() {
             type="password"
             placeholder="sk-..."
             value={key}
+            autoComplete="off"
             onChange={(e) => setApiKey(e.target.value)}
           />
           <p className="text-muted-foreground text-[11px]">
