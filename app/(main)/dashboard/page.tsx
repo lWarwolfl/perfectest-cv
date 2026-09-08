@@ -8,6 +8,7 @@ import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 import { NameEditor } from '@/components/dashboard/name-editor'
 import { FlowcvSyncCard } from '@/components/dashboard/flowcv-sync-card'
 import { AiSettingsCard } from '@/components/dashboard/ai-settings-card'
+import { FileText, KanbanSquare, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 
@@ -53,32 +54,47 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>{resumes.length} Resumes</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-lg">
+                <FileText className="size-4" />
+              </span>
+              {resumes.length} Resumes
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Link href="/resumes">
-              <Button>Manage</Button>
-            </Link>
+            <Button className="w-full" render={<Link href="/resumes" />}>
+              Manage
+            </Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{letters.length} Cover Letters</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-lg">
+                <Mail className="size-4" />
+              </span>
+              {letters.length} Cover Letters
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Link href="/letters">
-              <Button>Manage</Button>
-            </Link>
+            <Button className="w-full" render={<Link href="/letters" />}>
+              Manage
+            </Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{tracker?.cards?.length ?? 0} Tracked Jobs</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-lg">
+                <KanbanSquare className="size-4" />
+              </span>
+              {tracker?.cards?.length ?? 0} Tracked Jobs
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Link href="/tracker">
-              <Button>Open Board</Button>
-            </Link>
+            <Button className="w-full" render={<Link href="/tracker" />}>
+              Open Board
+            </Button>
           </CardContent>
         </Card>
       </div>
