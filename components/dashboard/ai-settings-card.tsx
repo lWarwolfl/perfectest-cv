@@ -119,9 +119,10 @@ export function AiSettingsCard() {
         <div className="space-y-2">
           <label className="text-muted-foreground text-xs font-medium">API address</label>
           <Input
+            name="ai-endpoint"
             placeholder="https://api.openai.com/v1"
             value={url}
-            autoComplete="off"
+            autoComplete="new-password"
             onChange={(e) => setBaseUrl(e.target.value)}
           />
           <div className="flex flex-wrap gap-1">
@@ -144,9 +145,10 @@ export function AiSettingsCard() {
           <label className="text-muted-foreground text-xs font-medium">API secret</label>
           <Input
             type="password"
+            name="ai-secret"
             placeholder="sk-..."
             value={key}
-            autoComplete="off"
+            autoComplete="new-password"
             onChange={(e) => setApiKey(e.target.value)}
           />
           <p className="text-muted-foreground text-[11px]">
