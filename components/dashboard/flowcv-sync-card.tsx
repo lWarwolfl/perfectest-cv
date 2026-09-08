@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { CloudDownload, FileText, Link2, RefreshCcw } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
@@ -14,7 +15,6 @@ import {
 } from '@/components/ui/select'
 import { useSyncFlowcv } from '@/features/resume/hooks/resume.hooks'
 import { Card, CardContent } from '@/components/ui/card'
-import { getErrorMessage } from '@/lib/utils'
 
 const FLOWCV_URL_RE = /^https:\/\/(www\.)?flowcv\.com\/resume\/[A-Za-z0-9]+\/?$/
 
@@ -22,6 +22,7 @@ export function FlowcvSyncCard({ resumes }: { resumes: { id: string; title: stri
   const [url, setUrl] = useState('')
   const [resumeId, setResumeId] = useState('')
   const sync = useSyncFlowcv()
+  const router = useRouter()
 
   const valid = FLOWCV_URL_RE.test(url.trim())
 
@@ -30,7 +31,7 @@ export function FlowcvSyncCard({ resumes }: { resumes: { id: string; title: stri
       { resumeId, url: url.trim() },
       {
         onSuccess: () => {
-          window.location.href = `/app/resumes/${resumeId}`
+          router.push(`/app/resumes/${resumeId}`)
         },
       }
     )

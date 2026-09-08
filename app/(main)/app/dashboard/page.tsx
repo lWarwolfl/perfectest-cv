@@ -45,7 +45,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <NameEditor name={user?.name ?? ''} email={user?.email ?? ''} />
+      <NameEditor name={user?.name ?? ''} />
       <div className="grid gap-6 lg:grid-cols-2">
         <FlowcvSyncCard resumes={resumes.map((r) => ({ id: r.id, title: r.title }))} />
         <AiSettingsCard />

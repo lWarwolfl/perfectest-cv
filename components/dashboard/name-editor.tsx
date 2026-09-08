@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { updateProfileAction } from '@/server/user/profile.actions'
 import { getErrorMessage } from '@/lib/utils'
 
-export function NameEditor({ name, email }: { name: string; email: string }) {
+export function NameEditor({ name }: { name: string }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(name)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -51,7 +51,6 @@ export function NameEditor({ name, email }: { name: string; email: string }) {
         >
           <Pencil className="size-3.5" />
         </Button>
-        <span className="text-muted-foreground ml-1 text-xs">{email}</span>
       </div>
     )
   }

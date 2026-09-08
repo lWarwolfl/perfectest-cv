@@ -1,14 +1,19 @@
 'use server'
 
 import { db } from '@/drizzle'
-import { Resume, ResumeSection, User } from '@/drizzle/schema'
+import { ResumeSection, User } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
 import { asc, eq } from 'drizzle-orm'
+import { cookies } from 'next/headers'
+
+const AI_KEY_COOKIE = 'ai_api_key'
 
 export async function getAiSettingsAction() {
   const user = await requireUser()
   const [row] = await db.select({ aiSettings: User.aiSettings }).from(User).where(eq(User.id, user.id))
-  return row?.aiSettings ?? { baseUrl: '', apiKey: '', model: '' }
+  const saved = row?.aiSettings ?? { baseUrl: '', apiKey: '', model: '' }
+  const jar = await cookies()
+  return { ...saved, apiKey: jar.get(AI_KEY_COOKIE)?.value ?? '' }
 }
 export type AiSettings = NonNullable<Awaited<ReturnType<typeof getAiSettingsAction>>>
 
@@ -19,7 +24,16 @@ export async function saveAiSettingsAction(settings: AiSettings) {
   if (!/^https?:\/\//.test(baseUrl)) throw new Error('API address must be an http(s) URL')
   if (!settings.apiKey.trim()) throw new Error('API secret is required')
   if (!model) throw new Error('Model is required')
-  await db.update(User).set({ aiSettings: { baseUrl, apiKey: settings.apiKey.trim(), model } }).where(eq(User.id, user.id))
+  const jar = await cookies()
+  jar.set(AI_KEY_COOKIE, settings.apiKey.trim(), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365,
+  })
+  // API secret lives ONLY in the user's browser cookie — never in the database.
+  await db.update(User).set({ aiSettings: { baseUrl, apiKey: '', model } }).where(eq(User.id, user.id))
   return { ok: true }
 }
 
@@ -40,8 +54,6 @@ export async function listAiModelsAction(baseUrl: string, apiKey: string) {
   return ids
 }
 
-// Auto-detect the AI provider from keys on this machine (env + common config files),
-// like Hermes does. Runs server-side only — never exposes paths to the client.
 const AI_KEY_FILES: [string, RegExp][] = [
   [`${process.env.HOME ?? ''}/.config/opencode/auth.json`, /"?(api_?key|token|key)"?\s*:\s*"([^"]+)"/i],
   [`${process.env.HOME ?? ''}/.openrouter/api.json`, /"?(api_?key|token)"?\s*:\s*"([^"]+)"/i],
@@ -129,15 +141,33 @@ function textToParagraphs(text: string) {
     .join('')
 }
 
+function isResponsesApi(baseUrl: string) {
+  return /opencode\.ai\/zen\/v1$/.test(baseUrl)
+}
+
+function toResponsesInput(messages: { role: string; content: string }[]) {
+  return messages.map((m) => ({
+    role: m.role,
+    content: [{ type: m.role === 'system' ? 'message' : 'input_text', text: m.content }],
+  }))
+}
+
 async function chat(settings: { baseUrl: string; apiKey: string; model: string }, messages: { role: string; content: string }[]) {
+  const base = settings.baseUrl.replace(/\/+$/, '')
+  const responsesMode = isResponsesApi(base)
   let res: Response
   try {
-    res = await fetch(settings.baseUrl.replace(/\/+$/, '') + '/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
-      body: JSON.stringify({ model: settings.model, messages, temperature: 0.4 }),
-      signal: AbortSignal.timeout(120_000),
-    })
+    res = await fetch(
+      responsesMode ? base + '/responses' : base + '/chat/completions',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
+        body: responsesMode
+          ? JSON.stringify({ model: settings.model, input: toResponsesInput(messages), temperature: 0.4 })
+          : JSON.stringify({ model: settings.model, messages, temperature: 0.4 }),
+        signal: AbortSignal.timeout(120_000),
+      }
+    )
   } catch (e) {
     const name = e instanceof Error ? e.name : ''
     if (name === 'TimeoutError' || name === 'AbortError') {
@@ -149,8 +179,18 @@ async function chat(settings: { baseUrl: string; apiKey: string; model: string }
     const body = await res.text().catch(() => '')
     throw new Error(friendlyApiError(res.status, body, settings.model))
   }
-  const json = (await res.json()) as { choices?: { message?: { content?: unknown } }[] }
-  const content = json.choices?.[0]?.message?.content
+  const json = (await res.json()) as {
+    choices?: { message?: { content?: unknown } }[]
+    output?: { type?: string; content?: { type?: string; text?: unknown }[] }[]
+  }
+  const chatContent = json.choices?.[0]?.message?.content
+  const responsesText = json.output
+    ?.filter((o) => o?.type === 'message')
+    .flatMap((o) => o.content ?? [])
+    .filter((c) => c?.type === 'output_text')
+    .map((c) => (typeof c.text === 'string' ? c.text : ''))
+    .join('')
+  const content = responsesMode ? responsesText : chatContent
   if (typeof content !== 'string' || !content.trim()) throw new Error('AI returned an empty response')
   return content.trim()
 }
@@ -183,8 +223,13 @@ export async function aiTransformAction(input: {
 }) {
   const user = await requireUser()
   const [row] = await db.select({ aiSettings: User.aiSettings }).from(User).where(eq(User.id, user.id))
-  const settings = row?.aiSettings
-  if (!settings?.baseUrl || !settings.apiKey || !settings.model) {
+  const jar = await cookies()
+  const settings = {
+    baseUrl: row?.aiSettings?.baseUrl ?? '',
+    apiKey: jar.get(AI_KEY_COOKIE)?.value ?? '',
+    model: row?.aiSettings?.model ?? '',
+  }
+  if (!settings.baseUrl || !settings.apiKey || !settings.model) {
     throw new Error('Set up your AI connection first (AI Features page)')
   }
   const text = input.text?.trim()

@@ -26,6 +26,7 @@ export const AI_PRESETS = [
   ['OpenRouter', 'https://openrouter.ai/api/v1'],
   ['TokenRouter', 'https://tokenrouter.me/v1'],
   ['OpenCode Zen', 'https://opencode.ai/zen/v1'],
+  ['OpenCode Go', 'https://opencode.ai/zen/go/v1'],
   ['Groq', 'https://api.groq.com/openai/v1'],
   ['Z.AI', 'https://api.z.ai/api/paas/v4'],
   ['Gemini', 'https://generativelanguage.googleapis.com/v1beta/openai'],
@@ -146,6 +147,10 @@ export function AiSettingsCard() {
             value={key}
             onChange={(e) => setApiKey(e.target.value)}
           />
+          <p className="text-muted-foreground text-[11px]">
+            Kept only in your browser as a secure cookie — never stored on our servers or in our
+            database. Clearing your browser data deletes it, so keep a copy of your key.
+          </p>
         </div>
         <div className="space-y-2">
           <label className="text-muted-foreground text-xs font-medium">Model</label>
