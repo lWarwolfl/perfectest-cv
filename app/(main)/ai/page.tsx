@@ -200,7 +200,7 @@ export default function AiFeaturesPage() {
       )}
 
       <Card>
-        <CardContent className="space-y-3 pt-4">
+        <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <select
               aria-label="Resume"
@@ -256,7 +256,7 @@ export default function AiFeaturesPage() {
           const disabled = !aiReady || (!hasSource && aiReady) || transform.isPending
           return (
             <Card key={f.id} className={disabled ? 'opacity-60' : ''}>
-              <CardContent className="flex h-full flex-col gap-2 pt-4">
+              <CardContent className="flex h-full flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <span className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg">
                     <f.icon className="size-4" />
@@ -303,7 +303,7 @@ export default function AiFeaturesPage() {
 
       {result && (
         <Card>
-          <CardContent className="space-y-3 pt-4">
+          <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">{resultTitle} — result</h2>
               <Button variant="outline" size="sm" onClick={copy}>
