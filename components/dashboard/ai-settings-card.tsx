@@ -154,21 +154,22 @@ export function AiSettingsCard() {
         </div>
         <div className="space-y-2">
           <label className="text-muted-foreground text-xs font-medium">Model</label>
-          <Popover open={modelsOpen} onOpenChange={setModelsOpen}>
-            <PopoverTrigger
-              render={
-                <Button
-                  variant="outline"
-                  className="w-full justify-between font-normal"
-                  disabled={!models.length}
-                >
-                  <span className={cn('truncate', !selected && 'text-muted-foreground')}>
-                    {selected || 'Fetch models first'}
-                  </span>
-                  <ChevronDown className="text-muted-foreground size-4 shrink-0" />
-                </Button>
-              }
-            />
+          <div className="flex gap-2">
+            <Popover open={modelsOpen} onOpenChange={setModelsOpen}>
+              <PopoverTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="w-full min-w-0 flex-1 justify-between font-normal"
+                    disabled={!models.length}
+                  >
+                    <span className={cn('truncate', !selected && 'text-muted-foreground')}>
+                      {selected || 'Fetch models first'}
+                    </span>
+                    <ChevronDown className="text-muted-foreground size-4 shrink-0" />
+                  </Button>
+                }
+              />
               <PopoverContent className="w-80 p-0">
                 <div className="border-border/60 flex items-center gap-2 border-b px-2.5 py-2">
                   <Search className="text-muted-foreground size-3.5" />
@@ -201,16 +202,17 @@ export function AiSettingsCard() {
                   ))}
                 </div>
               </PopoverContent>
-          </Popover>
-          <Button
-            variant="outline"
-            className="w-full"
-            disabled={!canFetch || fetchModels.isPending}
-            onClick={() => fetchModels.mutate()}
-          >
-            {fetchModels.isPending ? <Spinner className="size-4" /> : <RefreshCcw className="size-4" />}
-            Fetch models
-          </Button>
+            </Popover>
+            <Button
+              variant="outline"
+              className="shrink-0"
+              disabled={!canFetch || fetchModels.isPending}
+              onClick={() => fetchModels.mutate()}
+            >
+              {fetchModels.isPending ? <Spinner className="size-4" /> : <RefreshCcw className="size-4" />}
+              Fetch
+            </Button>
+          </div>
           {noModels && (
             <p className="text-muted-foreground flex items-start gap-1.5 text-[11px]">
               <AlertTriangle className="text-amber-500 mt-0.5 size-3 shrink-0" />
