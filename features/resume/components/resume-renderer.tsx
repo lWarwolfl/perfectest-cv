@@ -831,7 +831,7 @@ export function ResumeRenderer({
             </p>
           )}
         </div>
-        {hasPhoto && detailsBlock && (
+        {hasPhoto && !isTwoCol && detailsBlock && (
           <div style={{ marginTop: `${customization.spacing.headerDetailsGap ?? 16}px` }}>
             {detailsBlock}
           </div>
@@ -872,7 +872,15 @@ export function ResumeRenderer({
         >
           <div data-pb-col style={{ minWidth: 0 }}>
             {headerContent}
-            {!hasPhoto && detailsBlock}
+            {detailsBlock && (
+              <div
+                style={{
+                  marginTop: hasPhoto ? `${customization.spacing.headerDetailsGap ?? 16}px` : undefined,
+                }}
+              >
+                {detailsBlock}
+              </div>
+            )}
             <div style={{ marginTop: '12px' }}>{twoColBodies[0].sections.map(renderSection)}</div>
           </div>
           <div data-pb-col style={{ minWidth: 0 }}>
