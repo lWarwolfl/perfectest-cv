@@ -3,7 +3,7 @@
 import { db } from '@/drizzle'
 import { Tracker, TrackerCard } from '@/drizzle/schema'
 import { getCurrentUser } from '@/lib/auth/server'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { uid } from '@/lib/utils'
 
@@ -55,6 +55,10 @@ export async function saveCardAction(
 ) {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
+  const tracker = await db.query.Tracker.findFirst({
+    where: and(eq(Tracker.id, trackerId), eq(Tracker.userId, user.id)),
+  })
+  if (!tracker) throw new Error('Tracker not found')
   const { id: cardId, ...rest } = card
   const fields: Partial<TrackerCardRow> = {
     company: rest.company ?? '',
@@ -73,19 +77,20 @@ export async function saveCardAction(
     coverLetterVersionId: rest.coverLetterVersionId ?? null,
   }
   if (cardId) {
+    const owned = await db.query.TrackerCard.findFirst({
+      where: (t, { eq: e, and: a }) => a(e(t.id, cardId), e(t.trackerId, tracker.id)),
+    })
+    if (!owned) throw new Error('Card not found')
     await db.update(TrackerCard).set(fields).where(eq(TrackerCard.id, cardId))
   } else {
     const [created] = await db
       .insert(TrackerCard)
-      .values({ trackerId, ...fields })
+      .values({ trackerId: tracker.id, ...fields })
       .returning()
-    const tracker = await db.query.Tracker.findFirst({ where: eq(Tracker.id, trackerId) })
-    if (tracker) {
-      const cols = tracker.columns.map((c) =>
-        c.id === colId ? { ...c, cardIds: [...c.cardIds, created.id] } : c
-      )
-      await db.update(Tracker).set({ columns: cols }).where(eq(Tracker.id, trackerId))
-    }
+    const cols = tracker.columns.map((c) =>
+      c.id === colId ? { ...c, cardIds: [...c.cardIds, created.id] } : c
+    )
+    await db.update(Tracker).set({ columns: cols }).where(eq(Tracker.id, tracker.id))
   }
 }
 
@@ -97,7 +102,9 @@ export async function moveCardAction(
 ) {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
-  const tracker = await db.query.Tracker.findFirst({ where: eq(Tracker.id, trackerId) })
+  const tracker = await db.query.Tracker.findFirst({
+    where: and(eq(Tracker.id, trackerId), eq(Tracker.userId, user.id)),
+  })
   if (!tracker) return
   const fromCol = tracker.columns.find((c) => c.cardIds.includes(cardId))
   const toCol = tracker.columns.find((c) => c.id === toColId)
@@ -134,32 +141,40 @@ export async function moveCardAction(
 export async function deleteCardAction(cardId: string, trackerId: string) {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
+  const tracker = await db.query.Tracker.findFirst({
+    where: and(eq(Tracker.id, trackerId), eq(Tracker.userId, user.id)),
+  })
+  if (!tracker) return
+  const card = await db.query.TrackerCard.findFirst({ where: eq(TrackerCard.id, cardId) })
+  if (!card || card.trackerId !== tracker.id) return
   await db.delete(TrackerCard).where(eq(TrackerCard.id, cardId))
-  const tracker = await db.query.Tracker.findFirst({ where: eq(Tracker.id, trackerId) })
-  if (tracker) {
-    const cols = tracker.columns.map((c) => ({
-      ...c,
-      cardIds: c.cardIds.filter((id: string) => id !== cardId),
-    }))
-    await db.update(Tracker).set({ columns: cols }).where(eq(Tracker.id, trackerId))
-  }
+  const cols = tracker.columns.map((c) => ({
+    ...c,
+    cardIds: c.cardIds.filter((id: string) => id !== cardId),
+  }))
+  await db.update(Tracker).set({ columns: cols }).where(eq(Tracker.id, tracker.id))
 }
 
 export async function deleteColumnAction(columnId: string, trackerId: string) {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
-  const tracker = await db.query.Tracker.findFirst({ where: eq(Tracker.id, trackerId) })
+  const tracker = await db.query.Tracker.findFirst({
+    where: and(eq(Tracker.id, trackerId), eq(Tracker.userId, user.id)),
+  })
   if (!tracker) return
   const col = tracker.columns.find((c) => c.id === columnId)
   if (col?.cardIds.length) {
-    await db.delete(TrackerCard).where(eq(TrackerCard.trackerId, trackerId))
+    await db.delete(TrackerCard).where(eq(TrackerCard.trackerId, tracker.id))
   }
   const cols = tracker.columns.filter((c) => c.id !== columnId)
-  await db.update(Tracker).set({ columns: cols }).where(eq(Tracker.id, trackerId))
+  await db.update(Tracker).set({ columns: cols }).where(eq(Tracker.id, tracker.id))
 }
 
 export async function saveColumnsAction(trackerId: string, columns: TrackerColumn[]) {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/signin')
-  await db.update(Tracker).set({ columns }).where(eq(Tracker.id, trackerId))
+  await db
+    .update(Tracker)
+    .set({ columns })
+    .where(and(eq(Tracker.id, trackerId), eq(Tracker.userId, user.id)))
 }

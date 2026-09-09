@@ -258,6 +258,13 @@ export function Paginated({
     if (!container) return
     const pages = Math.max(...cuts.map((c) => c.length))
     const boxes = container.querySelectorAll<HTMLElement>(':scope > .print-page')
+    boxes.forEach((box) => {
+      const bodyEl = box.firstElementChild?.firstElementChild as HTMLElement | null
+      bodyEl?.querySelectorAll<HTMLElement>('*').forEach((el) => {
+        el.style.clipPath = ''
+        el.style.transform = ''
+      })
+    })
     const body0 = wrapRef.current?.firstElementChild as HTMLElement | null
     const cs0 = body0 ? getComputedStyle(body0) : null
     const pT = parseFloat(cs0?.paddingTop || '0') || 0

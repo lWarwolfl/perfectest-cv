@@ -715,7 +715,13 @@ export function ResumeRenderer({
       />
     )
 
-  const photoTop = photoPosition.position === 'top'
+  const hasPhoto = Boolean(photoPosition.show && personalDetails.photo.imageId)
+  const photoTop = photoPosition.position === 'top' && !isTwoCol
+  const photoSide = isTwoCol
+    ? photoPosition.position === 'left'
+      ? 'left'
+      : 'right'
+    : photoPosition.position
   const centered = header.alignText === 'center' || photoTop
   const detailsBlock = detailChips.length > 0 && (
     <div
@@ -780,7 +786,6 @@ export function ResumeRenderer({
     </div>
   )
 
-  const hasPhoto = Boolean(photoPosition.show && personalDetails.photo.imageId)
   const headerContent = (
     <div
       style={{
@@ -792,7 +797,7 @@ export function ResumeRenderer({
         marginBottom: header.position === 'top' ? `${customization.spacing.headerDetailsGap ?? 16}px` : '0',
       }}
     >
-      {(photoPosition.position === 'left' || photoTop) && photoEl}
+      {(photoSide === 'left' || photoTop) && photoEl}
       <div style={{ flex: 1, textAlign: centered ? 'center' : 'left', width: photoTop ? '100%' : undefined }}>
         <div
           style={{
@@ -832,7 +837,7 @@ export function ResumeRenderer({
           </div>
         )}
       </div>
-      {photoPosition.position === 'right' && photoEl}
+      {photoSide === 'right' && photoEl}
     </div>
   )
 
@@ -843,7 +848,7 @@ export function ResumeRenderer({
     { id: 'col-left', sections: splitLeft },
     { id: 'col-right', sections: splitRight },
   ]
-  const leftWidth = Math.min(Math.max(layout.two.leftWidth || 50, 10), 90)
+  const leftWidth = Math.min(Math.max(layout.two.leftWidth || 50, 40), 60)
 
   const body = (
     <div

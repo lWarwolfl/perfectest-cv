@@ -131,8 +131,8 @@ export default function TemplateLayoutSettings({
           <Label className="text-muted-foreground text-xs">Column width ratio</Label>
           <div className="flex items-center gap-3">
             <StepperSlider
-              min={20}
-              max={80}
+              min={40}
+              max={60}
               value={two.leftWidth}
               onChange={(v) =>
                 onPatch({

@@ -1,9 +1,9 @@
 'use server'
 
 import { db } from '@/drizzle'
-import { Letter, Resume } from '@/drizzle/schema'
+import { Letter } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
-import { desc, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
@@ -120,7 +120,9 @@ export async function createLetterAction(title?: string) {
 
 export async function duplicateLetterAction(letterId: string) {
   const user = await requireUser()
-  const letter = await db.query.Letter.findFirst({ where: eq(Letter.id, letterId) })
+  const letter = await db.query.Letter.findFirst({
+    where: (t, { eq, and }) => and(eq(t.id, letterId), eq(t.userId, user.id)),
+  })
   if (!letter) throw new Error('Letter not found')
   const [copy] = await db
     .insert(Letter)
@@ -137,23 +139,32 @@ export async function duplicateLetterAction(letterId: string) {
 }
 
 export async function renameLetterAction(letterId: string, title: string) {
-  await requireUser()
-  await db.update(Letter).set({ title }).where(eq(Letter.id, letterId))
+  const user = await requireUser()
+  await db
+    .update(Letter)
+    .set({ title })
+    .where(and(eq(Letter.id, letterId), eq(Letter.userId, user.id)))
 }
 
 export async function deleteLetterAction(id: string) {
-  await requireUser()
-  await db.delete(Letter).where(eq(Letter.id, id))
+  const user = await requireUser()
+  await db.delete(Letter).where(and(eq(Letter.id, id), eq(Letter.userId, user.id)))
 }
 
 export async function saveLetterContentAction(id: string, patch: LetterContentPatch) {
-  await requireUser()
-  await db.update(Letter).set(patch).where(eq(Letter.id, id))
+  const user = await requireUser()
+  await db
+    .update(Letter)
+    .set(patch)
+    .where(and(eq(Letter.id, id), eq(Letter.userId, user.id)))
 }
 
 export async function saveLetterDesignAction(id: string, design: LetterDesign) {
-  await requireUser()
-  await db.update(Letter).set({ design }).where(eq(Letter.id, id))
+  const user = await requireUser()
+  await db
+    .update(Letter)
+    .set({ design })
+    .where(and(eq(Letter.id, id), eq(Letter.userId, user.id)))
 }
 
 export async function setLetterShareAction(letterId: string, live: boolean) {
@@ -179,9 +190,17 @@ export async function getPublicLetterAction(shareCode: string) {
 }
 
 export async function copyResumeDetailsAction(letterId: string, resumeId: string) {
-  await requireUser()
-  const resume = await db.query.Resume.findFirst({ where: eq(Resume.id, resumeId) })
+  const user = await requireUser()
+  const [resume, letter] = await Promise.all([
+    db.query.Resume.findFirst({
+      where: (t, { eq, and }) => and(eq(t.id, resumeId), eq(t.userId, user.id)),
+    }),
+    db.query.Letter.findFirst({
+      where: (t, { eq, and }) => and(eq(t.id, letterId), eq(t.userId, user.id)),
+    }),
+  ])
   if (!resume) throw new Error('Resume not found')
+  if (!letter) throw new Error('Letter not found')
   const p = { ...EMPTY_PERSONAL_DETAILS, ...(resume.personalDetails || {}) }
   const patch: LetterContentPatch = {
     senderName: p.fullName,
@@ -195,15 +214,24 @@ export async function copyResumeDetailsAction(letterId: string, resumeId: string
     senderPhotoImageId: p.photo?.imageId || '',
     senderPhotoFileId: p.photo?.fileId || '',
   }
-  await db.update(Letter).set(patch).where(eq(Letter.id, letterId))
+  await db
+    .update(Letter)
+    .set(patch)
+    .where(and(eq(Letter.id, letterId), eq(Letter.userId, user.id)))
   return patch
 }
 
 export async function copyResumeDesignAction(letterId: string, resumeId: string) {
-  await requireUser()
-  const resume = await db.query.Resume.findFirst({ where: eq(Resume.id, resumeId) })
+  const user = await requireUser()
+  const [resume, letter] = await Promise.all([
+    db.query.Resume.findFirst({
+      where: (t, { eq, and }) => and(eq(t.id, resumeId), eq(t.userId, user.id)),
+    }),
+    db.query.Letter.findFirst({
+      where: (t, { eq, and }) => and(eq(t.id, letterId), eq(t.userId, user.id)),
+    }),
+  ])
   if (!resume) throw new Error('Resume not found')
-  const letter = await db.query.Letter.findFirst({ where: eq(Letter.id, letterId) })
   if (!letter) throw new Error('Letter not found')
   const prev = normalizeLetterDesign(letter.design)
   const c = mergeCustomization(resume.customization)
@@ -212,6 +240,9 @@ export async function copyResumeDesignAction(letterId: string, resumeId: string)
     customization: c,
     syncedFromResume: true,
   }
-  await db.update(Letter).set({ design }).where(eq(Letter.id, letterId))
+  await db
+    .update(Letter)
+    .set({ design })
+    .where(and(eq(Letter.id, letterId), eq(Letter.userId, user.id)))
   return design
 }

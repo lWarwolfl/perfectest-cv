@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Mail, KanbanSquare, Sparkles } from 'lucide-react'
+import { LayoutDashboard, FileText, LayoutTemplate, Mail, KanbanSquare, Sparkles } from 'lucide-react'
 import logo from '@public/logo.svg'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { LogoutButton } from '@/features/auth/components/sign-out-button'
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 const NAV = [
   { href: '/dashboard', name: 'Dashboard', icon: LayoutDashboard },
   { href: '/resumes', name: 'Resumes', icon: FileText },
+  { href: '/templates', name: 'Templates', icon: LayoutTemplate },
   { href: '/letters', name: 'Cover Letters', icon: Mail },
   { href: '/tracker', name: 'Job Tracker', icon: KanbanSquare },
   { href: '/ai', name: 'AI Features', icon: Sparkles },

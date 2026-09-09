@@ -3,7 +3,7 @@
 import { db } from '@/drizzle'
 import { Resume, ResumeSection, ResumeEntry } from '@/drizzle/schema'
 import { getCurrentUser } from '@/lib/auth/server'
-import { asc, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { SECTION_LABELS, SECTION_ICONS, defaultEntryData } from '@/features/resume/defaults'
@@ -22,10 +22,45 @@ export async function requireUser() {
   return user
 }
 
+async function requireOwnedResume(resumeId: string) {
+  const user = await requireUser()
+  const [resume] = await db
+    .select()
+    .from(Resume)
+    .where(and(eq(Resume.id, resumeId), eq(Resume.userId, user.id)))
+  if (!resume) throw new Error('Resume not found')
+  return resume
+}
+
+async function requireOwnedSection(sectionId: string) {
+  await requireUser()
+  const [section] = await db.query.ResumeSection.findMany({
+    where: eq(ResumeSection.id, sectionId),
+    with: { resume: true },
+    limit: 1,
+  })
+  if (!section) throw new Error('Section not found')
+  return section
+}
+
+async function requireOwnedEntry(entryId: string) {
+  await requireUser()
+  const [entry] = await db.query.ResumeEntry.findMany({
+    where: eq(ResumeEntry.id, entryId),
+    with: { section: { with: { resume: true } } },
+    limit: 1,
+  })
+  if (!entry) throw new Error('Entry not found')
+  return entry
+}
+
 export async function getResumeDocumentAction(resumeId: string) {
   const user = await requireUser()
-  const [resume] = await db.select().from(Resume).where(eq(Resume.id, resumeId))
-  if (!resume || resume.userId !== user.id) return null
+  const [resume] = await db
+    .select()
+    .from(Resume)
+    .where(and(eq(Resume.id, resumeId), eq(Resume.userId, user.id)))
+  if (!resume) return null
   const sections = await db.query.ResumeSection.findMany({
     where: eq(ResumeSection.resumeId, resumeId),
     orderBy: [asc(ResumeSection.order), asc(ResumeSection.createdAt)],
@@ -71,9 +106,61 @@ export async function createResumeAction(title?: string) {
   return resume
 }
 
+const ADJETIVES = ['Swift', 'Bold', 'Clear', 'Prime', 'Nova', 'Bright', 'Keen', 'Sharp', 'Vivid', 'Stark']
+const NOUNS = ['Resume', 'Draft', 'Profile', 'Story', 'Pitch', 'Resume', 'Candidacy']
+
+function randomResumeTitle(templateName: string) {
+  const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)]
+  return `${templateName.split(' ')[0]} ${pick(ADJETIVES)} ${pick(NOUNS)}`
+}
+
+export async function createResumeFromTemplateAction(templateId: string) {
+  const user = await requireUser()
+  const { RESUME_TEMPLATES } = await import('@/features/resume/templates')
+  const template = RESUME_TEMPLATES.find((t) => t.id === templateId)
+  if (!template) throw new Error('Template not found')
+
+  const [resume] = await db
+    .insert(Resume)
+    .values({
+      userId: user.id,
+      title: randomResumeTitle(template.name),
+      personalDetails: template.personalDetails,
+      customization: template.customization,
+    })
+    .returning()
+
+  const inserted = await db
+    .insert(ResumeSection)
+    .values(
+      template.sections.map((s, i) => ({
+        resumeId: resume.id,
+        order: i,
+        sectionType: s.sectionType,
+        displayName: s.displayName,
+        iconKey: s.iconKey,
+      }))
+    )
+    .returning()
+  const rows = template.sections.flatMap((s, i) =>
+    s.entries.map((e, j) => ({ sectionId: inserted[i].id, order: j, data: e as EntryData }))
+  )
+  if (rows.length) await db.insert(ResumeEntry).values(rows)
+  return resume
+}
+
 export async function duplicateResumeAction(resumeId: string) {
   const user = await requireUser()
-  const { resume, sections } = (await getResumeDocumentAction(resumeId))!
+  const [resume] = await db
+    .select()
+    .from(Resume)
+    .where(and(eq(Resume.id, resumeId), eq(Resume.userId, user.id)))
+  if (!resume) throw new Error('Resume not found')
+  const sections = await db.query.ResumeSection.findMany({
+    where: eq(ResumeSection.resumeId, resumeId),
+    with: { entries: true },
+    orderBy: [asc(ResumeSection.order), asc(ResumeSection.createdAt)],
+  })
   const [copy] = await db
     .insert(Resume)
     .values({
@@ -85,39 +172,33 @@ export async function duplicateResumeAction(resumeId: string) {
       tags: resume.tags,
     })
     .returning()
-  for (const s of sections) {
-    const [newSection] = await db
-      .insert(ResumeSection)
-      .values({
+  const newSections = await db
+    .insert(ResumeSection)
+    .values(
+      sections.map((s) => ({
         resumeId: copy.id,
         order: s.order,
         sectionType: s.sectionType,
         displayName: s.displayName,
         iconKey: s.iconKey,
         hidden: s.hidden,
-      })
-      .returning()
-    if (s.entries.length) {
-      await db.insert(ResumeEntry).values(
-        s.entries.map((e, i) => ({
-          sectionId: newSection.id,
-          order: i,
-          hidden: e.hidden,
-          data: e.data,
-        }))
-      )
-    }
-  }
+      }))
+    )
+    .returning()
+  const entryRows = sections.flatMap((s, i) =>
+    s.entries.map((e, j) => ({ sectionId: newSections[i].id, order: j, hidden: e.hidden, data: e.data }))
+  )
+  if (entryRows.length) await db.insert(ResumeEntry).values(entryRows)
   return copy
 }
 
 export async function deleteResumeAction(resumeId: string) {
-  await requireUser()
-  await db.delete(Resume).where(eq(Resume.id, resumeId))
+  const user = await requireUser()
+  await db.delete(Resume).where(and(eq(Resume.id, resumeId), eq(Resume.userId, user.id)))
 }
 
 export async function renameResumeAction(resumeId: string, title: string) {
-  await requireUser()
+  await requireOwnedResume(resumeId)
   await db.update(Resume).set({ title }).where(eq(Resume.id, resumeId))
 }
 
@@ -125,7 +206,7 @@ export async function saveResumePersonalDetailsAction(
   resumeId: string,
   personalDetails: PersonalDetails
 ) {
-  await requireUser()
+  await requireOwnedResume(resumeId)
   await db.update(Resume).set({ personalDetails }).where(eq(Resume.id, resumeId))
 }
 
@@ -133,7 +214,7 @@ export async function saveResumeCustomizationAction(
   resumeId: string,
   customization: Customization
 ) {
-  await requireUser()
+  await requireOwnedResume(resumeId)
   await db.update(Resume).set({ customization }).where(eq(Resume.id, resumeId))
 }
 
@@ -141,12 +222,12 @@ export async function saveSectionMetaAction(
   sectionId: string,
   patch: Partial<Pick<TSection, 'displayName' | 'iconKey' | 'hidden' | 'order'>>
 ) {
-  await requireUser()
+  await requireOwnedSection(sectionId)
   await db.update(ResumeSection).set(patch).where(eq(ResumeSection.id, sectionId))
 }
 
 export async function reorderSectionsAction(resumeId: string, sectionIds: string[]) {
-  await requireUser()
+  await requireOwnedResume(resumeId)
   await Promise.all(
     sectionIds.map((id, i) =>
       db.update(ResumeSection).set({ order: i }).where(eq(ResumeSection.id, id))
@@ -155,7 +236,7 @@ export async function reorderSectionsAction(resumeId: string, sectionIds: string
 }
 
 export async function addSectionAction(resumeId: string, sectionType: SectionType) {
-  await requireUser()
+  await requireOwnedResume(resumeId)
   const existing = await db.query.ResumeSection.findMany({
     where: eq(ResumeSection.resumeId, resumeId),
   })
@@ -177,14 +258,12 @@ export async function addSectionAction(resumeId: string, sectionType: SectionTyp
 }
 
 export async function deleteSectionAction(sectionId: string) {
-  await requireUser()
+  await requireOwnedSection(sectionId)
   await db.delete(ResumeSection).where(eq(ResumeSection.id, sectionId))
 }
 
 export async function addEntryAction(sectionId: string) {
-  await requireUser()
-  const section = await db.query.ResumeSection.findFirst({ where: eq(ResumeSection.id, sectionId) })
-  if (!section) throw new Error('Section not found')
+  const section = await requireOwnedSection(sectionId)
   const existing = await db.query.ResumeEntry.findMany({
     where: eq(ResumeEntry.sectionId, sectionId),
   })
@@ -196,7 +275,7 @@ export async function addEntryAction(sectionId: string) {
 }
 
 export async function updateEntryDataAction(entryId: string, data: EntryData) {
-  await requireUser()
+  await requireOwnedEntry(entryId)
   await db.update(ResumeEntry).set({ data }).where(eq(ResumeEntry.id, entryId))
 }
 
@@ -204,24 +283,24 @@ export async function updateEntryMetaAction(
   entryId: string,
   patch: Partial<Pick<TEntry, 'hidden' | 'order'>>
 ) {
-  await requireUser()
+  await requireOwnedEntry(entryId)
   await db.update(ResumeEntry).set(patch).where(eq(ResumeEntry.id, entryId))
 }
 
 export async function reorderEntriesAction(sectionId: string, entryIds: string[]) {
-  await requireUser()
+  await requireOwnedSection(sectionId)
   await Promise.all(
     entryIds.map((id, i) => db.update(ResumeEntry).set({ order: i }).where(eq(ResumeEntry.id, id)))
   )
 }
 
 export async function deleteEntryAction(entryId: string) {
-  await requireUser()
+  await requireOwnedEntry(entryId)
   await db.delete(ResumeEntry).where(eq(ResumeEntry.id, entryId))
 }
 
 export async function applyResumeTemplateAction(resumeId: string, templateId: string) {
-  await requireUser()
+  await requireOwnedResume(resumeId)
   const { RESUME_TEMPLATES } = await import('@/features/resume/templates')
   const template = RESUME_TEMPLATES.find((t) => t.id === templateId)
   if (!template) throw new Error('Template not found')
@@ -282,24 +361,51 @@ export async function listResumePreviewsAction() {
   const resumes = await db.query.Resume.findMany({
     where: eq(Resume.userId, user.id),
     orderBy: [desc(Resume.updatedAt)],
-    columns: { id: true, title: true, updatedAt: true, webResumeLive: true },
+    columns: {
+      id: true,
+      title: true,
+      updatedAt: true,
+      webResumeLive: true,
+      personalDetails: true,
+      customization: true,
+    },
   })
-  return Promise.all(
-    resumes.map(async (r) => {
-      const doc = await getResumeDocumentAction(r.id)
-      return {
-        id: r.id,
-        title: r.title,
-        updatedAt: r.updatedAt,
-        webResumeLive: r.webResumeLive,
-        doc: {
-          sections: doc?.sections ?? [],
-          personalDetails: doc?.resume.personalDetails ?? null,
-          customization: doc?.resume.customization ?? null,
-        },
-      }
-    })
-  )
+  if (!resumes.length) return []
+  const ids = resumes.map((r) => r.id)
+  const sections = await db.query.ResumeSection.findMany({
+    where: inArray(ResumeSection.resumeId, ids),
+    orderBy: [asc(ResumeSection.order), asc(ResumeSection.createdAt)],
+  })
+  const sectionIds = sections.map((s) => s.id)
+  const entries = sectionIds.length
+    ? await db.query.ResumeEntry.findMany({
+        where: inArray(ResumeEntry.sectionId, sectionIds),
+        orderBy: [asc(ResumeEntry.order), asc(ResumeEntry.createdAt)],
+      })
+    : []
+  const entriesBySection = new Map<string, TEntry[]>()
+  for (const e of entries) {
+    const list = entriesBySection.get(e.sectionId) || []
+    list.push(e as TEntry)
+    entriesBySection.set(e.sectionId, list)
+  }
+  const sectionsByResume = new Map<string, TSection[]>()
+  for (const s of sections) {
+    const list = sectionsByResume.get(s.resumeId) || []
+    list.push({ ...s, entries: entriesBySection.get(s.id) || [] })
+    sectionsByResume.set(s.resumeId, list)
+  }
+  return resumes.map((r) => ({
+    id: r.id,
+    title: r.title,
+    updatedAt: r.updatedAt,
+    webResumeLive: r.webResumeLive,
+    doc: {
+      sections: sectionsByResume.get(r.id) ?? [],
+      personalDetails: r.personalDetails ?? null,
+      customization: r.customization ?? null,
+    },
+  }))
 }
 export type TListResumePreviewsAction = Awaited<ReturnType<typeof listResumePreviewsAction>>
 
@@ -327,7 +433,6 @@ export async function syncFlowcvResumeAction(resumeId: string, flowcvUrl: string
     .set({ personalDetails: flowcvToPersonalDetails(data, owned.personalDetails) })
     .where(eq(Resume.id, resumeId))
 
-  // replace synced sections wholesale (overwrites local edits in those sections)
   const syncedTypes = ['profile', 'work', 'education', 'skill', 'language', 'project']
   const existing = await db.query.ResumeSection.findMany({
     where: eq(ResumeSection.resumeId, resumeId),
@@ -339,23 +444,24 @@ export async function syncFlowcvResumeAction(resumeId: string, flowcvUrl: string
   const mapped = flowcvToEntryData(data)
   const remaining = existing.filter((s) => !syncedTypes.includes(s.sectionType))
   let order = remaining.length
-  for (const sec of mapped) {
-    const [section] = await db
-      .insert(ResumeSection)
-      .values({
-        resumeId,
-        order: order++,
-        sectionType: sec.sectionType,
-        displayName: SECTION_LABELS[sec.sectionType],
-        iconKey: SECTION_ICONS[sec.sectionType],
-      })
-      .returning()
-    if (sec.entries.length) {
-      await db.insert(ResumeEntry).values(
-        sec.entries.map((entryData, i) => ({ sectionId: section.id, order: i, data: entryData }))
-      )
-    }
-  }
+  const inserted = mapped.length
+    ? await db
+        .insert(ResumeSection)
+        .values(
+          mapped.map((sec) => ({
+            resumeId,
+            order: order++,
+            sectionType: sec.sectionType,
+            displayName: SECTION_LABELS[sec.sectionType],
+            iconKey: SECTION_ICONS[sec.sectionType],
+          }))
+        )
+        .returning()
+    : []
+  const entryRows = mapped.flatMap((sec, i) =>
+    sec.entries.map((entryData, j) => ({ sectionId: inserted[i].id, order: j, data: entryData }))
+  )
+  if (entryRows.length) await db.insert(ResumeEntry).values(entryRows)
   revalidatePath(`/resumes/${resumeId}`)
   revalidatePath('/resumes')
   return { ok: true, synced: mapped.map((s) => s.sectionType) }

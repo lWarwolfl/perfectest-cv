@@ -108,8 +108,17 @@ export default function ResumeEditorPage() {
       setSections(next)
       setPersonal({ ...EMPTY_PERSONAL_DETAILS, ...doc.resume.personalDetails })
       const merged = mergeCustomization(DEFAULT_CUSTOMIZATION, doc.resume.customization)
-      setCustom(merged)
-      hydrateStyle(merged)
+      const draft = useResumeStyleStore.getState()
+      const hasDraft =
+        draft.resumeId === id &&
+        JSON.stringify(draft.customization) !== JSON.stringify(merged)
+      const initial = hasDraft ? draft.customization : merged
+      setCustom(initial)
+      if (hasDraft) {
+        customDirty.current = true
+        dirty.current = true
+      }
+      hydrateStyle(id, initial)
       setTitleDraft(doc.resume.title)
       // Profile section is mandatory: auto-create it if missing, and keep exactly one entry.
       if (!next.some((s) => s.sectionType === 'profile')) {
@@ -147,6 +156,7 @@ export default function ResumeEditorPage() {
       personalDirty.current = false
       customDirty.current = false
       entriesDirty.current = false
+      useResumeStyleStore.getState().clear()
       setSections((prev) =>
         prev.map((s) => ({ ...s, entries: s.entries.map((e) => ({ ...e, _dirty: false })) }))
       )
@@ -352,7 +362,7 @@ export default function ResumeEditorPage() {
                   sections={sections}
                   onChange={(next: Customization) => {
                     setCustom(next)
-                    hydrateStyle(next)
+                    hydrateStyle(id, next)
                     markDirty()
                     customDirty.current = true
                   }}

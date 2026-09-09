@@ -9,6 +9,7 @@ import {
   getResumeAction,
   getResumeDocumentAction,
   createResumeAction,
+  createResumeFromTemplateAction,
   duplicateResumeAction,
   deleteResumeAction,
   renameResumeAction,
@@ -65,6 +66,18 @@ export function useCreateResume() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] })
       toast.success('Resume created')
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useCreateResumeFromTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (templateId: string) => createResumeFromTemplateAction(templateId),
+    onSuccess: (resume) => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] })
+      toast.success(`"${resume.title}" created from template`)
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
