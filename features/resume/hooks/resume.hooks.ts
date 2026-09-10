@@ -39,8 +39,11 @@ export function useListResumes() {
   return useQuery({ queryKey: [QUERY_KEYS.RESUMES], queryFn: listResumesAction })
 }
 
-export function useListResumePreviews() {
-  return useQuery({ queryKey: [QUERY_KEYS.RESUMES, 'previews'], queryFn: listResumePreviewsAction })
+export function useListResumePreviews(page = 1) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.RESUMES, 'previews', page],
+    queryFn: () => listResumePreviewsAction({ page }),
+  })
 }
 
 export function useResume(id: string) {

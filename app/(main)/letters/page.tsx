@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { CreateCard } from '@/components/common/create-card'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import { DataPagination } from '@/components/common/data-pagination'
 import { ShareDialog } from '@/components/common/share-button'
 import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
 import { normalizeLetterDesign } from '@/features/letter/types'
@@ -26,7 +27,10 @@ import {
 import { usePrintNode } from '@/lib/use-print'
 
 export default function LettersPage() {
-  const { data: letters, isLoading } = useListLetterPreviews()
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useListLetterPreviews(page)
+  const letters = data?.letters
+  const pagination = data?.pagination
   const create = useCreateLetter()
   const del = useDeleteLetter()
   const dup = useDuplicateLetter()
@@ -54,7 +58,7 @@ export default function LettersPage() {
           onCreate={(name) => create.mutate(name || undefined)}
         />
         {isLoading
-          ? Array.from({ length: 2 }, (_, i) => (
+          ? Array.from({ length: 6 }, (_, i) => (
               <div key={i} className="bg-muted aspect-[210/297] animate-pulse rounded-lg" />
             ))
           : letters?.map((l) => (
@@ -131,6 +135,9 @@ export default function LettersPage() {
               </div>
             ))}
       </div>
+      {pagination && pagination.totalPages > 1 && (
+        <DataPagination pagination={pagination} onPageChange={setPage} />
+      )}
       {shareState && (
         <ShareDialog
           live={shareState.live}

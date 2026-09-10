@@ -3,7 +3,7 @@
 import { db } from '@/drizzle'
 import { Resume, ResumeSection, ResumeEntry } from '@/drizzle/schema'
 import { getCurrentUser } from '@/lib/auth/server'
-import { and, asc, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { SECTION_LABELS, SECTION_ICONS, defaultEntryData } from '@/features/resume/defaults'
@@ -356,8 +356,17 @@ export async function listResumesAction() {
 }
 export type TListResumesAction = Awaited<ReturnType<typeof listResumesAction>>
 
-export async function listResumePreviewsAction() {
+export async function listResumePreviewsAction({ page = 1, limit = 6 } = {}) {
   const user = await requireUser()
+  const [{ count: totalCount }] = await db
+    .select({ count: count() })
+    .from(Resume)
+    .where(eq(Resume.userId, user.id))
+  const pagination = {
+    page,
+    totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+    limit,
+  }
   const resumes = await db.query.Resume.findMany({
     where: eq(Resume.userId, user.id),
     orderBy: [desc(Resume.updatedAt)],
@@ -369,8 +378,10 @@ export async function listResumePreviewsAction() {
       personalDetails: true,
       customization: true,
     },
+    limit,
+    offset: (page - 1) * limit,
   })
-  if (!resumes.length) return []
+  if (!resumes.length) return { resumes: [], pagination }
   const ids = resumes.map((r) => r.id)
   const sections = await db.query.ResumeSection.findMany({
     where: inArray(ResumeSection.resumeId, ids),
@@ -395,17 +406,20 @@ export async function listResumePreviewsAction() {
     list.push({ ...s, entries: entriesBySection.get(s.id) || [] })
     sectionsByResume.set(s.resumeId, list)
   }
-  return resumes.map((r) => ({
-    id: r.id,
-    title: r.title,
-    updatedAt: r.updatedAt,
-    webResumeLive: r.webResumeLive,
-    doc: {
-      sections: sectionsByResume.get(r.id) ?? [],
-      personalDetails: r.personalDetails ?? null,
-      customization: r.customization ?? null,
-    },
-  }))
+  return {
+    resumes: resumes.map((r) => ({
+      id: r.id,
+      title: r.title,
+      updatedAt: r.updatedAt,
+      webResumeLive: r.webResumeLive,
+      doc: {
+        sections: sectionsByResume.get(r.id) ?? [],
+        personalDetails: r.personalDetails ?? null,
+        customization: r.customization ?? null,
+      },
+    })),
+    pagination,
+  }
 }
 export type TListResumePreviewsAction = Awaited<ReturnType<typeof listResumePreviewsAction>>
 

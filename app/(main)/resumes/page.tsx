@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { CreateCard } from '@/components/common/create-card'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import { DataPagination } from '@/components/common/data-pagination'
 import { ShareDialog } from '@/components/common/share-button'
 import { ResumeRenderer } from '@/features/resume/components/resume-renderer'
 import { DEFAULT_CUSTOMIZATION, EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
@@ -26,7 +27,10 @@ import {
 import { usePrintNode } from '@/lib/use-print'
 
 export default function ResumesPage() {
-  const { data: resumes, isLoading } = useListResumePreviews()
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useListResumePreviews(page)
+  const resumes = data?.resumes
+  const pagination = data?.pagination
   const create = useCreateResume()
   const del = useDeleteResume()
   const dup = useDuplicateResume()
@@ -54,7 +58,7 @@ export default function ResumesPage() {
           onCreate={(name) => create.mutate(name || undefined)}
         />
         {isLoading
-          ? Array.from({ length: 2 }, (_, i) => (
+          ? Array.from({ length: 6 }, (_, i) => (
               <div key={i} className="bg-muted aspect-[210/297] animate-pulse rounded-lg" />
             ))
           : resumes?.map((r) => (
@@ -140,6 +144,9 @@ export default function ResumesPage() {
               </div>
             ))}
       </div>
+      {pagination && pagination.totalPages > 1 && (
+        <DataPagination pagination={pagination} onPageChange={setPage} />
+      )}
       {shareState && (
         <ShareDialog
           live={shareState.live}

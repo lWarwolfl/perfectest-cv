@@ -23,8 +23,11 @@ export function useListLetters() {
   return useQuery({ queryKey: [QUERY_KEYS.LETTERS], queryFn: listLettersAction })
 }
 
-export function useListLetterPreviews() {
-  return useQuery({ queryKey: [QUERY_KEYS.LETTERS, 'previews'], queryFn: listLetterPreviewsAction })
+export function useListLetterPreviews(page = 1) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.LETTERS, 'previews', page],
+    queryFn: () => listLetterPreviewsAction({ page }),
+  })
 }
 
 export function useCreateLetter() {

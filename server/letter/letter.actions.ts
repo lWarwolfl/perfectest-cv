@@ -3,7 +3,7 @@
 import { db } from '@/drizzle'
 import { Letter } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
@@ -59,11 +59,22 @@ export async function listLettersAction() {
 }
 export type TListLettersAction = Awaited<ReturnType<typeof listLettersAction>>
 
-export async function listLetterPreviewsAction() {
+export async function listLetterPreviewsAction({ page = 1, limit = 6 } = {}) {
   const user = await requireUser()
-  return db.query.Letter.findMany({
+  const [{ count: totalCount }] = await db
+    .select({ count: count() })
+    .from(Letter)
+    .where(eq(Letter.userId, user.id))
+  const pagination = {
+    page,
+    totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+    limit,
+  }
+  const letters = await db.query.Letter.findMany({
     where: eq(Letter.userId, user.id),
     orderBy: [desc(Letter.updatedAt)],
+    limit,
+    offset: (page - 1) * limit,
     columns: {
       id: true,
       title: true,
@@ -97,6 +108,7 @@ export async function listLetterPreviewsAction() {
       signatureImageId: true,
     },
   })
+  return { letters, pagination }
 }
 export type TListLetterPreviewsAction = Awaited<ReturnType<typeof listLetterPreviewsAction>>
 
