@@ -11,6 +11,7 @@ import {
 } from '@/features/resume/hooks/resume.hooks'
 import { useShareResume } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { CreateCard } from '@/components/common/create-card'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
@@ -58,8 +59,8 @@ export default function ResumesPage() {
           onCreate={(name) => create.mutate(name || undefined)}
         />
         {isLoading
-          ? Array.from({ length: 6 }, (_, i) => (
-              <div key={i} className="bg-muted aspect-[210/297] animate-pulse rounded-lg" />
+          ? Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} className="aspect-[210/297] rounded-lg" />
             ))
           : resumes?.map((r) => (
               <div key={r.id} className="group relative flex flex-col gap-3">
@@ -89,7 +90,10 @@ export default function ResumesPage() {
                       Updated {new Date(r.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <DropdownMenu open={menuId === r.id} onOpenChange={(o) => setMenuId(o ? r.id : null)}>
+                  <DropdownMenu
+                    open={menuId === r.id}
+                    onOpenChange={(o) => setMenuId(o ? r.id : null)}
+                  >
                     <DropdownMenuTrigger
                       render={
                         <Button variant="secondary" size="icon" aria-label="Card menu">

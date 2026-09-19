@@ -11,6 +11,7 @@ import {
 } from '@/features/letter/hooks/letter.hooks'
 import { useShareLetter } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { CreateCard } from '@/components/common/create-card'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
@@ -58,14 +59,18 @@ export default function LettersPage() {
           onCreate={(name) => create.mutate(name || undefined)}
         />
         {isLoading
-          ? Array.from({ length: 6 }, (_, i) => (
-              <div key={i} className="bg-muted aspect-[210/297] animate-pulse rounded-lg" />
+          ? Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} className="aspect-[210/297] rounded-lg" />
             ))
           : letters?.map((l) => (
               <div key={l.id} className="group relative flex flex-col gap-3">
                 <div className="relative">
                   <PreviewFrame>
-                    <LetterRenderer form={l} design={normalizeLetterDesign(l.design)} showPlaceholder />
+                    <LetterRenderer
+                      form={l}
+                      design={normalizeLetterDesign(l.design)}
+                      showPlaceholder
+                    />
                   </PreviewFrame>
                   <Link
                     href={`/letters/${l.id}`}
@@ -85,7 +90,10 @@ export default function LettersPage() {
                       Updated {new Date(l.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <DropdownMenu open={menuId === l.id} onOpenChange={(o) => setMenuId(o ? l.id : null)}>
+                  <DropdownMenu
+                    open={menuId === l.id}
+                    onOpenChange={(o) => setMenuId(o ? l.id : null)}
+                  >
                     <DropdownMenuTrigger
                       render={
                         <Button variant="secondary" size="icon" aria-label="Card menu">
@@ -109,9 +117,11 @@ export default function LettersPage() {
                         onClick={() =>
                           print(
                             l.id,
-                            (normalizeLetterDesign(l.design).customization.fileName ||
+                            (
+                              normalizeLetterDesign(l.design).customization.fileName ||
                               l.title ||
-                              'cover-letter').replace(/\.pdf$/i, '')
+                              'cover-letter'
+                            ).replace(/\.pdf$/i, '')
                           )
                         }
                       >
@@ -130,7 +140,11 @@ export default function LettersPage() {
                 </div>
                 {/* Full-size hidden copy of the same preview, only visible in print output */}
                 <div className={`print-only ${job?.id === l.id ? '' : 'hidden'}`}>
-                  <LetterRenderer form={l} design={normalizeLetterDesign(l.design)} showPlaceholder />
+                  <LetterRenderer
+                    form={l}
+                    design={normalizeLetterDesign(l.design)}
+                    showPlaceholder
+                  />
                 </div>
               </div>
             ))}

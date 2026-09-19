@@ -45,11 +45,7 @@ export default function AddSectionModal({
                   onOpenChange(false)
                 }}
               >
-                {Icon ? (
-                  <Icon className="mr-2 size-4" />
-                ) : (
-                  <Plus className="mr-2 size-4" />
-                )}
+                {Icon ? <Icon className="mr-2 size-4" /> : <Plus className="mr-2 size-4" />}
                 {SECTION_LABELS[type]}
               </Button>
             )

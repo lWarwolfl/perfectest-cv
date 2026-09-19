@@ -3,7 +3,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, LayoutTemplate, Mail, KanbanSquare, Sparkles } from 'lucide-react'
+import {
+  LayoutDashboard,
+  FileText,
+  LayoutTemplate,
+  Mail,
+  KanbanSquare,
+  Sparkles,
+} from 'lucide-react'
 import logo from '@public/logo.svg'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { LogoutButton } from '@/features/auth/components/sign-out-button'
@@ -27,7 +34,7 @@ function useActive() {
 export default function Sidebar({ email }: { email?: string | null }) {
   const isActive = useActive()
   return (
-    <aside className="border-sidebar-border bg-sidebar text-sidebar-foreground m-4 hidden w-60 shrink-0 flex-col self-start rounded-2xl border px-3 py-4 md:sticky md:top-4 md:h-[calc(100vh-2rem)] md:flex">
+    <aside className="border-sidebar-border bg-sidebar text-sidebar-foreground m-4 hidden w-60 shrink-0 flex-col self-start rounded-2xl border px-3 py-4 md:sticky md:top-4 md:flex md:h-[calc(100vh-2rem)]">
       <Link href="/dashboard" className="mb-6 flex items-center gap-2 px-2">
         <Image alt="Perfectest CV logo" src={logo} className="size-9" />
         <span className="text-lg font-semibold">Perfectest CV</span>
@@ -93,9 +100,9 @@ export function SidebarPage({
   email?: string | null
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-dvh">
       <Sidebar email={email} />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3 pr-4 pb-20 md:p-4 md:pr-6 md:pb-4">
+      <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-3 pr-4 pb-20 md:p-4 md:pr-6 md:pb-4">
         {children}
       </main>
       <MobileNav />

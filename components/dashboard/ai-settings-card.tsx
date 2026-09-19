@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAiSettings, useSaveAiSettings } from '@/features/ai/ai.hooks'
 import { detectAiConfigAction, listAiModelsAction } from '@/server/ai/ai.actions'
 import { getErrorMessage, cn } from '@/lib/utils'
@@ -86,7 +87,7 @@ export function AiSettingsCard() {
   const canFetch = /^https?:\/\//.test(url.trim()) && key.trim().length > 0
   const noModels = models.length === 0
 
-  if (isLoading) return <div className="bg-muted h-40 animate-pulse rounded-xl" />
+  if (isLoading) return <Skeleton className="h-40 rounded-xl" />
 
   return (
     <Card>

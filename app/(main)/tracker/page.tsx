@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { LabeledInput, LabeledTextarea } from '@/components/ui/labeled'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Plus, Trash2, ExternalLink } from 'lucide-react'
@@ -414,13 +415,13 @@ export default function TrackerPage() {
         >
           {isLoading
             ? Array.from({ length: 4 }, (_, i) => (
-                <div key={i} className="bg-muted h-96 w-72 shrink-0 animate-pulse rounded-lg" />
+                <Skeleton key={i} className="h-96 w-72 shrink-0 rounded-lg" />
               ))
             : columns.map((col) => (
                 <div
                   key={col.id}
                   className={cn(
-                    'bg-muted ring-1 ring-transparent transition-colors',
+                    'bg-muted ring-1 ring-transparent transition-colors ring-inset',
                     'flex w-72 shrink-0 flex-col rounded-lg',
                     dragOver === col.id && 'bg-accent ring-primary/40'
                   )}
@@ -487,27 +488,27 @@ export default function TrackerPage() {
                         return (
                           <Card
                             key={card.id}
-                            className="bg-card border-border hover:border-primary/60 cursor-pointer border shadow-xs ring-0 transition duration-150 hover:shadow-md"
+                            className="bg-card border-border hover:border-primary/60 cursor-pointer gap-0 border py-0 shadow-xs ring-0 transition duration-150 hover:shadow-md"
                             draggable
                             onDragStart={(e) => handleDragStart(e, card.id, col.id)}
                             onClick={() => openCardEditor(card, col.id)}
                           >
-                            <CardHeader className="p-3 pb-1">
+                            <CardHeader className="px-3 pt-3 pb-1">
                               <CardTitle className="text-sm">
                                 {card.jobTitle || 'Untitled'}
                               </CardTitle>
                               <CardDescription className="text-xs">
                                 {card.company || 'No company'}
                               </CardDescription>
-                              {card.location && (
+                              {(card.location || card.salary) && (
                                 <CardDescription className="text-xs">
-                                  {card.location}
+                                  {[card.location, card.salary].filter(Boolean).join(' • ')}
                                 </CardDescription>
                               )}
                             </CardHeader>
-                            <CardContent className="p-3 pt-1">
+                            <CardContent className="space-y-1 px-3 pt-1 pb-3">
                               {((card.tags as string[]) || []).length > 0 && (
-                                <div className="mt-1 flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-1">
                                   {(card.tags as string[]).slice(0, 3).map((t, i) => (
                                     <Badge key={i} variant="secondary" className="text-[10px]">
                                       {t}
@@ -516,7 +517,7 @@ export default function TrackerPage() {
                                 </div>
                               )}
                               {(resume || letter) && (
-                                <div className="text-muted-foreground mt-1 text-[10px]">
+                                <div className="text-muted-foreground text-[10px]">
                                   {resume && <span>📄 {resume.title}</span>}
                                   {letter && <span> ✉️ {letter.title}</span>}
                                 </div>
