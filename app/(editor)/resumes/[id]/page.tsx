@@ -364,8 +364,9 @@ export default function ResumeEditorPage() {
                 <StyleSettings
                   sections={sections}
                   onChange={(next: Customization) => {
-                    setCustom(next)
-                    hydrateStyle(id, next)
+                    const merged = { ...custom, ...next }
+                    setCustom(merged)
+                    hydrateStyle(id, merged)
                     markDirty()
                     customDirty.current = true
                   }}
