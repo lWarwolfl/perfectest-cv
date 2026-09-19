@@ -371,8 +371,8 @@ export default function TrackerPage() {
   const columns = tracker?.columns || []
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="flex h-full flex-col gap-4">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Job Tracker</h1>
         <div className="flex gap-2">
           <Button
@@ -409,13 +409,10 @@ export default function TrackerPage() {
       </div>
 
       {view === 'board' ? (
-        <div
-          className="-mx-3 flex gap-4 overflow-x-auto px-3 pb-4"
-          style={{ minHeight: 'calc(100vh - 160px)' }}
-        >
+        <div className="-mx-3 flex min-h-0 flex-1 gap-4 overflow-x-auto px-3 pb-2">
           {isLoading
             ? Array.from({ length: 4 }, (_, i) => (
-                <Skeleton key={i} className="h-96 w-72 shrink-0 rounded-lg" />
+                <Skeleton key={i} className="w-72 shrink-0 rounded-lg" />
               ))
             : columns.map((col) => (
                 <div
@@ -539,7 +536,7 @@ export default function TrackerPage() {
           />
         </div>
       ) : (
-        <div className="overflow-auto rounded-lg border">
+        <div className="min-h-0 flex-1 overflow-auto rounded-lg border">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-muted/50 border-b">
