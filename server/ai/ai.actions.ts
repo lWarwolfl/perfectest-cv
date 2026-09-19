@@ -5,12 +5,21 @@ import { ResumeSection, User } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
 import { asc, eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
+import {
+  GRAMMAR_SYSTEM,
+  grammarPrompt,
+  parseGrammarIssues,
+  type GrammarIssue,
+} from '@/features/ai/grammar'
 
 const AI_KEY_COOKIE = 'ai_api_key'
 
 export async function getAiSettingsAction() {
   const user = await requireUser()
-  const [row] = await db.select({ aiSettings: User.aiSettings }).from(User).where(eq(User.id, user.id))
+  const [row] = await db
+    .select({ aiSettings: User.aiSettings })
+    .from(User)
+    .where(eq(User.id, user.id))
   const saved = row?.aiSettings ?? { baseUrl: '', apiKey: '', model: '' }
   const jar = await cookies()
   return { ...saved, apiKey: jar.get(AI_KEY_COOKIE)?.value ?? '' }
@@ -33,7 +42,10 @@ export async function saveAiSettingsAction(settings: AiSettings) {
     maxAge: 60 * 60 * 24 * 365,
   })
   // API secret lives ONLY in the user's browser cookie — never in the database.
-  await db.update(User).set({ aiSettings: { baseUrl, apiKey: '', model } }).where(eq(User.id, user.id))
+  await db
+    .update(User)
+    .set({ aiSettings: { baseUrl, apiKey: '', model } })
+    .where(eq(User.id, user.id))
   return { ok: true }
 }
 
@@ -54,9 +66,11 @@ export async function listAiModelsAction(baseUrl: string, apiKey: string) {
   return ids
 }
 
+const HOME_DIR = process.env.HOME || process.env.USERPROFILE || ''
+
 const AI_KEY_FILES: [string, RegExp][] = [
-  [`${process.env.HOME ?? ''}/.config/opencode/auth.json`, /"?(api_?key|token|key)"?\s*:\s*"([^"]+)"/i],
-  [`${process.env.HOME ?? ''}/.openrouter/api.json`, /"?(api_?key|token)"?\s*:\s*"([^"]+)"/i],
+  [`${HOME_DIR}/.config/opencode/auth.json`, /"?(api_?key|token|key)"?\s*:\s*"([^"]+)"/i],
+  [`${HOME_DIR}/.openrouter/api.json`, /"?(api_?key|token|key)"?\s*:\s*"([^"]+)"/i],
 ]
 
 export async function detectAiConfigAction(): Promise<{
@@ -66,10 +80,16 @@ export async function detectAiConfigAction(): Promise<{
 }> {
   await requireUser()
   const found = async (): Promise<{ apiKey: string | null; name: string | null }> => {
-    for (const [name, val] of Object.entries(process.env)) {
+    const env = Object.entries(process.env)
+    const rank = ([n]: [string, unknown]) =>
+      /API_?KEY/i.test(n) ? 0 : /key|token|secret/i.test(n) ? 1 : 2
+    env.sort((a, b) => rank(a) - rank(b))
+    for (const [name, val] of env) {
       if (
         typeof val === 'string' &&
-        /^(sk-|sk_|sk-ant-|gsk_|tr-|or-)[A-Za-z0-9_-]{16,}$/.test(val.trim())
+        /(api_?key|key|access_key|token|secret)/i.test(name) &&
+        !/[\s./]/.test(val.trim()) &&
+        val.trim().length >= 16
       ) {
         const provider = /OPENROUTER/i.test(name)
           ? 'OpenRouter'
@@ -152,28 +172,36 @@ function toResponsesInput(messages: { role: string; content: string }[]) {
   }))
 }
 
-async function chat(settings: { baseUrl: string; apiKey: string; model: string }, messages: { role: string; content: string }[]) {
+async function chat(
+  settings: { baseUrl: string; apiKey: string; model: string },
+  messages: { role: string; content: string }[]
+) {
   const base = settings.baseUrl.replace(/\/+$/, '')
   const responsesMode = isResponsesApi(base)
   let res: Response
   try {
-    res = await fetch(
-      responsesMode ? base + '/responses' : base + '/chat/completions',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
-        body: responsesMode
-          ? JSON.stringify({ model: settings.model, input: toResponsesInput(messages), temperature: 0.4 })
-          : JSON.stringify({ model: settings.model, messages, temperature: 0.4 }),
-        signal: AbortSignal.timeout(120_000),
-      }
-    )
+    res = await fetch(responsesMode ? base + '/responses' : base + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
+      body: responsesMode
+        ? JSON.stringify({
+            model: settings.model,
+            input: toResponsesInput(messages),
+            temperature: 0.4,
+          })
+        : JSON.stringify({ model: settings.model, messages, temperature: 0.4 }),
+      signal: AbortSignal.timeout(120_000),
+    })
   } catch (e) {
     const name = e instanceof Error ? e.name : ''
     if (name === 'TimeoutError' || name === 'AbortError') {
-      throw new Error('The AI endpoint timed out. The model may be loading (local runtimes) or overloaded — try again.')
+      throw new Error(
+        'The AI endpoint timed out. The model may be loading (local runtimes) or overloaded — try again.'
+      )
     }
-    throw new Error("Can't reach the AI endpoint. Check the API address on the dashboard and that the provider is up.")
+    throw new Error(
+      "Can't reach the AI endpoint. Check the API address on the dashboard and that the provider is up."
+    )
   }
   if (!res.ok) {
     const body = await res.text().catch(() => '')
@@ -191,7 +219,8 @@ async function chat(settings: { baseUrl: string; apiKey: string; model: string }
     .map((c) => (typeof c.text === 'string' ? c.text : ''))
     .join('')
   const content = responsesMode ? responsesText : chatContent
-  if (typeof content !== 'string' || !content.trim()) throw new Error('AI returned an empty response')
+  if (typeof content !== 'string' || !content.trim())
+    throw new Error('AI returned an empty response')
   return content.trim()
 }
 
@@ -216,13 +245,16 @@ function friendlyApiError(status: number, body: string, model: string) {
 }
 
 export async function aiTransformAction(input: {
-  feature: 'improve' | 'summary' | 'translate' | 'grammar' | 'cover-letter' | 'bullet' | 'ats-match'
+  feature: 'improve' | 'summary' | 'translate' | 'cover-letter' | 'bullet' | 'ats-match'
   text: string
   language?: string
   jobDescription?: string
 }) {
   const user = await requireUser()
-  const [row] = await db.select({ aiSettings: User.aiSettings }).from(User).where(eq(User.id, user.id))
+  const [row] = await db
+    .select({ aiSettings: User.aiSettings })
+    .from(User)
+    .where(eq(User.id, user.id))
   const jar = await cookies()
   const settings = {
     baseUrl: row?.aiSettings?.baseUrl ?? '',
@@ -264,9 +296,6 @@ export async function aiTransformAction(input: {
     case 'translate':
       prompt = `Translate this resume content into ${input.language || 'English'}. Keep names, links and technical terms intact:\n\n${text}`
       break
-    case 'grammar':
-      prompt = `Fix spelling, grammar and punctuation ONLY — do not rewrite or restructure. Return the corrected text:\n\n${text}`
-      break
     case 'cover-letter':
       prompt =
         `Write a tailored cover letter (max 350 words) based on this resume content` +
@@ -305,6 +334,35 @@ ${text}`
   return textToParagraphs(raw)
 }
 
+async function readAiSettings() {
+  const user = await requireUser()
+  const [row] = await db
+    .select({ aiSettings: User.aiSettings })
+    .from(User)
+    .where(eq(User.id, user.id))
+  const jar = await cookies()
+  const settings = {
+    baseUrl: row?.aiSettings?.baseUrl ?? '',
+    apiKey: jar.get(AI_KEY_COOKIE)?.value ?? '',
+    model: row?.aiSettings?.model ?? '',
+  }
+  if (!settings.baseUrl || !settings.apiKey || !settings.model) {
+    throw new Error('Set up your AI connection first (AI Features page)')
+  }
+  return settings
+}
+
+export async function checkGrammarAction(text: string): Promise<GrammarIssue[]> {
+  const body = text?.trim()
+  if (!body) throw new Error('Nothing to check — write some content first')
+  const settings = await readAiSettings()
+  const raw = await chat(settings, [
+    { role: 'system', content: GRAMMAR_SYSTEM },
+    { role: 'user', content: grammarPrompt(body) },
+  ])
+  return parseGrammarIssues(raw)
+}
+
 export async function getResumeTextAction(resumeId: string) {
   const user = await requireUser()
   const resume = await db.query.Resume.findFirst({
@@ -326,13 +384,26 @@ export async function getResumeTextAction(resumeId: string) {
     for (const e of s.entries) {
       if (e.hidden) continue
       const d = e.data as unknown as Record<string, unknown>
-      const line = [d.jobTitle, d.employer, d.degree, d.school, d.skill, d.language, d.projectTitle, d.title, d.interest, d.name]
+      const line = [
+        d.jobTitle,
+        d.employer,
+        d.degree,
+        d.school,
+        d.skill,
+        d.language,
+        d.projectTitle,
+        d.title,
+        d.interest,
+        d.name,
+      ]
         .filter((v): v is string => typeof v === 'string' && !!v)
         .join(' | ')
       const dates = [d.startDate, d.endDate]
         .map((x) => {
           const o = x as { month?: unknown; year?: unknown } | undefined
-          return o && typeof o === 'object' ? [o.month, o.year].filter((v) => typeof v === 'string' && v).join('/') : ''
+          return o && typeof o === 'object'
+            ? [o.month, o.year].filter((v) => typeof v === 'string' && v).join('/')
+            : ''
         })
         .filter(Boolean)
         .join(' - ')

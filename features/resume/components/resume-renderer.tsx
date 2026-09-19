@@ -68,7 +68,8 @@ function dateStr(d: DateObject, dateDisplay: string) {
   const y = Number(d.year)
   const m = Number(d.month)
   const hasDate = m >= 1 && m <= 12 && y > 0
-  const pattern = dateDisplay === 'MM/YYYY' ? 'MM/yyyy' : dateDisplay === 'MMM YYYY' ? 'MMM yyyy' : 'yyyy'
+  const pattern =
+    dateDisplay === 'MM/YYYY' ? 'MM/yyyy' : dateDisplay === 'MMM YYYY' ? 'MMM yyyy' : 'yyyy'
   const main = hasDate ? format(new Date(y, m - 1, 1), pattern) : d.year || ''
   if (d.ongoing) return `${main} ${d.customOngoingWord || 'present'}`.trim()
   return main
@@ -115,6 +116,10 @@ function dim(text: string) {
   return `color-mix(in srgb, ${text} 75%, transparent)`
 }
 
+function esc(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 function DisplayList({
   display,
   items,
@@ -150,7 +155,10 @@ function DisplayList({
     return (
       <span style={{ color: secondary }}>
         {open}
-        <span className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`} dangerouslySetInnerHTML={{ __html: html }} />
+        <span
+          className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
         {close}
       </span>
     )
@@ -213,7 +221,7 @@ function DisplayList({
                   className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                   style={{ fontSize: '0.9em', color: secondary }}
                   dangerouslySetInnerHTML={{ __html: html }}
-                  />
+                />
               )}
             </div>
           )
@@ -427,7 +435,11 @@ export function ResumeRenderer({
             const primary = jobFirst ? w.jobTitle : w.employer
             const secondary = jobFirst ? w.employer : w.jobTitle
             return (
-              <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}>
+              <div
+                key={e.id}
+                data-pb-item
+                style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}
+              >
                 <div
                   style={{
                     display: 'flex',
@@ -456,9 +468,7 @@ export function ResumeRenderer({
                   <span
                     style={{
                       fontSize: '0.85em',
-                      color: customization.applyAccentColor.dates
-                        ? colors.accent
-                        : colors.text,
+                      color: customization.applyAccentColor.dates ? colors.accent : colors.text,
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -476,7 +486,7 @@ export function ResumeRenderer({
                     className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                     style={{ marginTop: '2px' }}
                     dangerouslySetInnerHTML={{ __html: w.description }}
-                    />
+                  />
                 )}
               </div>
             )
@@ -486,7 +496,11 @@ export function ResumeRenderer({
             if (e.data.type !== 'education') return null
             const ed = e.data
             return (
-              <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}>
+              <div
+                key={e.id}
+                data-pb-item
+                style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <span style={{ fontWeight: 500 }}>
                     {customization.educationDisplay.degreeBeforeSchool
@@ -524,7 +538,7 @@ export function ResumeRenderer({
                     className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                     style={{ marginTop: '4px' }}
                     dangerouslySetInnerHTML={{ __html: ed.description }}
-                    />
+                  />
                 )}
               </div>
             )
@@ -561,7 +575,13 @@ export function ResumeRenderer({
             items={entries.flatMap((e) =>
               e.data.type !== 'language'
                 ? []
-                : [{ key: e.id, name: e.data.language, infoHtml: e.data.infoHtml }]
+                : [
+                    {
+                      key: e.id,
+                      name: e.data.language,
+                      infoHtml: esc(e.data.level),
+                    },
+                  ]
             )}
           />
         )}
@@ -598,7 +618,11 @@ export function ResumeRenderer({
             if (e.data.type !== 'project') return null
             const p = e.data
             return (
-              <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}>
+              <div
+                key={e.id}
+                data-pb-item
+                style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}
+              >
                 <span style={{ fontWeight: 500 }}>
                   {linked(
                     p.projectTitle,
@@ -616,7 +640,7 @@ export function ResumeRenderer({
                     className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                     style={{ marginTop: '2px' }}
                     dangerouslySetInnerHTML={{ __html: p.description }}
-                    />
+                  />
                 )}
               </div>
             )
@@ -636,7 +660,11 @@ export function ResumeRenderer({
             ) {
               const c = e.data
               return (
-                <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx - 2}px`, lineHeight: lh }}>
+                <div
+                  key={e.id}
+                  data-pb-item
+                  style={{ marginBottom: `${entryGapPx - 2}px`, lineHeight: lh }}
+                >
                   <span style={{ fontWeight: 500 }}>
                     {linked(c.title, c.link, customization, colors.accent, colors.text)}
                   </span>
@@ -662,7 +690,11 @@ export function ResumeRenderer({
             if (e.data.type !== 'custom') return null
             const c = e.data
             return (
-              <div key={e.id} data-pb-item style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}>
+              <div
+                key={e.id}
+                data-pb-item
+                style={{ marginBottom: `${entryGapPx}px`, lineHeight: lh }}
+              >
                 <span style={{ fontWeight: 500 }}>{c.title}</span>
                 {c.subTitle && <span style={{ color: colors.secondary }}> - {c.subTitle}</span>}
                 {hasHtml(c.description) && (
@@ -670,7 +702,7 @@ export function ResumeRenderer({
                     className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
                     style={{ marginTop: '2px' }}
                     dangerouslySetInnerHTML={{ __html: c.description }}
-                    />
+                  />
                 )}
               </div>
             )
@@ -699,21 +731,20 @@ export function ResumeRenderer({
           : photoPosition.shape === 'rounded-sm'
             ? '8px'
             : '0'
-  const photoEl =
-    photoPosition.show && personalDetails.photo.imageId && (
-      <img
-        src={personalDetails.photo.imageId}
-        alt="profile"
-        style={{
-          filter: photoPosition.grayscale ? 'grayscale(1)' : undefined,
-          width: SIZE_PX[sizeKey],
-          height: SIZE_PX[sizeKey],
-          borderRadius: shapeRadius,
-          objectFit: 'cover',
-          flexShrink: 0,
-        }}
-      />
-    )
+  const photoEl = photoPosition.show && personalDetails.photo.imageId && (
+    <img
+      src={personalDetails.photo.imageId}
+      alt="profile"
+      style={{
+        filter: photoPosition.grayscale ? 'grayscale(1)' : undefined,
+        width: SIZE_PX[sizeKey],
+        height: SIZE_PX[sizeKey],
+        borderRadius: shapeRadius,
+        objectFit: 'cover',
+        flexShrink: 0,
+      }}
+    />
+  )
 
   const hasPhoto = Boolean(photoPosition.show && personalDetails.photo.imageId)
   const photoTop = photoPosition.position === 'top' && !isTwoCol
@@ -794,11 +825,18 @@ export function ResumeRenderer({
         alignItems: photoTop ? 'center' : hasPhoto ? 'center' : 'flex-start',
         justifyContent: 'space-between',
         gap: '16px',
-        marginBottom: header.position === 'top' ? `${customization.spacing.headerDetailsGap ?? 16}px` : '0',
+        marginBottom:
+          header.position === 'top' ? `${customization.spacing.headerDetailsGap ?? 16}px` : '0',
       }}
     >
       {(photoSide === 'left' || photoTop) && photoEl}
-      <div style={{ flex: 1, textAlign: centered ? 'center' : 'left', width: photoTop ? '100%' : undefined }}>
+      <div
+        style={{
+          flex: 1,
+          textAlign: centered ? 'center' : 'left',
+          width: photoTop ? '100%' : undefined,
+        }}
+      >
         <div
           style={{
             display: 'flex',
@@ -875,7 +913,9 @@ export function ResumeRenderer({
             {detailsBlock && (
               <div
                 style={{
-                  marginTop: hasPhoto ? `${customization.spacing.headerDetailsGap ?? 16}px` : undefined,
+                  marginTop: hasPhoto
+                    ? `${customization.spacing.headerDetailsGap ?? 16}px`
+                    : undefined,
                 }}
               >
                 {detailsBlock}

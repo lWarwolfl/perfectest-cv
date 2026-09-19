@@ -37,7 +37,12 @@ function mergeInto(base: Deep, patch: Deep): Deep {
     const v = patch[k]
     const b = base[k]
     out[k] =
-      v && typeof v === 'object' && !Array.isArray(v) && b && typeof b === 'object' && !Array.isArray(b)
+      v &&
+      typeof v === 'object' &&
+      !Array.isArray(v) &&
+      b &&
+      typeof b === 'object' &&
+      !Array.isArray(b)
         ? mergeInto(b as Deep, v as Deep)
         : v
   }
@@ -170,7 +175,8 @@ export const TEMPLATE_SECTIONS: TemplateSection[] = [
         location: 'Amsterdam, NL',
         startDate: D('2014', '09'),
         endDate: D('2018', '06'),
-        description: 'Graduated cum laude. Thesis on rendering performance in single-page applications.',
+        description:
+          'Graduated cum laude. Thesis on rendering performance in single-page applications.',
       },
     ],
   },
@@ -192,9 +198,9 @@ export const TEMPLATE_SECTIONS: TemplateSection[] = [
     displayName: SECTION_LABELS.language,
     iconKey: SECTION_ICONS.language,
     entries: [
-      { type: 'language', language: 'English', level: 'Fluent', infoHtml: '' },
-      { type: 'language', language: 'Dutch', level: 'Intermediate', infoHtml: '' },
-      { type: 'language', language: 'German', level: 'Basic', infoHtml: '' },
+      { type: 'language', language: 'English', level: 'Fluent' },
+      { type: 'language', language: 'Dutch', level: 'Intermediate' },
+      { type: 'language', language: 'German', level: 'Basic' },
     ],
   },
   {
@@ -450,7 +456,13 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
         nameStyle: 'bold',
       },
       heading: { style: 'plain', icons: 'none', capitalization: 'uppercase' },
-      applyAccentColor: { name: false, dates: false, icons: false, headings: false, jobTitle: false },
+      applyAccentColor: {
+        name: false,
+        dates: false,
+        icons: false,
+        headings: false,
+        jobTitle: false,
+      },
     }),
     personalDetails: TEMPLATE_PERSONAL_DETAILS,
     sections: TEMPLATE_SECTIONS,
@@ -496,7 +508,13 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
         detailsSeparator: 'bullet',
       },
       heading: { style: 'simple', icons: 'none', capitalization: 'uppercase' },
-      applyAccentColor: { name: false, dates: false, icons: false, headings: false, jobTitle: false },
+      applyAccentColor: {
+        name: false,
+        dates: false,
+        icons: false,
+        headings: false,
+        jobTitle: false,
+      },
     }),
     personalDetails: TEMPLATE_PERSONAL_DETAILS,
     sections: TEMPLATE_SECTIONS,
@@ -657,7 +675,13 @@ export const RESUME_TEMPLATES: TemplatePreset[] = [
       },
       heading: { style: 'simple', icons: 'none', capitalization: 'uppercase' },
       skill: { selected: 'rows', text: 'bullet', rows: { spacing: 'spacious', bullets: true } },
-      applyAccentColor: { name: false, dates: false, icons: false, headings: false, jobTitle: false },
+      applyAccentColor: {
+        name: false,
+        dates: false,
+        icons: false,
+        headings: false,
+        jobTitle: false,
+      },
     }),
     personalDetails: TEMPLATE_PERSONAL_DETAILS,
     sections: TEMPLATE_SECTIONS,

@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { EntryForm, PersonalDetailsForm } from '@/components/editor/resume/entry-form'
-import SectionCard, { entryTitleAndPreview, SECTION_ICONS } from '@/components/editor/resume/section-card'
+import SectionCard, {
+  entryTitleAndPreview,
+  SECTION_ICONS,
+} from '@/components/editor/resume/section-card'
 import { Button } from '@/components/ui/button'
 import { UserRound, ChevronDown, Plus } from 'lucide-react'
 import AddSectionModal from '@/components/editor/add-section-modal'
@@ -83,6 +86,7 @@ export default function ResumeSidebar({
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-3">
             <EntryForm
+              key={entry.id}
               entry={entry}
               sectionType={section.sectionType}
               onChange={(u) => onUpdateEntry(section.id, entry.id, u)}

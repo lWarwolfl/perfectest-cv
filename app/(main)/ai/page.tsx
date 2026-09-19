@@ -19,7 +19,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
-import { useAiSettings, useAiTransform } from '@/features/ai/ai.hooks'
+import { useAiSettings, useAiTransform, useGrammarCheck } from '@/features/ai/ai.hooks'
+import type { GrammarIssue } from '@/features/ai/grammar'
 import { useListResumes } from '@/features/resume/hooks/resume.hooks'
 import { getResumeTextAction } from '@/server/ai/ai.actions'
 
@@ -108,7 +109,8 @@ const FEATURES: {
     id: 'grammar',
     icon: SpellCheck,
     title: 'Check spelling & grammar',
-    description: 'Check spelling, grammar and punctuation without rewriting.',
+    description:
+      'Find spelling, grammar and punctuation mistakes and list the fixes — nothing is rewritten.',
     cta: 'Check now',
   },
   {
@@ -131,8 +133,11 @@ export default function AiFeaturesPage() {
   const [language, setLanguage] = useState(LANGUAGES[0])
   const [jobDescription, setJobDescription] = useState('')
   const [result, setResult] = useState<{ feature: string; html: string } | null>(null)
+  const [issues, setIssues] = useState<GrammarIssue[] | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const transform = useAiTransform()
+  const grammar = useGrammarCheck()
 
   const missingJob = jobDescription.trim().length < 40
   const hasSource = !!resumeId || !!resumeText.trim()
@@ -156,13 +161,27 @@ export default function AiFeaturesPage() {
       toast.error('Paste the target job description (at least a few sentences) first')
       return
     }
-    const html = await transform.mutateAsync({
-      feature: f.id,
-      text,
-      ...(f.id === 'translate' ? { language } : {}),
-      ...(f.needsJob ? { jobDescription } : {}),
-    })
-    setResult({ feature: f.id, html })
+    const feature = f.id
+    setBusy(feature)
+    try {
+      if (feature === 'grammar') {
+        setResult(null)
+        setIssues(await grammar.mutateAsync(text))
+        return
+      }
+      setIssues(null)
+      setResult({
+        feature,
+        html: await transform.mutateAsync({
+          feature,
+          text,
+          ...(feature === 'translate' ? { language } : {}),
+          ...(f.needsJob ? { jobDescription } : {}),
+        }),
+      })
+    } finally {
+      setBusy(null)
+    }
   }
 
   const copy = async () => {
@@ -253,7 +272,8 @@ export default function AiFeaturesPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f) => {
           const needsJobMissing = f.needsJob && aiReady && hasSource && missingJob
-          const disabled = !aiReady || (!hasSource && aiReady) || transform.isPending
+          const running = busy === f.id
+          const disabled = !aiReady || !hasSource || running
           return (
             <Card key={f.id} className={disabled ? 'opacity-60' : ''}>
               <CardContent className="flex h-full flex-col gap-2">
@@ -272,18 +292,19 @@ export default function AiFeaturesPage() {
                 </div>
                 <p className="text-muted-foreground flex-1 text-xs">{f.description}</p>
                 {needsJobMissing && (
-                  <p className="text-amber-600 flex items-center gap-1.5 text-[11px]">
+                  <p className="flex items-center gap-1.5 text-[11px] text-amber-600">
                     <AlertTriangle className="size-3 shrink-0" /> Paste a job description first
                   </p>
                 )}
                 {!aiReady && (
                   <p className="text-muted-foreground flex items-center gap-1.5 text-[11px]">
-                    <AlertTriangle className="text-amber-500 size-3 shrink-0" /> Needs AI connection
+                    <AlertTriangle className="size-3 shrink-0 text-amber-500" /> Needs AI connection
                   </p>
                 )}
                 {aiReady && !hasSource && (
                   <p className="text-muted-foreground flex items-center gap-1.5 text-[11px]">
-                    <AlertTriangle className="text-amber-500 size-3 shrink-0" /> Choose a resume first
+                    <AlertTriangle className="size-3 shrink-0 text-amber-500" /> Choose a resume
+                    first
                   </p>
                 )}
                 <Button
@@ -292,7 +313,7 @@ export default function AiFeaturesPage() {
                   disabled={disabled}
                   onClick={() => run(f).catch(() => {})}
                 >
-                  {transform.isPending ? <Spinner className="size-4" /> : <f.icon className="size-4" />}
+                  {running ? <Spinner className="size-4" /> : <f.icon className="size-4" />}
                   {f.cta}
                 </Button>
               </CardContent>
@@ -300,6 +321,29 @@ export default function AiFeaturesPage() {
           )
         })}
       </div>
+
+      {issues && (
+        <Card>
+          <CardContent className="space-y-3">
+            <h2 className="text-sm font-semibold">Check spelling &amp; grammar — result</h2>
+            {issues.length === 0 ? (
+              <p className="text-sm">No spelling or grammar problems found.</p>
+            ) : (
+              <ul className="divide-border max-h-96 divide-y overflow-y-auto rounded-lg border">
+                {issues.map((issue, i) => (
+                  <li key={`${issue.original}-${i}`} className="space-y-0.5 p-3 text-sm">
+                    <p className="text-destructive line-through">{issue.original}</p>
+                    <p>{issue.suggestion}</p>
+                    {issue.reason && (
+                      <p className="text-muted-foreground text-xs">{issue.reason}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {result && (
         <Card>

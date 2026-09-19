@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TextAlign from '@tiptap/extension-text-align'
-import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   AlignCenter,
@@ -22,7 +21,9 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { getAiSettingsAction, aiTransformAction } from '@/server/ai/ai.actions'
+import { aiTransformAction, checkGrammarAction } from '@/server/ai/ai.actions'
+import { useAiSettings } from '@/features/ai/ai.hooks'
+import type { GrammarIssue } from '@/features/ai/grammar'
 import { getErrorMessage } from '@/lib/utils'
 
 interface RichTextEditorProps {
@@ -33,11 +34,19 @@ interface RichTextEditorProps {
 
 const ACTIVE_CLASSES = 'bg-primary text-primary-foreground'
 
-const AI_LANGUAGES = ['English', 'Persian (فارسی)', 'German', 'French', 'Spanish', 'Arabic', 'Turkish']
+const AI_LANGUAGES = [
+  'English',
+  'Persian (فارسی)',
+  'German',
+  'French',
+  'Spanish',
+  'Arabic',
+  'Turkish',
+]
 
 const AI_ACTIONS = [
   { feature: 'improve', label: 'Improve writing' },
-  { feature: 'grammar', label: 'Fix spelling & grammar' },
+  { feature: 'grammar', label: 'Check spelling & grammar' },
   { feature: 'summary', label: 'Generate summary' },
   { feature: 'bullet', label: 'Turn into achievement bullets' },
 ] as const
@@ -50,11 +59,8 @@ export default function RichTextEditor({
   const [aiOpen, setAiOpen] = useState(false)
   const [aiBusy, setAiBusy] = useState<string | null>(null)
   const [aiLang, setAiLang] = useState(AI_LANGUAGES[0])
-  const { data: aiSettings } = useQuery({
-    queryKey: ['ai-settings-editor'],
-    queryFn: getAiSettingsAction,
-    staleTime: 60_000,
-  })
+  const [aiIssues, setAiIssues] = useState<GrammarIssue[] | null>(null)
+  const { data: aiSettings } = useAiSettings()
   const aiReady = !!(aiSettings?.baseUrl && aiSettings?.apiKey && aiSettings?.model)
 
   const editor = useEditor({
@@ -102,6 +108,10 @@ export default function RichTextEditor({
     }
     setAiBusy(feature)
     try {
+      if (feature === 'grammar') {
+        setAiIssues(await checkGrammarAction(text))
+        return
+      }
       const html = await aiTransformAction({
         feature,
         text,
@@ -116,6 +126,29 @@ export default function RichTextEditor({
     } finally {
       setAiBusy(null)
     }
+  }
+
+  const applyIssue = (issue: GrammarIssue) => {
+    let from = -1
+    editor.state.doc.descendants((node, pos) => {
+      if (from >= 0 || !node.isText || !node.text) return
+      const i = node.text.indexOf(issue.original)
+      if (i >= 0) from = pos + i
+    })
+    if (from < 0) {
+      toast.error('That text is no longer in this field')
+      return
+    }
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(
+        { from, to: from + issue.original.length },
+        { type: 'text', text: issue.suggestion }
+      )
+      .run()
+    onUpdate(editor.getHTML())
+    setAiIssues((prev) => prev?.filter((i) => i !== issue) ?? null)
   }
 
   return (
@@ -196,51 +229,100 @@ export default function RichTextEditor({
           </Button>
         </div>
         {aiReady && (
-          <Popover open={aiOpen} onOpenChange={setAiOpen}>
+          <Popover
+            open={aiOpen}
+            onOpenChange={(open) => {
+              setAiOpen(open)
+              if (!open) setAiIssues(null)
+            }}
+          >
             <PopoverTrigger
               render={
                 <Button variant="outline" size="sm" className="ml-auto" title="AI suggestions">
-                  {aiBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-                  AI
-                </Button>
-              }
-            />
-            <PopoverContent className="w-56 p-1" align="end">
-              {AI_ACTIONS.map((a) => (
-                <button
-                  key={a.feature}
-                  type="button"
-                  disabled={!!aiBusy}
-                  className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm disabled:opacity-50"
-                  onClick={() => runAi(a.feature)}
-                >
-                  {aiBusy === a.feature ? (
+                  {aiBusy ? (
                     <Loader2 className="size-3.5 animate-spin" />
                   ) : (
                     <Sparkles className="size-3.5" />
                   )}
-                  {a.label}
-                </button>
-              ))}
-              <div className="bg-border my-1 h-px" />
-              <div className="flex items-center gap-1 px-1 py-1">
-                <select
-                  aria-label="Translate to"
-                  className="border-input h-7 min-w-0 flex-1 rounded-md border bg-transparent px-1.5 text-xs"
-                  value={aiLang}
-                  onChange={(e) => setAiLang(e.target.value)}
-                >
-                  {AI_LANGUAGES.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-                <Button variant="outline" size="xs" disabled={!!aiBusy} onClick={() => runAi('translate')}>
-                  {aiBusy === 'translate' ? <Loader2 className="size-3 animate-spin" /> : null}
-                  Translate
+                  AI
                 </Button>
-              </div>
+              }
+            />
+            <PopoverContent className="w-72 p-1" align="end">
+              {aiIssues ? (
+                aiIssues.length === 0 ? (
+                  <p className="text-muted-foreground px-2 py-3 text-xs">
+                    No spelling or grammar problems found.
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
+                      {aiIssues.length} problem{aiIssues.length === 1 ? '' : 's'} — click to fix
+                    </p>
+                    <div className="max-h-64 overflow-y-auto">
+                      {aiIssues.map((issue, i) => (
+                        <button
+                          key={`${issue.original}-${i}`}
+                          type="button"
+                          className="hover:bg-accent hover:text-accent-foreground w-full rounded-md px-2 py-1.5 text-left text-xs"
+                          onClick={() => applyIssue(issue)}
+                        >
+                          <span className="block line-through opacity-60">{issue.original}</span>
+                          <span className="block">{issue.suggestion}</span>
+                          {issue.reason && (
+                            <span className="text-muted-foreground block text-[11px]">
+                              {issue.reason}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )
+              ) : (
+                <>
+                  {AI_ACTIONS.map((a) => (
+                    <button
+                      key={a.feature}
+                      type="button"
+                      disabled={!!aiBusy}
+                      className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm disabled:opacity-50"
+                      onClick={() => runAi(a.feature)}
+                    >
+                      {aiBusy === a.feature ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="size-3.5" />
+                      )}
+                      {a.label}
+                    </button>
+                  ))}
+                  <div className="bg-border my-1 h-px" />
+                  <div className="flex items-center gap-1 px-1 py-1">
+                    <select
+                      aria-label="Translate to"
+                      className="border-input h-7 min-w-0 flex-1 rounded-md border bg-transparent px-1.5 text-xs"
+                      value={aiLang}
+                      onChange={(e) => setAiLang(e.target.value)}
+                    >
+                      {AI_LANGUAGES.map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      disabled={!!aiBusy}
+                      onClick={() => runAi('translate')}
+                    >
+                      {aiBusy === 'translate' ? <Loader2 className="size-3 animate-spin" /> : null}
+                      Translate
+                    </Button>
+                  </div>
+                </>
+              )}
             </PopoverContent>
           </Popover>
         )}

@@ -1,9 +1,4 @@
-import type {
-  DateObject,
-  EntryData,
-  PersonalDetails,
-  SectionType,
-} from '@/features/resume/types'
+import type { DateObject, EntryData, PersonalDetails, SectionType } from '@/features/resume/types'
 
 /**
  * Fetches and parses a FlowCV public resume page (https://flowcv.com/resume/<id>).
@@ -83,9 +78,7 @@ function safeDecode(s: string) {
 
 function inlineText(html: string) {
   return decodeEntities(
-    html
-      .replace(/<[^>]*>/g, '')
-      .replace(/[\u200B-\u200F\u2060-\u2064\uFEFF]/g, '')
+    html.replace(/<[^>]*>/g, '').replace(/[\u200B-\u200F\u2060-\u2064\uFEFF]/g, '')
   )
 }
 
@@ -99,7 +92,11 @@ function joinWords(html: string, re: RegExp) {
   let m: RegExpExecArray | null
   const r = new RegExp(re.source, 'g')
   while ((m = r.exec(html))) out.push(inlineText(m[1]))
-  return out.join('').replace(/\s+/g, ' ').replace(/\s*,\s*$/, '').trim()
+  return out
+    .join('')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*,\s*$/, '')
+    .trim()
 }
 
 const ALLOWED_TAGS = new Set(['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p', 'ul', 'ol', 'li'])
@@ -150,7 +147,13 @@ function descriptionHtml(slice: string) {
     sanitizeFlowcvHtml(m[1])
   )
   const parts = ps.filter(Boolean).map((p) => `<p>${p}</p>`)
-  if (lis.length) parts.push(`<ul>${lis.filter(Boolean).map((li) => `<li>${li}</li>`).join('')}</ul>`)
+  if (lis.length)
+    parts.push(
+      `<ul>${lis
+        .filter(Boolean)
+        .map((li) => `<li>${li}</li>`)
+        .join('')}</ul>`
+    )
   return parts.join('')
 }
 
@@ -174,12 +177,11 @@ function parseEntries(chunk: string): FlowcvEntry[] {
     const title = joinWords(slice, /data-role="title-word"[^>]*>([\s\S]*?)<\/span>/)
     if (!title && !descriptionHtml(slice)) continue
     const subTitleZone = slice.slice(slice.indexOf('data-role="subTitle-container"'))
-    const subTitle = joinWords(
-      subTitleZone,
-      /data-role="subTitle-word"[^>]*>([\s\S]*?)<\/span>/
-    )
+    const subTitle = joinWords(subTitleZone, /data-role="subTitle-word"[^>]*>([\s\S]*?)<\/span>/)
     const dateRaw = text(match1(slice, new RegExp(`id="${id}-date"[^>]*>([\\s\\S]*?)<\\/span>`)))
-    const location = text(match1(slice, new RegExp(`id="${id}-location"[^>]*>([\\s\\S]*?)<\\/span>`)))
+    const location = text(
+      match1(slice, new RegExp(`id="${id}-location"[^>]*>([\\s\\S]*?)<\\/span>`))
+    )
     entries.push({
       title,
       link: match1(titleZone, /href="([^"]*)"/),
@@ -302,7 +304,9 @@ export function parseFlowcvHtml(raw: string): FlowcvData {
 
 export async function fetchFlowcvResume(url: string): Promise<FlowcvData> {
   if (!FLOWCV_URL_PATTERN.test(url.trim())) {
-    throw new Error('Not a valid FlowCV public resume URL (expected https://flowcv.com/resume/<id>)')
+    throw new Error(
+      'Not a valid FlowCV public resume URL (expected https://flowcv.com/resume/<id>)'
+    )
   }
   const res = await fetch(url.trim(), {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PerfectestCV/1.0)' },
@@ -318,10 +322,7 @@ export async function fetchFlowcvResume(url: string): Promise<FlowcvData> {
 }
 
 /** Maps parsed FlowCV data onto this app's PersonalDetails (keeps photo/custom fields). */
-export function flowcvToPersonalDetails(
-  data: FlowcvData,
-  prev: PersonalDetails
-): PersonalDetails {
+export function flowcvToPersonalDetails(data: FlowcvData, prev: PersonalDetails): PersonalDetails {
   return {
     ...prev,
     fullName: data.name || prev.fullName,
@@ -353,12 +354,17 @@ export function flowcvToPersonalDetails(
   }
 }
 
-export function flowcvToEntryData(data: FlowcvData): { sectionType: SectionType; entries: EntryData[] }[] {
+export function flowcvToEntryData(
+  data: FlowcvData
+): { sectionType: SectionType; entries: EntryData[] }[] {
   const sections: { sectionType: SectionType; entries: EntryData[] }[] = []
   const dates = (raw: string) => parseDateRange(raw)
 
   if (data.summaryHtml) {
-    sections.push({ sectionType: 'profile', entries: [{ type: 'profile', text: data.summaryHtml }] })
+    sections.push({
+      sectionType: 'profile',
+      entries: [{ type: 'profile', text: data.summaryHtml }],
+    })
   }
   if (data.work.length) {
     sections.push({
@@ -401,13 +407,22 @@ export function flowcvToEntryData(data: FlowcvData): { sectionType: SectionType;
   if (data.skills.length) {
     sections.push({
       sectionType: 'skill',
-      entries: data.skills.map((s) => ({ type: 'skill', skill: s.skill, level: '', infoHtml: s.infoHtml })),
+      entries: data.skills.map((s) => ({
+        type: 'skill',
+        skill: s.skill,
+        level: '',
+        infoHtml: s.infoHtml,
+      })),
     })
   }
   if (data.languages.length) {
     sections.push({
       sectionType: 'language',
-      entries: data.languages.map((l) => ({ type: 'language', language: l.language, level: l.level, infoHtml: '' })),
+      entries: data.languages.map((l) => ({
+        type: 'language',
+        language: l.language,
+        level: l.level,
+      })),
     })
   }
   if (data.project.length) {

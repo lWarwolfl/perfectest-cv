@@ -58,7 +58,6 @@ export interface LanguageEntry {
   type: 'language'
   language: string
   level: string
-  infoHtml: string
 }
 
 export interface InterestEntry {

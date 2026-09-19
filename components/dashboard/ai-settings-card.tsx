@@ -1,15 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import {
-  AlertTriangle,
-  Bot,
-  Check,
-  ChevronDown,
-  RefreshCcw,
-  Search,
-  Sparkles,
-} from 'lucide-react'
+import { AlertTriangle, Bot, Check, ChevronDown, RefreshCcw, Search, Sparkles } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Card, CardContent } from '@/components/ui/card'
@@ -69,7 +61,7 @@ export function AiSettingsCard() {
       if (r.baseUrl) {
         setBaseUrl(r.baseUrl)
         setModels([])
-        setModel(r.baseUrl === (saved?.baseUrl ?? '') ? saved?.model ?? null : null)
+        setModel(r.baseUrl === (saved?.baseUrl ?? '') ? (saved?.model ?? null) : null)
       }
       if (r.apiKey) setApiKey(r.apiKey)
       if (r.baseUrl && r.apiKey) {
@@ -87,7 +79,10 @@ export function AiSettingsCard() {
     () => (filter ? models.filter((m) => m.toLowerCase().includes(filter.toLowerCase())) : models),
     [models, filter]
   )
-  const dirty = url !== (saved?.baseUrl ?? '') || key !== (saved?.apiKey ?? '') || selected !== (saved?.model ?? '')
+  const dirty =
+    url !== (saved?.baseUrl ?? '') ||
+    key !== (saved?.apiKey ?? '') ||
+    selected !== (saved?.model ?? '')
   const canFetch = /^https?:\/\//.test(url.trim()) && key.trim().length > 0
   const noModels = models.length === 0
 
@@ -112,7 +107,11 @@ export function AiSettingsCard() {
             disabled={detect.isPending}
             onClick={() => detect.mutate()}
           >
-            {detect.isPending ? <Spinner className="size-3.5" /> : <Sparkles className="size-3.5" />}
+            {detect.isPending ? (
+              <Spinner className="size-3.5" />
+            ) : (
+              <Sparkles className="size-3.5" />
+            )}
             Auto-detect
           </Button>
         </div>
@@ -187,7 +186,9 @@ export function AiSettingsCard() {
                 </div>
                 <div className="max-h-60 overflow-y-auto p-1">
                   {filtered.length === 0 && (
-                    <p className="text-muted-foreground px-2 py-4 text-center text-xs">No models match</p>
+                    <p className="text-muted-foreground px-2 py-4 text-center text-xs">
+                      No models match
+                    </p>
                   )}
                   {filtered.map((m) => (
                     <button
@@ -213,13 +214,17 @@ export function AiSettingsCard() {
               disabled={!canFetch || fetchModels.isPending}
               onClick={() => fetchModels.mutate()}
             >
-              {fetchModels.isPending ? <Spinner className="size-4" /> : <RefreshCcw className="size-4" />}
+              {fetchModels.isPending ? (
+                <Spinner className="size-4" />
+              ) : (
+                <RefreshCcw className="size-4" />
+              )}
               Fetch
             </Button>
           </div>
-          {noModels && (
+          {noModels && !selected && (
             <p className="text-muted-foreground flex items-start gap-1.5 text-[11px]">
-              <AlertTriangle className="text-amber-500 mt-0.5 size-3 shrink-0" />
+              <AlertTriangle className="mt-0.5 size-3 shrink-0 text-amber-500" />
               {modelError ||
                 'No models fetched yet — enter your API address and secret, then click "Fetch models".'}
             </p>
@@ -231,7 +236,7 @@ export function AiSettingsCard() {
             </p>
           )}
         </div>
-        {!canFetch || noModels || !selected ? (
+        {!canFetch || !selected ? (
           <Button className="mt-auto w-full" disabled>
             Save connection
           </Button>
@@ -239,7 +244,9 @@ export function AiSettingsCard() {
           <Button
             className="mt-auto w-full"
             disabled={!dirty || save.isPending}
-            onClick={() => save.mutate({ baseUrl: url.trim(), apiKey: key.trim(), model: selected })}
+            onClick={() =>
+              save.mutate({ baseUrl: url.trim(), apiKey: key.trim(), model: selected })
+            }
           >
             {save.isPending ? <Spinner className="size-4" /> : <Check className="size-4" />}
             Save connection

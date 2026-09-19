@@ -6,11 +6,10 @@ import { QUERY_KEYS } from '@/features/queries/keys'
 import {
   getAiSettingsAction,
   saveAiSettingsAction,
-  listAiModelsAction,
   aiTransformAction,
+  checkGrammarAction,
 } from '@/server/ai/ai.actions'
 import { getErrorMessage } from '@/lib/utils'
-import type { AiSettings } from '@/server/ai/ai.actions'
 
 export function useAiSettings() {
   return useQuery({ queryKey: [QUERY_KEYS.AI_SETTINGS], queryFn: getAiSettingsAction })
@@ -24,6 +23,13 @@ export function useSaveAiSettings() {
       qc.invalidateQueries({ queryKey: [QUERY_KEYS.AI_SETTINGS] })
       toast.success('AI settings saved')
     },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useGrammarCheck() {
+  return useMutation({
+    mutationFn: checkGrammarAction,
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }

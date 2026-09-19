@@ -86,13 +86,6 @@ function AvatarControls({
   )
 }
 
-/** Plain non-link text fields of the personal details form. */
-const PERSONAL_FIELDS = [
-  ['fullName', 'Full name'],
-  ['jobTitle', 'Job title'],
-  ['address', 'Address'],
-] as const
-
 export function PersonalDetailsForm({
   personal,
   onChange,
@@ -100,7 +93,10 @@ export function PersonalDetailsForm({
   personal: PersonalDetails
   onChange: (patch: Partial<PersonalDetails>) => void
 }) {
-  const social = personal.social || { linkedIn: { link: '', display: '' }, github: { link: '', display: '' } }
+  const social = personal.social || {
+    linkedIn: { link: '', display: '' },
+    github: { link: '', display: '' },
+  }
   const hidden = personal.hiddenDetails || []
   const toggleHidden = (key: string, v: boolean) =>
     onChange({
@@ -157,8 +153,12 @@ export function PersonalDetailsForm({
         link={social.linkedIn?.link || ''}
         hidden={hidden.includes('linkedIn')}
         onHiddenChange={(v) => toggleHidden('linkedIn', v)}
-        onChange={(v) => onChange({ social: { ...social, linkedIn: { ...social.linkedIn, display: v } } })}
-        onLinkChange={(url) => onChange({ social: { ...social, linkedIn: { ...social.linkedIn, link: url } } })}
+        onChange={(v) =>
+          onChange({ social: { ...social, linkedIn: { ...social.linkedIn, display: v } } })
+        }
+        onLinkChange={(url) =>
+          onChange({ social: { ...social, linkedIn: { ...social.linkedIn, link: url } } })
+        }
       />
       <TitleInput
         label="GitHub"
@@ -166,8 +166,12 @@ export function PersonalDetailsForm({
         link={social.github?.link || ''}
         hidden={hidden.includes('github')}
         onHiddenChange={(v) => toggleHidden('github', v)}
-        onChange={(v) => onChange({ social: { ...social, github: { ...social.github, display: v } } })}
-        onLinkChange={(url) => onChange({ social: { ...social, github: { ...social.github, link: url } } })}
+        onChange={(v) =>
+          onChange({ social: { ...social, github: { ...social.github, display: v } } })
+        }
+        onLinkChange={(url) =>
+          onChange({ social: { ...social, github: { ...social.github, link: url } } })
+        }
       />
     </div>
   )
@@ -335,18 +339,16 @@ export function EntryForm({
       </div>
     )
   }
-  if (sectionType === 'skill' || sectionType === 'language') {
+  if (sectionType === 'skill') {
     const e = entry.data as SkillEntry
-    const nameKey = sectionType === 'skill' ? 'skill' : 'language'
-    const nameValue = sectionType === 'skill' ? e.skill : (entry.data as LanguageEntry).language
     return (
       <div className="space-y-2 rounded-lg border p-3">
         <div className="flex items-center gap-2">
           <Input
-            aria-label={sectionType === 'skill' ? 'Skill name' : 'Language name'}
-            placeholder={sectionType === 'skill' ? 'Skill name' : 'Language name'}
-            value={nameValue}
-            onChange={(v) => up({ [nameKey]: v.target.value } as Partial<EntryData>)}
+            aria-label="Skill name"
+            placeholder="Skill name"
+            value={e.skill}
+            onChange={(v) => up({ skill: v.target.value } as Partial<EntryData>)}
           />
           <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
             <Trash2 className="size-3" />
@@ -356,6 +358,30 @@ export function EntryForm({
           compact
           value={e.infoHtml}
           onUpdate={(html) => up({ infoHtml: html } as Partial<EntryData>)}
+        />
+      </div>
+    )
+  }
+  if (sectionType === 'language') {
+    const e = entry.data as LanguageEntry
+    return (
+      <div className="space-y-2 rounded-lg border p-3">
+        <div className="flex items-center gap-2">
+          <Input
+            aria-label="Language name"
+            placeholder="Language name"
+            value={e.language}
+            onChange={(v) => up({ language: v.target.value } as Partial<EntryData>)}
+          />
+          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+            <Trash2 className="size-3" />
+          </Button>
+        </div>
+        <LabeledInput
+          label="Level"
+          placeholder="e.g. Native, Fluent, Intermediate"
+          value={e.level}
+          onChange={(v) => up({ level: v.target.value } as Partial<EntryData>)}
         />
       </div>
     )
