@@ -117,7 +117,7 @@ export function defaultEntryData(sectionType: SectionType): EntryData {
         description: '',
       }
     case 'skill':
-      return { type: 'skill', skill: '', level: '', infoHtml: '' }
+      return { type: 'skill', skill: '', infoHtml: '' }
     case 'language':
       return { type: 'language', language: '', level: '' }
     case 'interest':

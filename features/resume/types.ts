@@ -50,7 +50,6 @@ export interface EducationEntry {
 export interface SkillEntry {
   type: 'skill'
   skill: string
-  level: string
   infoHtml: string
 }
 

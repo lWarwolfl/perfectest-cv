@@ -185,12 +185,12 @@ export const TEMPLATE_SECTIONS: TemplateSection[] = [
     displayName: SECTION_LABELS.skill,
     iconKey: SECTION_ICONS.skill,
     entries: [
-      { type: 'skill', skill: 'TypeScript', level: 'Expert', infoHtml: '' },
-      { type: 'skill', skill: 'React & Next.js', level: 'Expert', infoHtml: '' },
-      { type: 'skill', skill: 'CSS & Tailwind', level: 'Advanced', infoHtml: '' },
-      { type: 'skill', skill: 'Node.js', level: 'Advanced', infoHtml: '' },
-      { type: 'skill', skill: 'Testing (Vitest, Playwright)', level: 'Advanced', infoHtml: '' },
-      { type: 'skill', skill: 'Accessibility (WCAG)', level: 'Advanced', infoHtml: '' },
+      { type: 'skill', skill: 'TypeScript', infoHtml: '' },
+      { type: 'skill', skill: 'React & Next.js', infoHtml: '' },
+      { type: 'skill', skill: 'CSS & Tailwind', infoHtml: '' },
+      { type: 'skill', skill: 'Node.js', infoHtml: '' },
+      { type: 'skill', skill: 'Testing (Vitest, Playwright)', infoHtml: '' },
+      { type: 'skill', skill: 'Accessibility (WCAG)', infoHtml: '' },
     ],
   },
   {
