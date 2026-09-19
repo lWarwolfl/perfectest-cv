@@ -59,7 +59,7 @@ export default function LettersPage() {
           onCreate={(name) => create.mutate(name || undefined)}
         />
         {isLoading
-          ? Array.from({ length: 3 }, (_, i) => (
+          ? Array.from({ length: 2 }, (_, i) => (
               <Skeleton key={i} className="aspect-[210/297] rounded-lg" />
             ))
           : letters?.map((l) => (
