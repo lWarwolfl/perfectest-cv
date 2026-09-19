@@ -487,7 +487,7 @@ export default function TrackerPage() {
                         return (
                           <Card
                             key={card.id}
-                            className="bg-card border-border hover:border-primary/60 cursor-pointer border shadow-xs ring-0 transition duration-150 hover:-translate-y-0.5 hover:shadow-md"
+                            className="bg-card border-border hover:border-primary/60 cursor-pointer border shadow-xs ring-0 transition duration-150 hover:shadow-md"
                             draggable
                             onDragStart={(e) => handleDragStart(e, card.id, col.id)}
                             onClick={() => openCardEditor(card, col.id)}
