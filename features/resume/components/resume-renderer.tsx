@@ -381,6 +381,10 @@ export function ResumeRenderer({
     .filter((v): v is { key: string; text: string } => Boolean(v?.text))
 
   const isTwoCol = layout.selected === 'two'
+  const detailsGap = {
+    x: Number(customization.spacing.detailsGap ?? 12),
+    y: Number(customization.spacing.detailsGapY ?? 2),
+  }
   function renderSection(section: TSection) {
     const label = section.displayName || SECTION_LABELS[section.sectionType] || 'Section'
     if (section.hidden) return null
@@ -762,7 +766,7 @@ export function ResumeRenderer({
         flexWrap: header.detailsArrangement === 'wrap' ? 'wrap' : 'nowrap',
         gridTemplateColumns:
           header.detailsArrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
-        gap: `${customization.spacing.detailsGapY ?? 2}px ${customization.spacing.detailsGap ?? 12}px`,
+        gap: `${detailsGap.y}px ${header.detailsSeparator === 'icon' ? detailsGap.x : 0}px`,
         fontSize: `${customization.spacing.detailsFontSizePt || 12}px`,
         justifyContent: centered && header.detailsArrangement !== 'grid' ? 'center' : undefined,
         textAlign: centered ? 'center' : undefined,
@@ -789,8 +793,13 @@ export function ResumeRenderer({
           </span>
         )
         const separator = header.detailsSeparator !== 'icon' && i > 0 && (
-          <span style={{ marginRight: '0', color: colors.secondary }}>
-            {header.detailsSeparator === 'bullet' ? ' • ' : ' | '}
+          <span
+            style={{
+              margin: `0 ${detailsGap.x / 2}px`,
+              color: colors.secondary,
+            }}
+          >
+            {header.detailsSeparator === 'bullet' ? '•' : '|'}
           </span>
         )
         const link = detailLinks[chip.key] || ''

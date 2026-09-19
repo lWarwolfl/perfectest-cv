@@ -91,10 +91,16 @@ function letterColorStyle(c: Customization) {
       text: basic.multi?.textColor || '#000000',
       bg: basic.multi?.backgroundColor || '#ffffff',
       secondary:
-        c.colors.basic.secondary || `color-mix(in srgb, ${basic.multi?.textColor || '#000000'} 55%, #888888)`,
+        c.colors.basic.secondary ||
+        `color-mix(in srgb, ${basic.multi?.textColor || '#000000'} 55%, #888888)`,
     }
   }
-  return { accent: basic.single || '#044cb5', text: '#000000', bg: '#ffffff', secondary: c.colors.basic.secondary || undefined }
+  return {
+    accent: basic.single || '#044cb5',
+    text: '#000000',
+    bg: '#ffffff',
+    secondary: c.colors.basic.secondary || undefined,
+  }
 }
 
 export function LetterRenderer({
@@ -145,22 +151,20 @@ export function LetterRenderer({
           : photoPosition.shape === 'rounded-sm'
             ? '8px'
             : '0'
-  const photoEl =
-    photoPosition.show &&
-    form.senderPhotoImageId && (
-      <img
-        src={form.senderPhotoImageId}
-        alt="profile"
-        style={{
-          filter: photoPosition.grayscale ? 'grayscale(1)' : undefined,
-          width: SIZE_PX[sizeKey],
-          height: SIZE_PX[sizeKey],
-          borderRadius: shapeRadius,
-          objectFit: 'cover',
-          flexShrink: 0,
-        }}
-      />
-    )
+  const photoEl = photoPosition.show && form.senderPhotoImageId && (
+    <img
+      src={form.senderPhotoImageId}
+      alt="profile"
+      style={{
+        filter: photoPosition.grayscale ? 'grayscale(1)' : undefined,
+        width: SIZE_PX[sizeKey],
+        height: SIZE_PX[sizeKey],
+        borderRadius: shapeRadius,
+        objectFit: 'cover',
+        flexShrink: 0,
+      }}
+    />
+  )
   const hasPhoto = Boolean(photoPosition.show && form.senderPhotoImageId)
   const photoTop = photoPosition.position === 'top'
   const centered = header.alignText === 'center' || photoTop
@@ -174,6 +178,11 @@ export function LetterRenderer({
   const arrangement = header.detailsArrangement || 'wrap'
   const separator = header.detailsSeparator || 'icon'
 
+  const detailsGap = {
+    x: Number(spacing.detailsGap ?? 12),
+    y: Number(spacing.detailsGapY ?? 2),
+  }
+
   const detailsBlock = chips.length > 0 && (
     <div
       style={{
@@ -181,7 +190,7 @@ export function LetterRenderer({
         flexDirection: arrangement === 'column' ? 'column' : 'row',
         flexWrap: arrangement === 'wrap' ? 'wrap' : 'nowrap',
         gridTemplateColumns: arrangement === 'grid' ? 'repeat(2, minmax(0, 1fr))' : undefined,
-        gap: `${spacing.detailsGapY ?? 2}px ${spacing.detailsGap ?? 12}px`,
+        gap: `${detailsGap.y}px ${separator === 'icon' ? detailsGap.x : 0}px`,
         fontSize: `${spacing.detailsFontSizePt || 12}px`,
         justifyContent: centered && arrangement !== 'grid' ? 'center' : undefined,
         textAlign: centered ? 'center' : undefined,
@@ -208,8 +217,13 @@ export function LetterRenderer({
           </span>
         )
         const sep = separator !== 'icon' && i > 0 && (
-          <span style={{ color: colors.secondary || 'inherit' }}>
-            {separator === 'bullet' ? ' • ' : ' | '}
+          <span
+            style={{
+              margin: `0 ${detailsGap.x / 2}px`,
+              color: colors.secondary || 'inherit',
+            }}
+          >
+            {separator === 'bullet' ? '•' : '|'}
           </span>
         )
         const link = detailHref(chip.key, form)
@@ -295,9 +309,7 @@ export function LetterRenderer({
           )}
         </div>
         {hasPhoto && detailsBlock && (
-          <div style={{ marginTop: `${spacing.headerDetailsGap ?? 4}px` }}>
-            {detailsBlock}
-          </div>
+          <div style={{ marginTop: `${spacing.headerDetailsGap ?? 4}px` }}>{detailsBlock}</div>
         )}
       </div>
       {photoPosition.position === 'right' && photoEl}
@@ -330,7 +342,11 @@ export function LetterRenderer({
         </p>
       )}
       {showBody && (
-        <div className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`} style={{ lineHeight: lh }} dangerouslySetInnerHTML={{ __html: form.body || '' }} />
+        <div
+          className={`resume-prose ${listMarker === 'dash' ? 'resume-list-dash' : ''}`}
+          style={{ lineHeight: lh }}
+          dangerouslySetInnerHTML={{ __html: form.body || '' }}
+        />
       )}
       <div data-pb-item style={{ marginTop: '32px' }}>
         {form.signaturePlace && <p style={{ margin: 0 }}>{form.signaturePlace}</p>}
