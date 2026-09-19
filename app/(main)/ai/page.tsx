@@ -18,6 +18,13 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { useAiSettings, useAiTransform, useGrammarCheck } from '@/features/ai/ai.hooks'
 import type { GrammarIssue } from '@/features/ai/grammar'
@@ -221,37 +228,43 @@ export default function AiFeaturesPage() {
       <Card>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <select
-              aria-label="Resume"
-              className="border-input h-8 rounded-lg border bg-transparent px-2.5 text-sm disabled:opacity-50"
-              value={resumeId}
-              onChange={async (e) => {
-                setResumeId(e.target.value)
+            <Select
+              value={resumeId || null}
+              onValueChange={(v) => {
+                setResumeId(String(v ?? ''))
                 setResumeText('')
                 setResult(null)
+                setIssues(null)
               }}
               disabled={isLoading || !aiReady}
             >
-              <option value="">Choose a resume...</option>
-              {(resumes ?? []).map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.title}
-                </option>
-              ))}
-            </select>
-            <select
-              aria-label="Language"
-              className="border-input h-8 rounded-lg border bg-transparent px-2.5 text-sm disabled:opacity-50"
+              <SelectTrigger aria-label="Resume" className="w-56">
+                <SelectValue placeholder="Choose a resume..." />
+              </SelectTrigger>
+              <SelectContent>
+                {(resumes ?? []).map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onValueChange={(v) => setLanguage(v ?? '')}
               disabled={!aiReady}
             >
-              {LANGUAGES.map((l) => (
-                <option key={l} value={l}>
-                  {l}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger aria-label="Language" className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l} value={l}>
+                    {l}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <span className="text-muted-foreground text-xs">
               {resumeText
                 ? `${resumeText.split(/\s+/).filter(Boolean).length} words loaded`

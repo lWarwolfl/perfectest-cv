@@ -21,6 +21,13 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { aiTransformAction, checkGrammarAction } from '@/server/ai/ai.actions'
 import { useAiSettings } from '@/features/ai/ai.hooks'
 import type { GrammarIssue } from '@/features/ai/grammar'
@@ -299,18 +306,18 @@ export default function RichTextEditor({
                   ))}
                   <div className="bg-border my-1 h-px" />
                   <div className="flex items-center gap-1 px-1 py-1">
-                    <select
-                      aria-label="Translate to"
-                      className="border-input h-7 min-w-0 flex-1 rounded-md border bg-transparent px-1.5 text-xs"
-                      value={aiLang}
-                      onChange={(e) => setAiLang(e.target.value)}
-                    >
-                      {AI_LANGUAGES.map((l) => (
-                        <option key={l} value={l}>
-                          {l}
-                        </option>
-                      ))}
-                    </select>
+                    <Select value={aiLang} onValueChange={(v) => setAiLang(v ?? '')}>
+                      <SelectTrigger size="sm" aria-label="Translate to" className="min-w-0 flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AI_LANGUAGES.map((l) => (
+                          <SelectItem key={l} value={l}>
+                            {l}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Button
                       variant="outline"
                       size="xs"

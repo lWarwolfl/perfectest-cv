@@ -343,17 +343,20 @@ export function EntryForm({
     const e = entry.data as SkillEntry
     return (
       <div className="space-y-2 rounded-lg border p-3">
-        <div className="flex items-center gap-2">
-          <Input
-            aria-label="Skill name"
-            placeholder="Skill name"
-            value={e.skill}
-            onChange={(v) => up({ skill: v.target.value } as Partial<EntryData>)}
-          />
-          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
-            <Trash2 className="size-3" />
-          </Button>
-        </div>
+        <Field>
+          <FieldLabel htmlFor="skill-name">Skill</FieldLabel>
+          <div className="flex items-center gap-2">
+            <Input
+              id="skill-name"
+              placeholder="Skill name"
+              value={e.skill}
+              onChange={(v) => up({ skill: v.target.value } as Partial<EntryData>)}
+            />
+            <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+              <Trash2 className="size-3" />
+            </Button>
+          </div>
+        </Field>
         <RichTextEditor
           compact
           value={e.infoHtml}
@@ -366,17 +369,20 @@ export function EntryForm({
     const e = entry.data as LanguageEntry
     return (
       <div className="space-y-2 rounded-lg border p-3">
-        <div className="flex items-center gap-2">
-          <Input
-            aria-label="Language name"
-            placeholder="Language name"
-            value={e.language}
-            onChange={(v) => up({ language: v.target.value } as Partial<EntryData>)}
-          />
-          <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
-            <Trash2 className="size-3" />
-          </Button>
-        </div>
+        <Field>
+          <FieldLabel htmlFor="language-name">Language</FieldLabel>
+          <div className="flex items-center gap-2">
+            <Input
+              id="language-name"
+              placeholder="Language name"
+              value={e.language}
+              onChange={(v) => up({ language: v.target.value } as Partial<EntryData>)}
+            />
+            <Button variant="ghost" size="icon-sm" aria-label="Delete entry" onClick={onDelete}>
+              <Trash2 className="size-3" />
+            </Button>
+          </div>
+        </Field>
         <LabeledInput
           label="Level"
           placeholder="e.g. Native, Fluent, Intermediate"
