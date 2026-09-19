@@ -130,6 +130,7 @@ export default function ResumeEditorPage() {
   const saveAll = useCallback(async () => {
     if (!dirty.current) return
     if (useAutosaveStore.getState().status === 'saving') return
+    if (editing && !personalDirty.current && !customDirty.current) return
     useAutosaveStore.getState().start()
     try {
       // mutateAsync (not mutate) so failures reject here — mutate() swallows
@@ -140,17 +141,19 @@ export default function ResumeEditorPage() {
       if (customDirty.current) {
         await saveCustom.mutateAsync({ id, customization: custom })
       }
+      if (editing) {
+        personalDirty.current = false
+        customDirty.current = false
+        dirty.current = true
+        useAutosaveStore.getState().success()
+        return
+      }
       if (entriesDirty.current) {
         for (const s of sections) {
           for (const e of s.entries) {
             if (e._dirty) await updateData.mutateAsync({ entryId: e.id, data: e.data })
           }
         }
-      }
-      if (editing) {
-        dirty.current = true
-        useAutosaveStore.getState().success()
-        return
       }
       dirty.current = false
       personalDirty.current = false

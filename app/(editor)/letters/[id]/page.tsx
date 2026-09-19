@@ -83,6 +83,7 @@ export default function LetterEditorPage() {
   const saveAll = useCallback(async () => {
     if (!dirty.current || !design) return
     if (useAutosaveStore.getState().status === 'saving') return
+    if (activeSection) return
     useAutosaveStore.getState().start()
     try {
       await saveContent.mutateAsync(form)
@@ -92,7 +93,7 @@ export default function LetterEditorPage() {
     } catch {
       useAutosaveStore.getState().failure()
     }
-  }, [form, design])
+  }, [form, design, activeSection])
 
   useAutosave(saveAll)
 
@@ -119,6 +120,7 @@ export default function LetterEditorPage() {
     if (!save && letter) {
       setForm({ ...letter })
     }
+    if (save) saveContent.mutate(form)
     setActiveSection(null)
   }
 
