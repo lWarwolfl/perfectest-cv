@@ -11,7 +11,7 @@ import {
   deleteColumnAction,
   saveColumnsAction,
 } from '@/server/tracker/tracker.actions'
-import { getErrorMessage, uid } from '@/lib/utils'
+import { cn, getErrorMessage, uid } from '@/lib/utils'
 import { QUERY_KEYS } from '@/features/queries/keys'
 import { useListResumes } from '@/features/resume/hooks/resume.hooks'
 import { useListLetters } from '@/features/letter/hooks/letter.hooks'
@@ -39,6 +39,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Plus, Trash2, ExternalLink } from 'lucide-react'
 import { ColorPicker } from '@/components/ui/color-picker'
 import { CreateCard } from '@/components/common/create-card'
+
+type TrackerData = Awaited<ReturnType<typeof getTrackerAction>>
 
 function CardEditor({
   card,
@@ -91,7 +93,7 @@ function CardEditor({
         <DialogHeader>
           <DialogTitle>{card?.id ? 'Edit Job' : 'Add Job'}</DialogTitle>
         </DialogHeader>
-        <div className="-mr-4 max-h-[60vh] space-y-3 overflow-y-auto pr-6">
+        <div className="-mr-4 max-h-[60vh] space-y-3 overflow-y-auto pr-4">
           <LabeledInput
             label="Company"
             placeholder="Company"
@@ -285,7 +287,33 @@ export default function TrackerPage() {
       toColId: string
       toIndex: number
     }) => moveCardAction(trackerId, cardId, toColId, toIndex),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.TRACKERS] }),
+    onMutate: async ({ cardId, toColId, toIndex }) => {
+      await qc.cancelQueries({ queryKey: [QUERY_KEYS.TRACKERS] })
+      const prev = qc.getQueryData<TrackerData>([QUERY_KEYS.TRACKERS])
+      qc.setQueryData<TrackerData>([QUERY_KEYS.TRACKERS], (old) =>
+        old
+          ? {
+              ...old,
+              columns: old.columns.map((c) => {
+                if (c.id === toColId) {
+                  const ids = c.cardIds.filter((id) => id !== cardId)
+                  ids.splice(toIndex, 0, cardId)
+                  return { ...c, cardIds: ids }
+                }
+                return c.cardIds.includes(cardId)
+                  ? { ...c, cardIds: c.cardIds.filter((id) => id !== cardId) }
+                  : c
+              }),
+            }
+          : old
+      )
+      return { prev }
+    },
+    onError: (e, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData([QUERY_KEYS.TRACKERS], ctx.prev)
+      toast.error(getErrorMessage(e))
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: [QUERY_KEYS.TRACKERS] }),
   })
 
   const deleteCard = useMutation({
@@ -391,14 +419,19 @@ export default function TrackerPage() {
             : columns.map((col) => (
                 <div
                   key={col.id}
-                  className="bg-muted/50 flex w-72 shrink-0 flex-col rounded-lg"
+                  className={cn(
+                    'bg-muted ring-1 ring-transparent transition-colors',
+                    'flex w-72 shrink-0 flex-col rounded-lg',
+                    dragOver === col.id && 'bg-accent ring-primary/40'
+                  )}
                   onDragOver={(e) => {
                     e.preventDefault()
                     setDragOver(col.id)
                   }}
-                  onDragLeave={() => setDragOver(null)}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(null)
+                  }}
                   onDrop={(e) => handleDrop(e, col.id)}
-                  style={{ background: dragOver === col.id ? 'oklch(0.9 0.01 100)' : undefined }}
                 >
                   <div
                     className="flex items-center justify-between px-3 py-2"
@@ -444,7 +477,7 @@ export default function TrackerPage() {
                       )}
                     </div>
                   </div>
-                  <ScrollArea className="flex-1 px-2 pb-2">
+                  <ScrollArea className="flex-1 px-2 py-2">
                     <div className="space-y-2">
                       {(col.cardIds || []).map((cardId: string) => {
                         const card = allCards.find((c) => c.id === cardId)
@@ -454,7 +487,7 @@ export default function TrackerPage() {
                         return (
                           <Card
                             key={card.id}
-                            className="hover:border-primary cursor-pointer"
+                            className="bg-card border-border hover:border-primary/60 cursor-pointer border shadow-xs ring-0 transition duration-150 hover:-translate-y-0.5 hover:shadow-md"
                             draggable
                             onDragStart={(e) => handleDragStart(e, card.id, col.id)}
                             onClick={() => openCardEditor(card, col.id)}
