@@ -35,6 +35,7 @@ function DropdownMenuContent({
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}
+        positionMethod="fixed"
       >
         <MenuPrimitive.Popup
           data-slot="dropdown-menu-content"

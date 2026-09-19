@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { Select as SelectPrimitive } from '@base-ui/react/select'
-import type { SelectRoot } from '@base-ui/react/select'
 
 import { cn } from '@/lib/utils'
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from 'lucide-react'
@@ -12,10 +11,7 @@ import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from 'lucide-react'
  * `items` prop — without it, SelectValue renders the raw value in the trigger
  * instead of the item's label.
  */
-function SelectInner({
-  children,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
+function SelectInner({ children, ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   const collected: { value: unknown; label: React.ReactNode }[] = []
   function collect(node: React.ReactNode) {
     React.Children.forEach(node, (child) => {
@@ -38,9 +34,7 @@ function SelectInner({
     collect(children)
     finalProps.items = collected.length > 0 ? collected : undefined
   }
-  return (
-    <SelectPrimitive.Root {...finalProps}>{children}</SelectPrimitive.Root>
-  )
+  return <SelectPrimitive.Root {...finalProps}>{children}</SelectPrimitive.Root>
 }
 
 // cast preserves Base UI's generic <Value> inference at call sites
@@ -114,6 +108,7 @@ function SelectContent({
         align={align}
         alignOffset={alignOffset}
         alignItemWithTrigger={alignItemWithTrigger}
+        positionMethod="fixed"
         className="isolate z-50"
       >
         <SelectPrimitive.Popup
