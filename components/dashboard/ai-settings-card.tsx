@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { AlertTriangle, Bot, Check, ChevronDown, RefreshCcw, Search, Sparkles } from 'lucide-react'
+import { AlertTriangle, Bot, Check, ChevronDown, RefreshCcw, Search } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Spinner } from '@/components/ui/spinner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAiSettings, useSaveAiSettings } from '@/features/ai/ai.hooks'
-import { detectAiConfigAction, listAiModelsAction } from '@/server/ai/ai.actions'
+import { listAiModelsAction } from '@/server/ai/ai.actions'
 import { getErrorMessage, cn } from '@/lib/utils'
 
 export const AI_PRESETS = [
@@ -27,12 +27,25 @@ export const AI_PRESETS = [
   ['Ollama', 'http://localhost:11434/v1'],
 ] as const
 
+const AI_MODELS_STORAGE_KEY = 'ai-models-cache'
+
 export function AiSettingsCard() {
   const { data: saved, isLoading } = useAiSettings()
   const [baseUrl, setBaseUrl] = useState<string | null>(null)
   const [apiKey, setApiKey] = useState<string | null>(null)
   const [model, setModel] = useState<string | null>(null)
-  const [models, setModels] = useState<string[]>([])
+  const [models, setModels] = useState<string[]>(() => {
+    try {
+      if (typeof window === 'undefined') return []
+      const raw = window.localStorage.getItem(AI_MODELS_STORAGE_KEY)
+      if (!raw) return []
+      const parsed: unknown = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return []
+      return parsed.filter((m): m is string => typeof m === 'string' && m.length > 0)
+    } catch {
+      return []
+    }
+  })
   const [modelsOpen, setModelsOpen] = useState(false)
   const [filter, setFilter] = useState('')
   const [modelError, setModelError] = useState('')
@@ -49,29 +62,14 @@ export function AiSettingsCard() {
       setModels(ids)
       setModelError('')
       setModelsOpen(true)
+      try {
+        window.localStorage.setItem(AI_MODELS_STORAGE_KEY, JSON.stringify(ids))
+      } catch {
+        return
+      }
     },
     onError: (e) => {
       setModelError(getErrorMessage(e))
-      toast.error(getErrorMessage(e))
-    },
-  })
-
-  const detect = useMutation({
-    mutationFn: detectAiConfigAction,
-    onSuccess: (r) => {
-      if (r.baseUrl) {
-        setBaseUrl(r.baseUrl)
-        setModels([])
-        setModel(r.baseUrl === (saved?.baseUrl ?? '') ? (saved?.model ?? null) : null)
-      }
-      if (r.apiKey) setApiKey(r.apiKey)
-      if (r.baseUrl && r.apiKey) {
-        toast.success(`Auto-detected ${r.name ?? 'provider'} — now fetch models`)
-      } else {
-        toast.warning('No key found on this machine. Paste your API secret manually.')
-      }
-    },
-    onError: (e) => {
       toast.error(getErrorMessage(e))
     },
   })
@@ -102,19 +100,6 @@ export function AiSettingsCard() {
               OpenAI-compatible API endpoint used by the AI features.
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={detect.isPending}
-            onClick={() => detect.mutate()}
-          >
-            {detect.isPending ? (
-              <Spinner className="size-3.5" />
-            ) : (
-              <Sparkles className="size-3.5" />
-            )}
-            Auto-detect
-          </Button>
         </div>
         <div className="space-y-2">
           <label className="text-muted-foreground text-xs font-medium">API address</label>
