@@ -47,11 +47,9 @@ import { getErrorMessage } from '@/lib/utils'
 
 const LANGUAGES = [
   'English',
-  'Persian (فارسی)',
   'German',
   'French',
   'Spanish',
-  'Arabic',
   'Turkish',
   'Chinese',
 ]
