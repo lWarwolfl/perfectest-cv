@@ -19,6 +19,14 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -26,10 +34,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
-import { useAiSettings, useAiTransform, useGrammarCheck } from '@/features/ai/ai.hooks'
+import {
+  useAiSettings,
+  useAiTransform,
+  useGrammarCheck,
+  useTranslateResume,
+} from '@/features/ai/ai.hooks'
 import type { GrammarIssue } from '@/features/ai/grammar'
 import { useListResumes } from '@/features/resume/hooks/resume.hooks'
 import { getResumeTextAction } from '@/server/ai/ai.actions'
+import { getErrorMessage } from '@/lib/utils'
 
 const LANGUAGES = [
   'English',
@@ -83,8 +97,8 @@ const FEATURES: {
     id: 'translate',
     icon: Languages,
     title: 'Translate resume',
-    description: 'Create a translated version of your resume in the language of your choice.',
-    cta: 'Translate now',
+    description: 'Create a translated copy of your resume as a new resume in the language of your choice.',
+    cta: 'Translate into new resume',
     needsLanguage: true,
   },
   {
@@ -143,15 +157,38 @@ export default function AiFeaturesPage() {
   const [issues, setIssues] = useState<GrammarIssue[] | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [confirmTranslate, setConfirmTranslate] = useState(false)
+  const [translateError, setTranslateError] = useState<string | null>(null)
+  const [translatedResume, setTranslatedResume] = useState<{ id: string; title: string } | null>(
+    null
+  )
   const transform = useAiTransform()
   const grammar = useGrammarCheck()
+  const translateResume = useTranslateResume()
 
   const missingJob = jobDescription.trim().length < 40
   const hasSource = !!resumeId || !!resumeText.trim()
+  const selectedResume = resumes?.find((r) => r.id === resumeId) ?? null
+  const translatedTitle = selectedResume ? `${selectedResume.title} (${language})` : `(${language})`
+
+  const isAiConnectionError = (message: string) =>
+    /api secret|api key|401|403|endpoint|unreachable|timed out|connection|model|5xx|failed to fetch models/i.test(
+      message
+    )
 
   const run = async (f: (typeof FEATURES)[number]) => {
     if (!aiReady) {
       toast.error('Set up your AI connection on the dashboard first')
+      return
+    }
+    if (f.id === 'translate') {
+      if (!resumeId) {
+        toast.error('Select a resume to translate')
+        return
+      }
+      setTranslateError(null)
+      setTranslatedResume(null)
+      setConfirmTranslate(true)
       return
     }
     let text = resumeText
@@ -182,10 +219,30 @@ export default function AiFeaturesPage() {
         html: await transform.mutateAsync({
           feature,
           text,
-          ...(feature === 'translate' ? { language } : {}),
           ...(f.needsJob ? { jobDescription } : {}),
         }),
       })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const confirmTranslateRun = async () => {
+    if (!resumeId) {
+      toast.error('Select a resume to translate')
+      return
+    }
+    setConfirmTranslate(false)
+    setTranslateError(null)
+    setTranslatedResume(null)
+    setBusy('translate')
+    try {
+      const created = await translateResume.mutateAsync({ resumeId, language })
+      setTranslatedResume(created)
+    } catch (e) {
+      const message = getErrorMessage(e)
+      setTranslateError(message)
+      toast.error(message)
     } finally {
       setBusy(null)
     }
@@ -235,6 +292,8 @@ export default function AiFeaturesPage() {
                 setResumeText('')
                 setResult(null)
                 setIssues(null)
+                setTranslateError(null)
+                setTranslatedResume(null)
               }}
               disabled={isLoading || !aiReady}
             >
@@ -335,6 +394,53 @@ export default function AiFeaturesPage() {
         })}
       </div>
 
+      {translateError && (
+        <div className="border-destructive/30 bg-destructive/5 flex items-start gap-3 rounded-xl border p-4">
+          <AlertTriangle className="text-destructive mt-0.5 size-5 shrink-0" />
+          <div className="flex-1 space-y-1">
+            <p className="text-sm font-medium">Translation failed — no new resume was created</p>
+            <p className="text-sm">{translateError}</p>
+            {isAiConnectionError(translateError) && (
+              <p className="text-muted-foreground text-xs">
+                The AI service looks unreachable or rejected the request. Check the API address,
+                secret and model on the dashboard, then try again.
+              </p>
+            )}
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Button size="sm" variant="outline" onClick={() => setTranslateError(null)}>
+              Dismiss
+            </Button>
+            <Link href="/dashboard">
+              <Button size="sm">
+                <Settings className="size-3.5" /> Dashboard
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {translatedResume && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            <span className="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg">
+              <Languages className="size-4" />
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Translated resume created</p>
+              <p className="text-muted-foreground text-xs">
+                {translatedResume.title} — your original resume was left untouched.
+              </p>
+            </div>
+            <Link href={`/resumes/${translatedResume.id}`}>
+              <Button size="sm">
+                <FileText className="size-3.5" /> Open translated resume
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
       {issues && (
         <Card>
           <CardContent className="space-y-3">
@@ -381,6 +487,29 @@ export default function AiFeaturesPage() {
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={confirmTranslate} onOpenChange={setConfirmTranslate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Translate into a new resume?</DialogTitle>
+            <DialogDescription>
+              This creates a separate resume named “{translatedTitle}” from “
+              {selectedResume?.title ?? 'your resume'}” in {language}. Your original stays
+              untouched. Confirm the target language before continuing — translation uses AI and
+              may take a minute.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmTranslate(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmTranslateRun} disabled={busy === 'translate'}>
+              {busy === 'translate' ? <Spinner className="size-4" /> : <Languages className="size-4" />}
+              Create translated copy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

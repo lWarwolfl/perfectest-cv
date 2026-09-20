@@ -8,6 +8,7 @@ import {
   saveAiSettingsAction,
   aiTransformAction,
   checkGrammarAction,
+  translateResumeAction,
 } from '@/server/ai/ai.actions'
 import { getErrorMessage } from '@/lib/utils'
 
@@ -37,6 +38,19 @@ export function useGrammarCheck() {
 export function useAiTransform() {
   return useMutation({
     mutationFn: aiTransformAction,
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useTranslateResume() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ resumeId, language }: { resumeId: string; language: string }) =>
+      translateResumeAction(resumeId, language),
+    onSuccess: (resume) => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.RESUMES] })
+      toast.success(`"${resume.title}" created`)
+    },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 }

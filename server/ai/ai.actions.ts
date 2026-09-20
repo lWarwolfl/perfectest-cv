@@ -1,9 +1,9 @@
 'use server'
 
 import { db } from '@/drizzle'
-import { ResumeSection, User } from '@/drizzle/schema'
+import { Resume, ResumeEntry, ResumeSection, User } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
-import { asc, eq } from 'drizzle-orm'
+import { and, asc, eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import {
   GRAMMAR_SYSTEM,
@@ -341,4 +341,148 @@ export async function getResumeTextAction(resumeId: string) {
     }
   }
   return { title: resume.title, text: parts.join('\n') }
+}
+
+function stripCodeFences(raw: string) {
+  return raw
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim()
+}
+
+function restoreProtectedFields(
+  original: Record<string, any>,
+  translated: Record<string, any>
+): Record<string, any> {
+  const out: Record<string, any> = { ...translated, type: original.type }
+  for (const [key, value] of Object.entries(original)) {
+    if (/link$/i.test(key) || /fileid$/i.test(key) || /imageid$/i.test(key)) out[key] = value
+  }
+  for (const dateKey of ['startDate', 'endDate']) {
+    const origDate = original[dateKey] as Record<string, any> | undefined
+    const transDate = out[dateKey] as Record<string, any> | undefined
+    if (origDate && typeof origDate === 'object') {
+      out[dateKey] = {
+        ...origDate,
+        ...(transDate && typeof transDate === 'object'
+          ? { customOngoingWord: transDate.customOngoingWord ?? origDate.customOngoingWord }
+          : {}),
+      }
+    }
+  }
+  return out
+}
+
+export async function translateResumeAction(resumeId: string, language: string) {
+  const targetLanguage = language?.trim()
+  if (!targetLanguage) throw new Error('Choose a target language first')
+  const user = await requireUser()
+  const [resume] = await db
+    .select()
+    .from(Resume)
+    .where(and(eq(Resume.id, resumeId), eq(Resume.userId, user.id)))
+  if (!resume) throw new Error('Resume not found')
+  const sections = await db.query.ResumeSection.findMany({
+    where: eq(ResumeSection.resumeId, resumeId),
+    orderBy: [asc(ResumeSection.order), asc(ResumeSection.createdAt)],
+    with: { entries: true },
+  })
+  if (!sections.length) throw new Error('This resume has no content to translate yet')
+  const settings = await readAiSettings()
+  const source = {
+    personalDetails: {
+      jobTitle: resume.personalDetails?.jobTitle ?? '',
+      address: resume.personalDetails?.address ?? '',
+    },
+    sections: sections.map((s) => ({
+      displayName: s.displayName,
+      entries: s.entries.map((e) => e.data),
+    })),
+  }
+  const prompt =
+    `Translate this resume JSON into ${targetLanguage}. ` +
+    'Return ONLY valid JSON with the exact same shape: { personalDetails: { jobTitle, address }, sections: [{ displayName, entries }] }. ' +
+    'No preamble, no explanations, no markdown code fences. ' +
+    'Translate human-readable text (job titles, section titles, descriptions, skills, addresses). ' +
+    'Keep person/company/school names, emails, phone numbers, URLs, dates, numbers and HTML tags/attributes exactly as-is. ' +
+    'Keep technical terms and programming language names in English unless they have an established translation. ' +
+    'Preserve HTML structure inside text/description/infoHtml fields.\n\n' +
+    JSON.stringify(source)
+  let raw: string
+  try {
+    raw = await chat(settings, [
+      {
+        role: 'system',
+        content:
+          'You are a professional resume translator. You always return valid JSON and nothing else.',
+      },
+      { role: 'user', content: prompt },
+    ])
+  } catch (e) {
+    if (e instanceof Error) throw e
+    throw new Error(
+      'The AI service is unreachable right now. Check the API address, secret and model on the dashboard, then try again.'
+    )
+  }
+  let translated: typeof source
+  try {
+    translated = JSON.parse(stripCodeFences(raw)) as typeof source
+  } catch {
+    throw new Error(
+      'The AI returned an unusable translation. Check the AI connection on the dashboard and try again.'
+    )
+  }
+  if (!translated || !Array.isArray(translated.sections)) {
+    throw new Error(
+      'The AI returned an unusable translation. Check the AI connection on the dashboard and try again.'
+    )
+  }
+  const title = `${resume.title} (${targetLanguage})`
+  const [copy] = await db
+    .insert(Resume)
+    .values({
+      userId: user.id,
+      title,
+      personalDetails: {
+        ...resume.personalDetails,
+        jobTitle: translated.personalDetails?.jobTitle ?? resume.personalDetails?.jobTitle,
+        address: translated.personalDetails?.address ?? resume.personalDetails?.address,
+      },
+      customization: resume.customization,
+      lng: resume.lng,
+      tags: resume.tags,
+    })
+    .returning()
+  const newSections = await db
+    .insert(ResumeSection)
+    .values(
+      sections.map((s, i) => ({
+        resumeId: copy.id,
+        order: s.order,
+        sectionType: s.sectionType,
+        displayName: translated.sections[i]?.displayName || s.displayName,
+        iconKey: s.iconKey,
+        hidden: s.hidden,
+      }))
+    )
+    .returning()
+  const entryRows = sections.flatMap((s, i) =>
+    s.entries.map((e, j) => {
+      const rawTranslated = (translated.sections[i]?.entries?.[j] ?? e.data) as unknown as Record<
+        string,
+        any
+      >
+      return {
+        sectionId: newSections[i].id,
+        order: j,
+        hidden: e.hidden,
+        data: restoreProtectedFields(
+          e.data as unknown as Record<string, any>,
+          rawTranslated && typeof rawTranslated === 'object' ? rawTranslated : {}
+        ) as unknown as typeof e.data,
+      }
+    })
+  )
+  if (entryRows.length) await db.insert(ResumeEntry).values(entryRows)
+  return { id: copy.id, title: copy.title }
 }
