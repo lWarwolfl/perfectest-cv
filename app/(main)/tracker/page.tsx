@@ -41,6 +41,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, Search, Trash2, ExternalLink, X } from 'lucide-react'
 import { ColorPicker } from '@/components/ui/color-picker'
 import { CreateCard } from '@/components/common/create-card'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
 
 type TrackerData = Awaited<ReturnType<typeof getTrackerAction>>
 
@@ -95,7 +96,7 @@ function CardEditor({
         <DialogHeader>
           <DialogTitle>{card?.id ? 'Edit Job' : 'Add Job'}</DialogTitle>
         </DialogHeader>
-        <div className="-mr-4 max-h-[60vh] space-y-3 overflow-y-auto pr-4">
+        <div className="-mx-4 max-h-[60vh] space-y-3 overflow-y-auto px-4 py-1">
           <LabeledInput
             label="Company"
             placeholder="Company"
@@ -276,6 +277,9 @@ export default function TrackerPage() {
   const [cardOpen, setCardOpen] = useState(false)
   const [dragOver, setDragOver] = useState<string | null>(null)
   const [view, setView] = useState<'board' | 'table'>('board')
+  const [confirmDelete, setConfirmDelete] = useState<
+    { kind: 'card' | 'column'; id: string; title: string } | null
+  >(null)
 
   const moveCard = useMutation({
     mutationFn: ({
@@ -547,8 +551,9 @@ export default function TrackerPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
+                          aria-label={`Delete column ${col.name}`}
                           onClick={() =>
-                            deleteCol.mutate({ columnId: col.id, trackerId: tracker!.id })
+                            setConfirmDelete({ kind: 'column', id: col.id, title: col.name })
                           }
                         >
                           <Trash2 className="size-3" />
@@ -661,8 +666,15 @@ export default function TrackerPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
+                          aria-label={`Delete ${card.jobTitle || card.company || 'job'}`}
                           onClick={() =>
-                            deleteCard.mutate({ cardId: card.id, trackerId: tracker!.id })
+                            setConfirmDelete({
+                              kind: 'card',
+                              id: card.id,
+                              title:
+                                [card.jobTitle, card.company].filter(Boolean).join(' at ') ||
+                                'this job',
+                            })
                           }
                         >
                           <Trash2 className="size-3" />
@@ -692,6 +704,31 @@ export default function TrackerPage() {
         onOpenChange={setCardOpen}
         resumes={resumes || []}
         letters={letters || []}
+      />
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(open) => !open && setConfirmDelete(null)}
+        title={
+          confirmDelete?.kind === 'column'
+            ? `Delete "${confirmDelete.title}" column?`
+            : `Delete "${confirmDelete?.title}"?`
+        }
+        description={
+          confirmDelete?.kind === 'column'
+            ? 'This permanently removes the column and all jobs in it. This cannot be undone.'
+            : 'This permanently removes the job and all its details. This cannot be undone.'
+        }
+        confirmLabel="Delete"
+        destructive
+        pending={deleteCard.isPending || deleteCol.isPending}
+        onConfirm={() => {
+          if (!confirmDelete || !tracker) return
+          if (confirmDelete.kind === 'card')
+            deleteCard.mutate({ cardId: confirmDelete.id, trackerId: tracker.id })
+          else deleteCol.mutate({ columnId: confirmDelete.id, trackerId: tracker.id })
+          setConfirmDelete(null)
+        }}
       />
     </div>
   )

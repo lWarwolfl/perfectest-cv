@@ -2,10 +2,21 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Copy, Pencil, Search, Trash2, Download, Link2, MoreVertical } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import {
+  Copy,
+  Pencil,
+  Search,
+  Trash2,
+  Download,
+  Link2,
+  MoreVertical,
+  LayoutTemplate,
+  Plus,
+} from 'lucide-react'
 import {
   useListResumePreviews,
-  useCreateResume,
+  useCreateResumeFromTemplate,
   useDeleteResume,
   useDuplicateResume,
 } from '@/features/resume/hooks/resume.hooks'
@@ -13,7 +24,7 @@ import { useShareResume } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CreateCard } from '@/components/common/create-card'
+import { TemplatePickerDialog } from '@/components/resume/template-picker-dialog'
 import { PreviewFrame } from '@/components/common/preview-frame'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
 import { DataPagination } from '@/components/common/data-pagination'
@@ -42,7 +53,12 @@ export default function ResumesPage() {
   const { data, isLoading } = useListResumePreviews(page, debouncedSearch)
   const resumes = data?.resumes
   const pagination = data?.pagination
-  const create = useCreateResume()
+  const router = useRouter()
+  const create = useCreateResumeFromTemplate()
+  const pendingTemplateId = create.isPending
+    ? ((create.variables as string | undefined) ?? null)
+    : null
+  const [pickerOpen, setPickerOpen] = useState(false)
   const del = useDeleteResume()
   const dup = useDuplicateResume()
   const share = useShareResume()
@@ -71,13 +87,19 @@ export default function ResumesPage() {
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <CreateCard
-          label="Resume name"
-          buttonLabel="New Resume"
-          className="aspect-[210/297] justify-center"
-          pending={create.isPending}
-          onCreate={(name) => create.mutate(name || undefined)}
-        />
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="border-border text-muted-foreground hover:border-primary/60 hover:text-foreground flex aspect-[210/297] flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-colors"
+        >
+          <span className="bg-muted flex size-11 items-center justify-center rounded-full">
+            <LayoutTemplate className="size-5" />
+          </span>
+          <span className="flex items-center gap-1 text-sm font-medium">
+            <Plus className="size-4" /> New Resume
+          </span>
+          <span className="px-6 text-center text-xs">Start from a template with sample content</span>
+        </button>
         {isLoading
           ? Array.from({ length: 2 }, (_, i) => (
               <Skeleton key={i} className="aspect-[210/297] rounded-lg" />
@@ -187,6 +209,19 @@ export default function ResumesPage() {
           onClose={() => setShare(null)}
         />
       )}
+      <TemplatePickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        pendingId={pendingTemplateId}
+        onPick={(templateId) =>
+          create.mutate(templateId, {
+            onSuccess: (resume) => {
+              setPickerOpen(false)
+              router.push(`/resumes/${resume.id}?first=1`)
+            },
+          })
+        }
+      />
       <ConfirmDialog
         open={!!confirm}
         onOpenChange={(open) => !open && setConfirm(null)}

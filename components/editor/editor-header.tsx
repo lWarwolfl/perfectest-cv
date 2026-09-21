@@ -5,7 +5,7 @@ import { EditorLogo } from '@/components/editor/screen-gate'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { Download, Eye } from 'lucide-react'
+import { Download, Eye, CircleHelp } from 'lucide-react'
 import Link from 'next/link'
 
 interface EditorHeaderProps {
@@ -15,6 +15,7 @@ interface EditorHeaderProps {
   onDownload: () => void
   share?: React.ReactNode
   saveStatus?: React.ReactNode
+  onHelp?: () => void
 }
 
 export default function EditorHeader({
@@ -24,6 +25,7 @@ export default function EditorHeader({
   onDownload,
   share,
   saveStatus,
+  onHelp,
 }: EditorHeaderProps) {
   return (
     <header className="border-border bg-background flex h-16 shrink-0 items-center justify-between border-b px-5">
@@ -48,6 +50,17 @@ export default function EditorHeader({
       </div>
       <div className="flex items-center gap-3">
         {saveStatus}
+        {onHelp && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onHelp}
+            aria-label="Help"
+            title="How to build your resume"
+          >
+            <CircleHelp className="size-4" />
+          </Button>
+        )}
         <ThemeToggle />
         {share}
         <Button onClick={onDownload}>

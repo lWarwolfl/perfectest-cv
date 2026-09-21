@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useShareResume } from '@/features/share/share.hooks'
 import { ShareButton } from '@/components/common/share-button'
 import {
@@ -35,6 +35,12 @@ import EditorHeader, { EditorShell } from '@/components/editor/editor-header'
 import { ScreenGate } from '@/components/editor/screen-gate'
 import { PageLoader } from '@/components/common/page-loader'
 import ResumeSidebar from '@/components/editor/resume/resume-sidebar'
+import { entryTitleAndPreview } from '@/components/editor/resume/section-card'
+import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import {
+  ResumeHelpDialog,
+  RESUME_HELP_SEEN_KEY,
+} from '@/components/editor/resume/resume-help-dialog'
 import { useResumeStyleStore } from '@/stores/use-resume-style-store'
 import { useAutosaveStore } from '@/stores/use-autosave-store'
 import { useAutosave, AutosaveStatus, AutosaveDialog } from '@/components/editor/autosave'
@@ -73,6 +79,7 @@ function mergeCustomization(
 
 export default function ResumeEditorPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const id = params.id as string
   const { data: doc, isLoading } = useResumeDocument(id)
   const savePersonal = useSaveResumePersonalDetails()
@@ -97,6 +104,23 @@ export default function ResumeEditorPage() {
   const [tab, setTab] = useState<'content' | 'design'>('content')
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [titleDraft, setTitleDraft] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<
+    { kind: 'section' | 'entry'; id: string; title: string } | null
+  >(null)
+  const [helpOpen, setHelpOpen] = useState(false)
+
+  // First-run help: show after template creation (?first=1) or on the very first visit.
+  useEffect(() => {
+    const first = searchParams.get('first') === '1'
+    let seen = false
+    try {
+      seen = localStorage.getItem(RESUME_HELP_SEEN_KEY) === '1'
+    } catch {
+      seen = false
+    }
+    if (first || !seen) setHelpOpen(true)
+    if (first) window.history.replaceState(null, '', `/resumes/${id}`)
+  }, [])
   const dirty = useRef(false)
   const personalDirty = useRef(false)
   const customDirty = useRef(false)
@@ -281,6 +305,7 @@ export default function ResumeEditorPage() {
             onTabChange={setTab}
             onDownload={handlePrint}
             saveStatus={<AutosaveStatus />}
+            onHelp={() => setHelpOpen(true)}
             share={
               <ShareButton
                 className="h-8 text-sm"
@@ -338,14 +363,32 @@ export default function ResumeEditorPage() {
                     prev.map((s) => (s.id === sectionId ? { ...s, hidden } : s))
                   )
                 }}
-                onDeleteSection={(sectionId) => deleteSection.mutate(sectionId)}
+                onDeleteSection={(sectionId) => {
+                  const s = sections.find((sec) => sec.id === sectionId)
+                  setConfirmDelete({
+                    kind: 'section',
+                    id: sectionId,
+                    title: s?.displayName || 'this section',
+                  })
+                }}
                 onAddEntry={(sectionId) => addEntry.mutate(sectionId)}
                 onEntryClick={(sectionId, entryId) => setEditing({ sectionId, entryId })}
                 onSaveMeta={(sectionId, patch) => saveSectionMeta.mutate({ sectionId, ...patch })}
                 onSectionHeadingPatch={patchSectionHeading}
                 onAddSection={(type: SectionType) => addSection.mutate(type)}
                 onUpdateEntry={mutateData}
-                onDeleteEntry={(entryId) => deleteEntry.mutate(entryId)}
+                onDeleteEntry={(entryId) => {
+                  const owner = sections.find((s) => s.entries.some((e) => e.id === entryId))
+                  const found = owner?.entries.find((e) => e.id === entryId)
+                  const { title } = found
+                    ? entryTitleAndPreview(found.data)
+                    : { title: '' as string }
+                  setConfirmDelete({
+                    kind: 'entry',
+                    id: entryId,
+                    title: title || owner?.displayName || 'this entry',
+                  })
+                }}
                 onCloseEntryEdit={closeEntryEdit}
                 onToggleEntryHidden={toggleEntryHidden}
                 onReorderEntries={(sectionId, entryIds) => {
@@ -398,6 +441,33 @@ export default function ResumeEditorPage() {
           </div>
         }
       />
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(open) => !open && setConfirmDelete(null)}
+        title={
+          confirmDelete?.kind === 'section'
+            ? `Delete "${confirmDelete.title}" section?`
+            : `Delete "${confirmDelete?.title}"?`
+        }
+        description={
+          confirmDelete?.kind === 'section'
+            ? 'This permanently removes the section and all its entries. This cannot be undone.'
+            : 'This permanently removes the entry. This cannot be undone.'
+        }
+        confirmLabel="Delete"
+        destructive
+        pending={deleteSection.isPending || deleteEntry.isPending}
+        onConfirm={() => {
+          if (!confirmDelete) return
+          if (confirmDelete.kind === 'section') deleteSection.mutate(confirmDelete.id)
+          else {
+            if (editing?.entryId === confirmDelete.id) setEditing(null)
+            deleteEntry.mutate(confirmDelete.id)
+          }
+          setConfirmDelete(null)
+        }}
+      />
+      <ResumeHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
       <AutosaveDialog />
     </>
   )

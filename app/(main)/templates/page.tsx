@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { FilePlus2 } from 'lucide-react'
 import { RESUME_TEMPLATES } from '@/features/resume/templates'
 import { useCreateResumeFromTemplate } from '@/features/resume/hooks/resume.hooks'
@@ -10,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 
 export default function TemplatesPage() {
+  const router = useRouter()
   const create = useCreateResumeFromTemplate()
   const pendingId = create.isPending
     ? (create.variables as string | undefined) ?? null
@@ -53,7 +55,11 @@ export default function TemplatesPage() {
               <Button
                 size="sm"
                 disabled={create.isPending}
-                onClick={() => create.mutate(t.id)}
+                onClick={() =>
+                  create.mutate(t.id, {
+                    onSuccess: (resume) => router.push(`/resumes/${resume.id}?first=1`),
+                  })
+                }
                 aria-label={`Create a resume from the ${t.name} template`}
               >
                 {pendingId === t.id ? <Spinner className="size-4" /> : <FilePlus2 className="size-4" />}
