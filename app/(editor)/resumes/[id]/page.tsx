@@ -37,6 +37,7 @@ import { PageLoader } from '@/components/common/page-loader'
 import ResumeSidebar from '@/components/editor/resume/resume-sidebar'
 import { entryTitleAndPreview } from '@/components/editor/resume/section-card'
 import { ConfirmDialog } from '@/components/common/confirm-dialog'
+import { HelpFab } from '@/components/editor/help-fab'
 import {
   ResumeHelpDialog,
   RESUME_HELP_SEEN_KEY,
@@ -468,6 +469,7 @@ export default function ResumeEditorPage() {
         }}
       />
       <ResumeHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
+      <HelpFab onClick={() => setHelpOpen(true)} label="How to build your resume" />
       <AutosaveDialog />
     </>
   )

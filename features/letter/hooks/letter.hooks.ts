@@ -7,6 +7,7 @@ import {
   listLettersAction,
   listLetterPreviewsAction,
   createLetterAction,
+  createLetterFromTemplateAction,
   duplicateLetterAction,
   deleteLetterAction,
   saveLetterContentAction,
@@ -37,6 +38,18 @@ export function useCreateLetter() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] })
       toast.success('Letter created')
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+}
+
+export function useCreateLetterFromTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (templateId: string) => createLetterFromTemplateAction(templateId),
+    onSuccess: (letter) => {
+      qc.invalidateQueries({ queryKey: [QUERY_KEYS.LETTERS] })
+      toast.success(`"${letter.title}" created from template`)
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   })

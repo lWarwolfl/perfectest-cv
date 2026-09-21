@@ -1,14 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { HelpDialog } from '@/components/editor/help-dialog'
 
 export const RESUME_HELP_SEEN_KEY = 'perfectest-cv:resume-help-seen'
 
@@ -42,46 +34,14 @@ export function ResumeHelpDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  function close(seen: boolean) {
-    if (seen) {
-      try {
-        localStorage.setItem(RESUME_HELP_SEEN_KEY, '1')
-      } catch {
-        // storage unavailable — dialog just closes
-      }
-    }
-    onOpenChange(false)
-  }
-
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && close(true)}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>How to build your resume</DialogTitle>
-          <DialogDescription>
-            Five quick steps — your template already gave you a head start with sample content.
-          </DialogDescription>
-        </DialogHeader>
-        <ol className="-mx-4 max-h-[50vh] space-y-3 overflow-y-auto px-4 py-1">
-          {STEPS.map((s, i) => (
-            <li key={s.title} className="flex gap-3">
-              <span className="bg-primary text-primary-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
-                {i + 1}
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{s.title}</p>
-                <p className="text-muted-foreground text-xs">{s.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => close(true)}>
-            Don&apos;t show again
-          </Button>
-          <Button onClick={() => close(true)}>Get started</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <HelpDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="How to build your resume"
+      subtitle="Five quick steps — your template already gave you a head start with sample content."
+      steps={STEPS}
+      seenKey={RESUME_HELP_SEEN_KEY}
+    />
   )
 }

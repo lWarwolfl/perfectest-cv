@@ -134,6 +134,46 @@ export async function createLetterAction(title?: string) {
   return letter
 }
 
+const SAMPLE_LETTER_BODY =
+  '<p>Dear Hiring Manager,</p><p>I am excited to apply for the Senior Frontend Developer role at Nova Digital. With 7+ years of experience building accessible, high-performance web applications in React and TypeScript, I would love to bring my skills in design systems and performance optimization to your team.</p><p>In my current role, I led a design-system rebuild used by 40+ engineers, cutting bundle size by 35% and lifting Lighthouse performance from 62 to 96. I care deeply about craft, collaboration, and mentoring — and I would welcome the chance to discuss how I can contribute to your goals.</p><p>Thank you for your time and consideration.</p>'
+
+export async function createLetterFromTemplateAction(templateId: string) {
+  const user = await requireUser()
+  const { LETTER_TEMPLATES } = await import('@/features/resume/templates')
+  const template = LETTER_TEMPLATES.find((t) => t.id === templateId)
+  if (!template) throw new Error('Template not found')
+  const [letter] = await db
+    .insert(Letter)
+    .values({
+      userId: user.id,
+      title: `${template.name} Cover Letter`,
+      design: template.design,
+      senderName: 'Alex Morgan',
+      senderJobTitle: 'Senior Frontend Developer',
+      senderEmail: 'alex.morgan@example.com',
+      senderEmailLink: 'mailto:alex.morgan@example.com',
+      senderPhone: '+31 20 555 0199',
+      senderPhoneLink: 'tel:+31205550199',
+      senderAddress: 'Amsterdam, Netherlands',
+      senderWebsite: 'alexmorgan.dev',
+      senderWebsiteLink: 'https://alexmorgan.dev',
+      senderLinkedIn: 'linkedin.com/in/alexmorgan',
+      senderLinkedInLink: 'https://linkedin.com/in/alexmorgan',
+      senderGitHub: 'github.com/alexmorgan',
+      senderGitHubLink: 'https://github.com/alexmorgan',
+      recipientName: 'Hiring Manager',
+      recipientPosition: 'Engineering Lead',
+      recipientCompany: 'Nova Digital',
+      recipientAddress: 'Amsterdam, Netherlands',
+      subject: 'Application for Senior Frontend Developer',
+      body: SAMPLE_LETTER_BODY,
+      signatureName: 'Alex Morgan',
+      signaturePlace: 'Amsterdam',
+    })
+    .returning()
+  return letter
+}
+
 export async function duplicateLetterAction(letterId: string) {
   const user = await requireUser()
   const letter = await db.query.Letter.findFirst({

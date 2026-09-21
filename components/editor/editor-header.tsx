@@ -56,7 +56,7 @@ export default function EditorHeader({
             size="icon"
             onClick={onHelp}
             aria-label="Help"
-            title="How to build your resume"
+            title="Help"
           >
             <CircleHelp className="size-4" />
           </Button>

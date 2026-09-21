@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeftRight, ChevronRight } from 'lucide-react'
 import { useShareLetter } from '@/features/share/share.hooks'
@@ -23,6 +23,11 @@ import { ScreenGate } from '@/components/editor/screen-gate'
 import { LetterRenderer } from '@/components/cover-letter/letter-renderer'
 import LetterDesignSidebar from '@/components/cover-letter/letter-design-sidebar'
 import { PageLoader } from '@/components/common/page-loader'
+import { HelpFab } from '@/components/editor/help-fab'
+import {
+  LetterHelpDialog,
+  LETTER_HELP_SEEN_KEY,
+} from '@/components/cover-letter/letter-help-dialog'
 import { Button } from '@/components/ui/button'
 import { LabeledInput } from '@/components/ui/labeled'
 import {
@@ -54,6 +59,7 @@ function printWithFileName(name: string) {
 
 export default function LetterEditorPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const id = params.id as string
   const { data: letter, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.LETTERS, id],
@@ -69,7 +75,21 @@ export default function LetterEditorPage() {
   const [tab, setTab] = useState<'content' | 'design'>('content')
   const [activeSection, setActiveSection] = useState<SectionKey | null>(null)
   const [titleDraft, setTitleDraft] = useState('')
+  const [helpOpen, setHelpOpen] = useState(false)
   const dirty = useRef(false)
+
+  // First-run help: show after template creation (?first=1) or on the very first visit.
+  useEffect(() => {
+    const first = searchParams.get('first') === '1'
+    let seen = false
+    try {
+      seen = localStorage.getItem(LETTER_HELP_SEEN_KEY) === '1'
+    } catch {
+      seen = false
+    }
+    if (first || !seen) setHelpOpen(true)
+    if (first) window.history.replaceState(null, '', `/letters/${id}`)
+  }, [])
 
   useEffect(() => {
     if (letter) {
@@ -195,6 +215,7 @@ export default function LetterEditorPage() {
             }}
             onDownload={handlePrint}
             saveStatus={<AutosaveStatus />}
+            onHelp={() => setHelpOpen(true)}
             share={
               <ShareButton
                 className="h-8 text-sm"
@@ -337,6 +358,8 @@ export default function LetterEditorPage() {
           </div>
         }
       />
+      <LetterHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
+      <HelpFab onClick={() => setHelpOpen(true)} label="How to write your cover letter" />
       <AutosaveDialog />
     </>
   )
