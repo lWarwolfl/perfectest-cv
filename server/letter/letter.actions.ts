@@ -3,7 +3,7 @@
 import { db } from '@/drizzle'
 import { Letter } from '@/drizzle/schema'
 import { requireUser } from '@/server/resume/resume.actions'
-import { and, count, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq, ilike } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { EMPTY_PERSONAL_DETAILS } from '@/features/resume/defaults'
@@ -59,19 +59,23 @@ export async function listLettersAction() {
 }
 export type TListLettersAction = Awaited<ReturnType<typeof listLettersAction>>
 
-export async function listLetterPreviewsAction({ page = 1, limit = 6 } = {}) {
+export async function listLetterPreviewsAction({ page = 1, limit = 6, query = '' } = {}) {
   const user = await requireUser()
+  const q = query.trim().replace(/[\\%_]/g, (m) => `\\${m}`)
+  const filter = q
+    ? and(eq(Letter.userId, user.id), ilike(Letter.title, `%${q}%`))
+    : eq(Letter.userId, user.id)
   const [{ count: totalCount }] = await db
     .select({ count: count() })
     .from(Letter)
-    .where(eq(Letter.userId, user.id))
+    .where(filter)
   const pagination = {
     page,
     totalPages: Math.max(1, Math.ceil(totalCount / limit)),
     limit,
   }
   const letters = await db.query.Letter.findMany({
-    where: eq(Letter.userId, user.id),
+    where: filter,
     orderBy: [desc(Letter.updatedAt)],
     limit,
     offset: (page - 1) * limit,

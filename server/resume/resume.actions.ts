@@ -3,7 +3,7 @@
 import { db } from '@/drizzle'
 import { Resume, ResumeSection, ResumeEntry } from '@/drizzle/schema'
 import { getCurrentUser } from '@/lib/auth/server'
-import { and, asc, count, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, inArray } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { SECTION_LABELS, SECTION_ICONS, defaultEntryData } from '@/features/resume/defaults'
@@ -356,19 +356,23 @@ export async function listResumesAction() {
 }
 export type TListResumesAction = Awaited<ReturnType<typeof listResumesAction>>
 
-export async function listResumePreviewsAction({ page = 1, limit = 6 } = {}) {
+export async function listResumePreviewsAction({ page = 1, limit = 6, query = '' } = {}) {
   const user = await requireUser()
+  const q = query.trim().replace(/[\\%_]/g, (m) => `\\${m}`)
+  const filter = q
+    ? and(eq(Resume.userId, user.id), ilike(Resume.title, `%${q}%`))
+    : eq(Resume.userId, user.id)
   const [{ count: totalCount }] = await db
     .select({ count: count() })
     .from(Resume)
-    .where(eq(Resume.userId, user.id))
+    .where(filter)
   const pagination = {
     page,
     totalPages: Math.max(1, Math.ceil(totalCount / limit)),
     limit,
   }
   const resumes = await db.query.Resume.findMany({
-    where: eq(Resume.userId, user.id),
+    where: filter,
     orderBy: [desc(Resume.updatedAt)],
     columns: {
       id: true,

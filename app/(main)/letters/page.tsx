@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Copy, Pencil, Trash2, Download, Link2, MoreVertical } from 'lucide-react'
+import { Copy, Pencil, Search, Trash2, Download, Link2, MoreVertical } from 'lucide-react'
 import {
   useListLetterPreviews,
   useCreateLetter,
@@ -11,6 +11,7 @@ import {
 } from '@/features/letter/hooks/letter.hooks'
 import { useShareLetter } from '@/features/share/share.hooks'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CreateCard } from '@/components/common/create-card'
 import { PreviewFrame } from '@/components/common/preview-frame'
@@ -29,7 +30,16 @@ import { usePrintNode } from '@/lib/use-print'
 
 export default function LettersPage() {
   const [page, setPage] = useState(1)
-  const { data, isLoading } = useListLetterPreviews(page)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(search.trim())
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [search])
+  const { data, isLoading } = useListLetterPreviews(page, debouncedSearch)
   const letters = data?.letters
   const pagination = data?.pagination
   const create = useCreateLetter()
@@ -49,6 +59,16 @@ export default function LettersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Cover Letters</h1>
+        <div className="relative w-full sm:w-64">
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search letters..."
+            aria-label="Search cover letters"
+            className="pl-8"
+          />
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <CreateCard
@@ -148,6 +168,13 @@ export default function LettersPage() {
                 </div>
               </div>
             ))}
+        {!isLoading && letters?.length === 0 && (
+          <p className="text-muted-foreground col-span-full py-8 text-center text-sm">
+            {debouncedSearch
+              ? `No letters match "${debouncedSearch}".`
+              : 'No letters yet — create your first one.'}
+          </p>
+        )}
       </div>
       {pagination && pagination.totalPages > 1 && (
         <DataPagination pagination={pagination} onPageChange={setPage} />

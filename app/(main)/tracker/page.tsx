@@ -37,7 +37,8 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LabeledInput, LabeledTextarea } from '@/components/ui/labeled'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Plus, Trash2, ExternalLink } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Plus, Search, Trash2, ExternalLink, X } from 'lucide-react'
 import { ColorPicker } from '@/components/ui/color-picker'
 import { CreateCard } from '@/components/common/create-card'
 
@@ -369,6 +370,34 @@ export default function TrackerPage() {
 
   const allCards = tracker?.cards || []
   const columns = tracker?.columns || []
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [tagFilter, setTagFilter] = useState('all')
+  const allTags = [...new Set(allCards.flatMap((c) => (c.tags as string[]) || []))].sort()
+  const hasFilter = !!search.trim() || statusFilter !== 'all' || tagFilter !== 'all'
+  const matchesSearch = (card: TTrackerCard) => {
+    const q = search.trim().toLowerCase()
+    if (!q) return true
+    return [card.company, card.jobTitle, card.location]
+      .filter(Boolean)
+      .some((v) => (v as string).toLowerCase().includes(q))
+  }
+  const matchesTag = (card: TTrackerCard) =>
+    tagFilter === 'all' || ((card.tags as string[]) || []).includes(tagFilter)
+  const columnOf = (cardId: string) => columns.find((c) => c.cardIds?.includes(cardId))
+  const visibleCards = allCards.filter(
+    (card) =>
+      matchesSearch(card) &&
+      matchesTag(card) &&
+      (statusFilter === 'all' || columnOf(card.id)?.id === statusFilter)
+  )
+  const shownColumns =
+    statusFilter === 'all' ? columns : columns.filter((c) => c.id === statusFilter)
+  const clearFilters = () => {
+    setSearch('')
+    setStatusFilter('all')
+    setTagFilter('all')
+  }
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -408,13 +437,62 @@ export default function TrackerPage() {
         </div>
       </div>
 
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <div className="relative w-full sm:w-56">
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search company, title, location..."
+            aria-label="Search jobs"
+            className="pl-8"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'all')}>
+          <SelectTrigger aria-label="Status" className="w-40">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            {columns.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={tagFilter} onValueChange={(v) => setTagFilter(v ?? 'all')}>
+          <SelectTrigger aria-label="Tag" className="w-36">
+            <SelectValue placeholder="All tags" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All tags</SelectItem>
+            {allTags.map((t) => (
+              <SelectItem key={t} value={t}>
+                {t}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasFilter && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X className="size-3" /> Clear
+          </Button>
+        )}
+        {hasFilter && (
+          <span className="text-muted-foreground text-xs">
+            {visibleCards.length} of {allCards.length} jobs
+          </span>
+        )}
+      </div>
+
       {view === 'board' ? (
         <div className="-mx-3 flex min-h-0 flex-1 gap-4 overflow-x-auto px-3 pb-2">
           {isLoading
             ? Array.from({ length: 4 }, (_, i) => (
                 <Skeleton key={i} className="w-72 shrink-0 rounded-lg" />
               ))
-            : columns.map((col) => (
+            : shownColumns.map((col) => (
                 <div
                   key={col.id}
                   className={cn(
@@ -437,7 +515,10 @@ export default function TrackerPage() {
                   >
                     <span className="text-sm font-medium">
                       {col.name}{' '}
-                      <span className="text-muted-foreground">({col.cardIds?.length || 0})</span>
+                      <span className="text-muted-foreground">
+                        ({(col.cardIds || []).filter((id) => visibleCards.some((c) => c.id === id)).length}
+                        {hasFilter ? `/${col.cardIds?.length || 0}` : ''})
+                      </span>
                     </span>
                     <div className="flex gap-1">
                       <ColorPicker
@@ -478,7 +559,7 @@ export default function TrackerPage() {
                   <ScrollArea className="flex-1 px-2 py-2">
                     <div className="space-y-2">
                       {(col.cardIds || []).map((cardId: string) => {
-                        const card = allCards.find((c) => c.id === cardId)
+                        const card = visibleCards.find((c) => c.id === cardId)
                         if (!card) return null
                         const resume = resumes?.find((r) => r.id === card.resumeVersionId)
                         const letter = letters?.find((l) => l.id === card.coverLetterVersionId)
@@ -551,7 +632,7 @@ export default function TrackerPage() {
               </tr>
             </thead>
             <tbody>
-              {allCards.map((card) => {
+              {visibleCards.map((card) => {
                 const col = columns.find((c) => c.cardIds?.includes(card.id))
                 const resume = resumes?.find((r) => r.id === card.resumeVersionId)
                 const letter = letters?.find((l) => l.id === card.coverLetterVersionId)
@@ -591,6 +672,13 @@ export default function TrackerPage() {
                   </tr>
                 )
               })}
+              {visibleCards.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="text-muted-foreground p-6 text-center text-sm">
+                    {hasFilter ? 'No jobs match the current filters.' : 'No jobs yet — add your first one.'}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
