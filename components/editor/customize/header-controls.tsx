@@ -278,7 +278,7 @@ export default function HeaderControls({
                 <span className="h-0.5 w-3 bg-current" />
               </span>
             </span>
-            <span className="block text-center">Two Column</span>
+            <span className="block text-center">Wrapped</span>
           </OptionButton>
         </div>
         <div className="grid grid-cols-3 gap-2">
