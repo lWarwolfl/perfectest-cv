@@ -227,13 +227,15 @@ export default function ResumeEditorPage() {
     sectionId: string,
     patch: { style?: HeadingStyle; showTitle?: boolean }
   ) {
-    setCustom((c) => ({
-      ...c,
+    const next: Customization = {
+      ...custom,
       sectionHeadings: {
-        ...c.sectionHeadings,
-        [sectionId]: { ...c.sectionHeadings?.[sectionId], ...patch },
+        ...custom.sectionHeadings,
+        [sectionId]: { ...custom.sectionHeadings?.[sectionId], ...patch },
       },
-    }))
+    }
+    setCustom(next)
+    hydrateStyle(id, next)
     markDirty()
     customDirty.current = true
   }

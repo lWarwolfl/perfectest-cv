@@ -758,6 +758,7 @@ export function ResumeRenderer({
       : 'right'
     : photoPosition.position
   const centered = header.alignText === 'center' || photoTop
+  const sameLineCentered = centered && header.jobTitlePosition === 'sameLine'
   const detailsBlock = detailChips.length > 0 && (
     <div
       style={{
@@ -851,6 +852,7 @@ export function ResumeRenderer({
             display: 'flex',
             flexDirection: header.jobTitlePosition === 'sameLine' ? 'row' : 'column',
             alignItems: centered ? 'center' : 'baseline',
+            justifyContent: sameLineCentered ? 'center' : undefined,
             columnGap: `${customization.spacing.headerTitleGap ?? 12}px`,
           }}
         >

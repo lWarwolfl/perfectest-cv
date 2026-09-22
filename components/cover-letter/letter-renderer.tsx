@@ -168,6 +168,7 @@ export function LetterRenderer({
   const hasPhoto = Boolean(photoPosition.show && form.senderPhotoImageId)
   const photoTop = photoPosition.position === 'top'
   const centered = header.alignText === 'center' || photoTop
+  const sameLineCentered = centered && header.jobTitlePosition === 'sameLine'
 
   const detailKeys = ['displayEmail', 'phone', 'address', 'website', 'linkedIn', 'github'].filter(
     (k) => !(design.hiddenSenderDetails || []).includes(k)
@@ -281,6 +282,7 @@ export function LetterRenderer({
             display: 'flex',
             flexDirection: header.jobTitlePosition === 'sameLine' ? 'row' : 'column',
             alignItems: centered ? 'center' : 'baseline',
+            justifyContent: sameLineCentered ? 'center' : undefined,
             columnGap: `${spacing.headerTitleGap ?? 12}px`,
           }}
         >
